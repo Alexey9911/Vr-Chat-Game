@@ -14,3 +14,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+
+codepen-cleanup-guide/
+

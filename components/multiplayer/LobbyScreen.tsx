@@ -6,6 +6,8 @@ import { MAX_PLAYERS_PER_LOBBY, getLobbyIndex, generateLobbyCode, isValidLobbyCo
 import { findLobby, joinLobby, leaveLobby } from '../../lib/lobbyApi'
 import { useKeyboardStore } from '../../lib/useKeyboardStore'
 import AdminPasswordModal from './AdminPasswordModal'
+import { SKINS } from '../../lib/skins/skinsConfig'
+import SkinPreviewCanvas from '../skins/SkinPreviewCanvas'
 
 // Lobby / Skin selection screen — shown before entering the 3D world
 // Player chooses nickname and color (skin), then clicks Play
@@ -23,6 +25,17 @@ const SKIN_COLORS = [
   { name: 'Black', hex: '#333333' },
 ]
 
+function getNeighborUrls(index: number) {
+  const n = SKINS.length
+  if (n <= 1) return []
+  const prev = SKINS[(index - 1 + n) % n]
+  const next = SKINS[(index + 1) % n]
+  const urls = [prev.assets.modelUrl, next.assets.modelUrl]
+  prev.assets.lodModelUrls?.forEach((u) => urls.push(u))
+  next.assets.lodModelUrls?.forEach((u) => urls.push(u))
+  return Array.from(new Set(urls))
+}
+
 export default function LobbyScreen() {
   const { 
     lobbyVisible, 
@@ -38,6 +51,10 @@ export default function LobbyScreen() {
   const [nickname, setNickname] = useState('')
   const [audioContextInitialized, setAudioContextInitialized] = useState(false)
   const [selectedColor, setSelectedColor] = useState(SKIN_COLORS[0].hex)
+  const [selectedSkinIndex, setSelectedSkinIndex] = useState(() => {
+    const idx = SKINS.findIndex((s) => s.id === 'alon')
+    return idx >= 0 ? idx : 0
+  })
   const [isConnecting, setIsConnecting] = useState(false)
   const [error, setError] = useState('')
   const [showAdminModal, setShowAdminModal] = useState(false)
@@ -110,6 +127,21 @@ export default function LobbyScreen() {
       window.removeEventListener('unload', handleLeave)
     }
   }, [])
+
+  const skin = SKINS[selectedSkinIndex] ?? SKINS[0]
+  const neighborUrls = getNeighborUrls(selectedSkinIndex)
+
+  const onPrevSkin = () => {
+    const n = SKINS.length
+    if (n <= 1) return
+    setSelectedSkinIndex((i) => (i - 1 + n) % n)
+  }
+
+  const onNextSkin = () => {
+    const n = SKINS.length
+    if (n <= 1) return
+    setSelectedSkinIndex((i) => (i + 1) % n)
+  }
 
   // Initialize audio context on first user interaction
   const initAudioOnInteraction = () => {
@@ -264,7 +296,7 @@ export default function LobbyScreen() {
           : {
               name: nickname.trim(),
               color: selectedColor,
-              skinId: 'alon',
+              skinId: skin?.id ?? 'alon',
               isAdmin: false,
               colors: { primary: selectedColor },
             }
@@ -599,70 +631,112 @@ export default function LobbyScreen() {
         src="/alonVersion/image.png"
         alt=""
       />
-      <div className="lobby-card">
-        {/* Logo / Title */}
-        <div className="lobby-header">
-          <img src="/elonkiss.png" alt="AlonVerse" className="lobby-logo" />
-          <h1 className="lobby-title">$alonverse</h1>
-          <p className="lobby-title-white">alonverse</p>
-        </div>
+      <div className="lobby-card lobby-card--new">
+        <div className="lobby-grid">
+          <div className="lobby-left">
+            {/* Logo / Title */}
+            <div className="lobby-header lobby-header--new">
+              <img src="/elonkiss.png" alt="AlonVerse" className="lobby-logo" />
+              <h1 className="lobby-title">$alonverse</h1>
+              <p className="lobby-title-white">alonverse</p>
+            </div>
 
-        {/* Nickname Input */}
-        <div className="lobby-section">
-          <label className="lobby-label">YOUR NICKNAME</label>
-          <input
-            type="text"
-            value={nickname}
-            onChange={(e) => {
-              initAudioOnInteraction()
-              setNickname(e.target.value)
-            }}
-            placeholder="Enter nickname..."
-            maxLength={16}
-            className="lobby-input"
-            autoFocus
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handlePlayClick()
-            }}
-          />
-        </div>
-
-
-        {/* Skin Color Selection */}
-        <div className="lobby-section">
-          <label className="lobby-label">CHOOSE YOUR SKIN</label>
-          <div className="lobby-colors">
-            {SKIN_COLORS.map((skin) => (
-              <button
-                key={skin.hex}
-                className={`lobby-color-btn ${selectedColor === skin.hex ? 'selected' : ''}`}
-                style={{ backgroundColor: skin.hex }}
-                onClick={() => setSelectedColor(skin.hex)}
-                title={skin.name}
+            {/* Nickname Input */}
+            <div className="lobby-section">
+              <label className="lobby-label">NAME</label>
+              <input
+                type="text"
+                value={nickname}
+                onChange={(e) => {
+                  initAudioOnInteraction()
+                  setNickname(e.target.value)
+                }}
+                placeholder="Enter nickname..."
+                maxLength={16}
+                className="lobby-input lobby-input--new"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handlePlayClick()
+                }}
               />
-            ))}
+            </div>
+
+            {/* Name color */}
+            <div className="lobby-section">
+              <label className="lobby-label">NAME COLOR</label>
+              <div className="lobby-colors lobby-colors--new">
+                {SKIN_COLORS.map((c) => (
+                  <button
+                    key={c.hex}
+                    className={`lobby-color-btn ${selectedColor === c.hex ? 'selected' : ''}`}
+                    style={{ backgroundColor: c.hex }}
+                    onClick={() => setSelectedColor(c.hex)}
+                    title={c.name}
+                    type="button"
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Error */}
+            {error && <p className="lobby-error">{error}</p>}
+
+            {/* Play Button */}
+            <button
+              className="lobby-play-btn lobby-play-btn--new"
+              onClick={handlePlayClick}
+              disabled={isConnecting}
+            >
+              {isConnecting ? (
+                <span className="lobby-loading">Connecting{connectingLobby ? ` to ${connectingLobby}` : ''}...</span>
+              ) : (
+                'PLAY'
+              )}
+            </button>
+
+            <p className="lobby-footer">
+              Move with WASD · Space to jump · Enter to chat · V to talk
+            </p>
+          </div>
+
+          <div className="lobby-right">
+            <div className="lobby-avatar-stage">
+              <button
+                type="button"
+                className="lobby-skin-arrow lobby-skin-arrow--left"
+                onClick={onPrevSkin}
+                aria-label="Previous skin"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                className="lobby-skin-arrow lobby-skin-arrow--right"
+                onClick={onNextSkin}
+                aria-label="Next skin"
+              >
+                ›
+              </button>
+
+              <div className="lobby-avatar-canvas">
+                <SkinPreviewCanvas
+                  skin={skin}
+                  colors={undefined}
+                  neighborUrls={neighborUrls}
+                  transparent
+                />
+              </div>
+
+              <div className="lobby-skin-label">
+                {skin?.label ?? 'Skin'}
+              </div>
+            </div>
+
+            <div className="lobby-skin-hint">
+              Click arrows to customize
+            </div>
           </div>
         </div>
-
-        {/* Error */}
-        {error && <p className="lobby-error">{error}</p>}
-
-        {/* Play Button */}
-        <button
-          className="lobby-play-btn"
-          onClick={handlePlayClick}
-          disabled={isConnecting}
-        >
-          {isConnecting ? (
-            <span className="lobby-loading">Connecting{connectingLobby ? ` to ${connectingLobby}` : ''}...</span>
-          ) : (
-            '🚀 PLAY'
-          )}
-        </button>
-
-        <p className="lobby-footer">
-          Move with WASD · Press Enter to chat
-        </p>
       </div>
 
       {/* Mic Permission Step — Friendly overlay before entering the game */}

@@ -176,17 +176,26 @@ export default function SkinPreviewCanvas({
   colors,
   neighborUrls,
   onLoaded,
+  transparent,
 }: {
   skin: SkinConfig
   colors: SkinColors | undefined
   neighborUrls: string[]
   onLoaded?: () => void
+  transparent?: boolean
 }) {
   return (
     <Canvas
       dpr={[1, 1.5]}
       frameloop="always"
       camera={{ position: [...skin.previewCamera.position] as any, fov: skin.previewCamera.fov ?? 35, near: 0.1, far: 100 }}
+      gl={{ alpha: !!transparent, antialias: true }}
+      onCreated={({ gl }) => {
+        if (transparent) {
+          gl.setClearColor(0x000000, 0)
+        }
+      }}
+      style={transparent ? { background: 'transparent' } : undefined}
     >
       <ambientLight intensity={0.9} />
       <directionalLight position={[3, 6, 3]} intensity={1.1} />

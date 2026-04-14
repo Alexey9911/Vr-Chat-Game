@@ -1,0 +1,1722 @@
+<html><head>
+    <meta property="lolbeans:version" content="12">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">        <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="LOLBeans.io">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <title>LOLBeans.io</title>
+    <meta name="description" content="Funny platformer battle royale game. Play multiplayer online for free in browser and mobile, no app or download. Ultimate Wipeout! Get the crown and don't fall, guys!">
+    <meta name="keywords" content="fall guys, alternative, ultimate, knockout, funny, crown, skins, season, cross-platform, download, app, io game, 3d, free, online, multiplayer, battle royale, wipeout, takeshi, jelly bean, 3d, platformer, obstacle course">
+    
+    <meta property="og:title" content="LOLBeans.io">
+    <meta property="og:description" content="Funny platformer battle royale game. Play online for free in browser and mobile, no app or download. Challenge your friends and win the race!">
+    <meta property="og:url" content="https://lolbeans.io/">
+
+    <meta property="og:image" content="https://lolbeans.io/banners/1200x630.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <meta property="og:type" content="website">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Funny platformer battle royale game">
+    <meta name="twitter:image" content="https://lolbeans.io/banners/1280x640.png">
+    <meta name="twitter:site" content="@LOLBeansIO">
+
+    
+    
+    
+    
+    
+    
+    <meta name="msapplication-TileColor" content="#00c8ff">
+    <meta name="msapplication-config" content="/favicon/browserconfig.xml">
+    <meta name="theme-color" content="#00c8ff">    
+    
+
+    
+    <iframe style="display: none;"></iframe><iframe src="https://btloader.com/trustedIframe.html?o=5643766199222272&amp;upapi=true" referrerpolicy="origin" sandbox="allow-scripts allow-same-origin" style="display: none !important; width: 0px !important; height: 0px !important;"></iframe><meta http-equiv="origin-trial" content="AlK2UR5SkAlj8jjdEc9p3F3xuFYlF6LYjAML3EOqw1g26eCwWPjdmecULvBH5MVPoqKYrOfPhYVL71xAXI1IBQoAAAB8eyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiV2ViVmlld1hSZXF1ZXN0ZWRXaXRoRGVwcmVjYXRpb24iLCJleHBpcnkiOjE3NTgwNjcxOTksImlzU3ViZG9tYWluIjp0cnVlfQ=="><meta http-equiv="origin-trial" content="Amm8/NmvvQfhwCib6I7ZsmUxiSCfOxWxHayJwyU1r3gRIItzr7bNQid6O8ZYaE1GSQTa69WwhPC9flq/oYkRBwsAAACCeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiV2ViVmlld1hSZXF1ZXN0ZWRXaXRoRGVwcmVjYXRpb24iLCJleHBpcnkiOjE3NTgwNjcxOTksImlzU3ViZG9tYWluIjp0cnVlfQ=="><meta http-equiv="origin-trial" content="A9nrunKdU5m96PSN1XsSGr3qOP0lvPFUB2AiAylCDlN5DTl17uDFkpQuHj1AFtgWLxpLaiBZuhrtb2WOu7ofHwEAAACKeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiQUlQcm9tcHRBUElNdWx0aW1vZGFsSW5wdXQiLCJleHBpcnkiOjE3NzQzMTA0MDAsImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><meta http-equiv="origin-trial" content="A93bovR+QVXNx2/38qDbmeYYf1wdte9EO37K9eMq3r+541qo0byhYU899BhPB7Cv9QqD7wIbR1B6OAc9kEfYCA4AAACQeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiQUlQcm9tcHRBUElNdWx0aW1vZGFsSW5wdXQiLCJleHBpcnkiOjE3NzQzMTA0MDAsImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><meta http-equiv="origin-trial" content="A1S5fojrAunSDrFbD8OfGmFHdRFZymSM/1ss3G+NEttCLfHkXvlcF6LGLH8Mo5PakLO1sCASXU1/gQf6XGuTBgwAAACQeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiQUlQcm9tcHRBUElNdWx0aW1vZGFsSW5wdXQiLCJleHBpcnkiOjE3NzQzMTA0MDAsImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><iframe frameborder="0" marginwidth="0" marginheight="0" scrolling="no" webkitallowfullscreen="true" mozallowfullscreen="true" border="0" allowtransparency="true" allow="geolocation; microphone; camera; autoplay; fullscreen; payment; accelerometer; ; display-capture; gyroscope; magnetometer; midi; ch-ua-platform-version; ch-ua-model" style="border: 0px; display: none;"></iframe></head>
+
+<body class="landscape" cz-shortcut-listen="true">    
+    
+
+    <div id="loading" style="display: none;">
+        <div class="center">
+            <div class="spinner black">
+                <div></div>
+            </div>
+            <span>Loading...</span>
+        </div>
+    </div>
+    <div id="fps"></div>
+    <div id="homepage-toasts"></div>
+    <div id="screens" class="visible">
+        <div id="home-screen" class="visible character-available">
+            <div class="header">
+                <a class="twitter-link" href="https://twitter.com/LOLBeansIO" target="_blank" title="Follow on Twitter"><img src="https://lolbeans.io/ui/twitter.svg"></a>
+                <a class="youtube-link" href="https://www.youtube.com/channel/UC90nsu3ZJYEge-nZvLerMIw?sub_confirmation=1" target="_blank" title="Watch videos on YouTube"><img src="https://lolbeans.io/ui/youtube.svg"></a>
+                <a class="discord-link" href="https://discord.gg/sjGUmwS" target="_blank"></a>
+                <div id="party-mode-button" class="party-button primary-btn"></div>
+                <div id="leaderboard-button" class="primary-btn">
+                    <div class="icon"></div><span></span>
+                </div>
+                <div id="stats-button" class="primary-btn">
+                    <div class="icon"></div><span></span>
+                </div>
+                <div class="account-block">
+                    <div id="home-unconnected-block" class="unconnected-block">
+                        <div id="home-login-button" class="login-button primary-btn"></div>
+                    </div>
+                    <div id="home-connected-block" class="connected-block">
+                        <span id="home-my-account-button" class="button secondary-btn my-account-button" style="pointer-events: auto;">
+                            <img id="home-profile-picture" class="profile-picture">
+                        </span>
+                    </div>
+                </div>
+                <a id="home-screen-settings-btn" class="settings-btn secondary-btn">
+                    <div id="settings-icon"></div><span></span>
+                </a>
+                <a id="home-screen-mute-btn" class="unmute-btn">
+                    <div id="mute-icon"></div><span></span>
+                </a>
+            </div>
+            <div id="home-left" class="left">
+                <div class="guide">
+                    <div class="title">How to play</div>
+                    <div class="description desktop">
+                        <p>Control your bean with WASD or arrow keys, jump with space or right-click</p>
+                        <p>Avoid the obstacles and reach the finish line</p>
+                        <p>Battle royale: late players are eliminated every map. Be the last winner and get the prize!</p>
+                        <p>Don't fall, guys! 1, 2, 3 Red Light!</p>
+                    </div>
+                    <div class="description mobile">
+                        <p>Avoid the obstacles and reach the finish line</p>
+                        <p>Battle royale: late players are eliminated every map. Be the last winner and get the prize!</p>
+                        <p>Don't fall, guys! 1,2,3 Red Light!</p>
+                    </div>
+                </div>                <div class="changelog">
+                    <div class="title">Changelog<a class="more" href="about.html" target="_blank">more</a></div>
+                    <div class="description">
+                        <div>
+                            <p>2026-03-19: New map: Escape Tsunami!</p>
+                            <img src="https://lolbeans.io/ui/changelog-map-escapetsunami.png" style="width: 100%; height: auto; padding: 0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="home-party-creation-popin">
+                <div id="home-party-create-block">
+                    <div class="title">Create Party</div>
+                    <div class="wrapper">
+                        <div id="party-create-button" class="button">
+                            Create party
+                        </div>
+                        <div class="description">You'll get a ROOM CODE to share with your friends to play together</div>
+                    </div>
+                </div>
+                <div id="home-party-join-block">
+                    <div class="title">Join Party</div>
+                    <div class="wrapper">
+                        <div class="label">Enter ROOM CODE</div>
+                        <input id="party-code-input" maxlength="8" type="text" size="1" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="ABXYZ">
+                        <div id="party-join-button" class="button">
+                            Join
+                        </div>
+                        <div class="description">Ask a friend to give you the code of their party room or create a party yourself</div>
+                    </div>
+                </div>
+                <div id="party-popin-close-btn">
+                    Cancel
+                </div>
+            </div>
+            <div id="home-party-direct-link-popin">
+                <div id="home-party-direct-link-join-block">
+                    <div class="title">Join Party Room</div>
+                    <div class="wrapper">
+                        <div class="subtitle"><span>🥳</span><br>Joining LOLBeans.io party</div>
+                        <div class="label">ROOM CODE</div>
+                        <input id="link-party-code-input" maxlength="8" type="text" size="1" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="ABXYZ" readonly="">
+                        <div id="link-party-join-button" class="button">
+                            Join
+                        </div>
+                        <div class="description">
+                            <p>An ad might be played before joining.</p>
+                            <p>You can support the development of LOLBeans by watching it.</p>
+                        </div>
+                    </div>
+                </div>
+                <div id="link-party-popin-close-btn">
+                    Cancel
+                </div>
+            </div>
+            <div id="home-party-block" class="left">
+                <div id="party-title-section">
+                    <div id="party-room-header">Party room</div><button id="party-leave-button" class="button leave" type="button" title="Leave party">Leave</button>
+                </div>
+                <div id="party-room-code-wrapper">
+                    <div id="party-room-label"><span>Room code:</span></div>
+                    <div id="party-share-link"></div>
+                    <div id="party-copy-btn-wrapper">
+                        <div id="party-copy-btn"><img src="https://lolbeans.io/ui/copy-link-icon.svg"></div>
+                        <div id="party-mobile-share-btn"><img src="https://lolbeans.io/ui/share-icon.svg"></div>
+                    </div>
+                </div>
+                <div id="party-link-tooltip">
+                    <div id="party-copy-tip"><span>copy a direct link to this room to share</span> <span>👆</span></div>
+                    <div id="party-share-tip"><span>share a direct link to this room</span> <span>👆</span></div>
+                    <div id="party-no-share-copy-tip"><span>tell your friends the ROOM CODE above so they can join</span> <span>👆</span></div>
+                    <div id="party-copy-confirmation">✅ link copied to your clipboard, paste it in a message to your friends</div>
+                    <div id="party-failed-share-message">❌ sharing didn't work, tell the ROOM CODE above to your friends instead</div>
+                    <div id="party-failed-copy-message">❌ copying didn't work, tell the ROOM CODE above to your friends instead</div>
+                    <div class="icon"></div>
+                </div>
+                <div id="party-left-panel">
+                    <div id="party-no-host" class="party-room-status">No party host to start the game, ask the host of the party to reconnect to this room.</div>
+                    <div id="party-host-present" class="party-room-status">Waiting for party <span class="host-icon"></span> host to start the game...</div>
+                    <div id="party-host-playing" class="party-room-status">Party <span class="host-icon"></span> host is currently playing.</div>
+                    <div id="party-is-host" class="party-room-status">You're the host, click <span>PLAY</span> when your party is ready to start.</div>
+                    <div id="party-chat-history"></div>
+                </div>
+                <div id="party-chat-block">
+                    <div class="chat-box">
+                        <input id="party-chat-input" type="text" size="1" maxlength="64" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Type message...">
+                    </div>
+                    <div id="party-chat-send-btn">Send</div>
+                </div>
+                <div id="party-right-panel">
+                    <div id="party-gamestate">
+                        <span class="icon"></span>
+                        <span class="info">...</span>
+                    </div>
+                    <div id="party-region">
+                        <span class="icon"></span>
+                        <span class="info">...</span>
+                    </div>
+                    <div id="party-gamemode">
+                        <span class="icon"></span>
+                        <span class="info">Battle Royale</span>
+                    </div>
+                    <div id="party-community-level">
+                        <span class="icon"></span>
+                        <span class="info">Community level</span>
+                    </div>
+                    <div id="party-members-count">
+                        <span class="icon"></span>
+                        <span class="info">...</span>
+                    </div>
+                    <div id="party-users-list" class="user-list">
+                        <div>...</div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="right">
+                <div id="homepage-banner-right"><div id="lolbeans-io_300x600"><span><span style=""><span id="zBYMzIojCMf7_1776200596734_764277555_0" style="pointer-events: auto; visibility: visible; line-height: 0; display: none;" data-id="i7837_c6547_p0_0_0" class="up-hide" data-google-query-id="CM3J7u-e7pMDFVWhWgUdabU83Q"><div id="google_ads_iframe_/421469808,22414184445/lolbeans.io_300x600_0__container__" style="border: 0pt; width: 160px; height: 0px;"></div></span></span></span></div></div>
+            </div>
+            <div class="logo"></div>
+            <div id="preview-cell">
+                <div id="home-preview-container" class="preview-container"><canvas __spector_context_type="webgl2" width="381" height="572" id="animated-skin-preview" style="display: block; width: 381px; height: 572px; max-width: initial; max-height: initial;"></canvas>
+                    <img id="skin-preview-image" src="https://lolbeans.io/ui/skin-preview-desaturated.png">
+                </div>
+            </div>
+            <div id="home-customize-btn-wrapper" class="customize-btn-wrapper">
+                <div id="home-customize-btn" class="customize-btn">
+                    <p class="blinking"></p>
+                    <p class="icon">👆</p>
+                </div>
+            </div>
+            <div id="name-input-wrapper">
+                <input id="username" type="text" placeholder="Name" tabindex="1" maxlength="12" autocorrect="off">
+            </div>
+            <div id="play-btn-wrapper">
+                <div id="gamemode-btn">
+                    <div>
+                        <span class="gamemode-label">Gamemode: </span><span id="select-gamemode-value" class="gamemode-value">Battle Royale</span>
+                    </div>
+                </div>
+                <div id="btn-community-level">SELECT LEVEL</div>
+                <div id="home-level-details" style="display: none;"><img id="home-level-thumbnail"><span id="home-level-name"></span><span id="home-level-cancel">❌</span></div>
+                <div id="party-private-block">
+                    <div>Private Party <input id="party-private-checkbox" type="checkbox"></div>
+                    <div>(only available with 15+ members)</div>
+                </div>
+                <div id="btn-play" class="cta">PLAY</div>
+                <div id="server-block" class="visible">
+                    <div class="choices" data-type="select-one" tabindex="0" role="listbox" aria-haspopup="true" aria-expanded="false"><div class="choices__inner"><select id="region" class="choices__input" hidden="" tabindex="-1" data-choice="active"><option value="USE">US East</option></select><div class="choices__list choices__list--single"><div class="choices__item choices__item--selectable" data-item="" data-id="4" data-value="USE" aria-selected="true"><span class="region-label">Region: </span>US East</div></div></div><div class="choices__list choices__list--dropdown" aria-expanded="false"><div class="choices__list" role="listbox"><div class="choices__item choices__item--choice choices__item--selectable is-highlighted" data-choice="" data-choice-selectable="" data-id="1" data-value="SIN" role="option" aria-selected="true">Asia SouthEast<span class="ping">312 ms</span></div><div class="choices__item choices__item--choice choices__item--selectable" data-choice="" data-choice-selectable="" data-id="2" data-value="AU" role="option">Australia<span class="ping">270 ms</span></div><div class="choices__item choices__item--choice choices__item--selectable" data-choice="" data-choice-selectable="" data-id="3" data-value="TOK" role="option">Asia East<span class="ping">244 ms</span></div><div class="choices__item choices__item--choice choices__item--selectable" data-choice="" data-choice-selectable="" data-id="4" data-value="SA" role="option">South America<span class="ping">177 ms</span></div><div class="choices__item choices__item--choice choices__item--selectable" data-choice="" data-choice-selectable="" data-id="5" data-value="EUW" role="option">Europe West<span class="ping">171 ms</span></div><div class="choices__item choices__item--choice choices__item--selectable" data-choice="" data-choice-selectable="" data-id="6" data-value="USW" role="option">US West<span class="ping">127 ms</span></div><div class="choices__item choices__item--choice choices__item--selectable" data-choice="" data-choice-selectable="" data-id="7" data-value="USE" role="option">US East<span class="ping">100 ms</span></div></div></div></div>
+                </div>
+                <div class="proxy">Alt. address: <a target="_blank" href="https://bean.lol">bean.lol</a> or <a target="_blank" href="https://obby.lol">obby.lol</a></div>
+            </div>
+            <div id="io-games-link"><a class="button" title="Play more IO Games" href="https://iogames.space" target="_blank">More IO Games</a></div>
+            <div id="footer-links">
+                <a href="about.html" title="About">About</a> - <a target="_blank" href="privacypolicy.html">Privacy Policy</a> - <a target="_blank" href="tos.html">Terms of Service</a> - <a href="#" title="Message us">Contact
+                    us</a>
+            </div>
+            <div id="bottom">
+                <div id="banner-bottom"></div>
+            </div>
+            <div id="loading-progress-bar" style="display: none;">
+                <div id="loading-progress-bar-value" class="bar" style="width: 100%;"></div>
+                <div class="text">Loading...</div>
+            </div>
+        </div>
+        <div id="shop-screen">
+            <div class="header">
+                <div class="shop-account-block">
+                    <div id="shop-unconnected-block" class="unconnected-block">
+                        <div id="shop-login-button" class="login-button primary-btn"></div>
+                    </div>
+                    <div id="shop-connected-block" class="connected-block">
+                        <span id="shop-my-account-button" class="button secondary-btn my-account-button" style="pointer-events: auto;">
+                            <img id="shop-profile-picture" class="profile-picture">
+                        </span>
+                    </div>
+                </div>
+                <div id="coins-indicator-wrapper">
+                    <div id="coins-balance-button" class="primary-btn">
+                        <div id="coins-balance-button-amount"></div><img src="https://lolbeans.io/ui/coin.png">
+                    </div>
+                    <div id="coins-plus-button" class="primary-btn"></div>
+                </div>
+
+            </div>
+            <div class="logo"></div>
+            <div id="preview-cell">
+                <div id="shop-preview-container" class="preview-container">
+                    <img id="skin-preview-image" src="https://lolbeans.io/ui/skin-preview-desaturated.png">
+                </div>
+            </div>
+            <div id="name-input-wrapper">
+                <div id="shop-player-name">Name</div>
+            </div>
+            <div id="shop-purchase-tip-wrapper">
+                <div id="shop-purchase-tip">buy for &nbsp; <span id="shop-purchase-tip-amount"> - </span>&nbsp; coins?</div>
+            </div>
+            <div id="shop-purchase-confirm-btn-wrapper">
+                <div id="shop-purchase-cancel-btn" class="cta"><img src="https://lolbeans.io/ui/purchase-cancel.svg"></div>
+                <div id="shop-purchase-confirm-btn" class="cta"><img src="https://lolbeans.io/ui/purchase-confirm.svg"></div>
+            </div>
+            <div id="shop-done-btn-wrapper">
+                <span id="shop-done-btn" class="cta">DONE</span>
+            </div>
+            <div id="shop-unaffordable-tip-wrapper">
+                <div id="shop-unaffordable-tip">not enough coins</div>
+            </div>
+            <div id="shop-spin-tip-wrapper">
+                <div id="shop-spin-tip"></div>
+            </div>
+            <div id="shop-buy-btn-wrapper">
+                <span id="buy-btn-bundle-description">4 ANIMATED SKINS + ALL COLORS</span>
+                <span id="buy-btn-bundle-preview"><span></span><span></span><span></span><span></span></span>
+                <span id="shop-close-preview-btn" class="cta"><img src="https://lolbeans.io/ui/preview-close.svg"></span>
+                <span id="shop-buy-btn" class="cta">
+                    <div class="spinner black">
+                        <div></div>
+                    </div><span id="buy-cta-price">200</span><img src="https://lolbeans.io/ui/coin.png">
+                </span>
+            </div>
+            <input type="radio" id="category-1-tab-input" class="category-input-selector" name="category-input" checked="checked">
+            <input type="radio" id="category-2-tab-input" class="category-input-selector" name="category-input">
+            <input type="radio" id="category-3-tab-input" class="category-input-selector" name="category-input">
+            <div id="shop-tabs">
+                <label id="skins-tab" for="category-1-tab-input"></label>
+                <label id="premium-tab" for="category-3-tab-input"></label>
+                <label id="hats-tab" for="category-2-tab-input"></label>
+                <div id="bundles-tab"></div>
+            </div>
+            <div id="skin-items">
+                <input type="radio" id="cat-1-skin-input" class="skin-cat-input-selector" name="skin-cat-input" checked="checked">
+                <input type="radio" id="cat-2-skin-input" class="skin-cat-input-selector" name="skin-cat-input">
+                <input type="radio" id="cat-3-skin-input" class="skin-cat-input-selector" name="skin-cat-input">
+                <div id="skin-list-filters">
+                    <label id="all-skins-filter" for="cat-1-skin-input">All</label>
+                    <label id="exotic-skins-filter" for="cat-2-skin-input">Exotic</label>
+                    <label id="animated-skins-filter" for="cat-3-skin-input">Animated</label>
+                </div>
+                <div id="skin-items-list" class="shop-items-list">
+                </div>
+            </div>
+            <div id="hats-items">
+                <div id="hats-items-list" class="shop-items-list">
+                </div>
+            </div>            <div id="premium-items">
+                <div id="premium-items-list" class="shop-items-list">
+                </div>
+            </div>
+            <div id="shop-account-warning">Hey beanie! You aren't logged in. <br>To save your skins <a href="#" id="shop-create-account-link">create an account</a>
+                <div id="close-account-warning">✕</div>
+            </div>
+            <input type="radio" id="color-1-tab-input" class="color-input-selector" name="color-input" checked="checked">
+            <input type="radio" id="color-2-tab-input" class="color-input-selector" name="color-input">
+            <input type="radio" id="color-3-tab-input" class="color-input-selector" name="color-input">
+            <div id="color-tabs">
+                <label id="custom-color-1-tab" for="color-1-tab-input" class="color-tab">A</label>
+                <label id="custom-color-2-tab" for="color-2-tab-input" class="color-tab">B</label>
+                <label id="custom-color-3-tab" for="color-3-tab-input" class="color-tab">C</label>
+            </div>
+            <div id="color-swatches">
+                <div id="color-set-1" class="color-swatches-wrapper">
+                </div>
+                <div id="color-set-2" class="color-swatches-wrapper">
+                </div>
+                <div id="color-set-3" class="color-swatches-wrapper">
+                </div>
+            </div>
+            <div id="bundles-pop-in">
+                <div id="bundles-top-wrapper">
+                    <div id="bundles-coin-balance">2000<img src="https://lolbeans.io/ui/coin.png"></div>
+                    <div id="bundles-close-button"></div>
+                </div>
+                <div id="bundle-items-wrapper">
+                    <div class="bundle-item" id="bundle-item-1">
+                        <div id="bundle-1-banner"></div>
+                        <div class="bundle-icon" id="bundle-1-icon"></div>
+                        <div class="bundle-qty" id="bundle-1-qty">150+ <span>colors</span></div>
+                        <h2>Color Pack</h2>
+                        <div class="bundle-subitem-icon all-color-icon bundle-subitem-1-icon"></div><span class="bundle-subitem-1-name">
+                            <div>All skin colors</div>
+                            <div class="bundle-subitem-description">Customize your body with any color, including black!
+                            </div>
+                        </span>
+
+                        <div class="cta bundle-buy-button" id="bundle-1-buy-button">
+                            <div class="spinner black">
+                                <div></div>
+                            </div>
+                            <div class="bundle-price">$0.99</div>
+                        </div>
+                    </div>
+                    <div class="bundle-item" id="bundle-item-2">
+                        <div id="bundle-2-banner"></div>
+                        <div class="bundle-icon" id="bundle-2-icon"></div>
+                        <div class="bundle-qty" id="bundle-2-qty">
+                            <div><span class="new-bundle-qty">10,000</span><span>coins</span></div>
+                        </div>
+                        <h2>Starter Pack</h2>
+                        <div class="bundle-subitem-icon all-color-icon bundle-subitem-1-icon"></div>
+                        <span class="bundle-subitem-1-name">
+                            <div>All skin colors</div>
+                            <div class="bundle-subitem-description">Included in this pack</div>
+                        </span>
+                        <div class="bundle-subitem-icon coins-1000-icon bundle-subitem-2-icon"></div>
+                        <span class="bundle-subitem-2-name">
+                            <div class="bundle-subitem-2-inner-wrapper">10,000 coins</div>
+                            <div class="bundle-subitem-description">Buy the skins and hats you want!</div>
+                        </span>
+                        <div class="bundle-subitem-icon no-ads-icon bundle-subitem-3-icon"></div>
+                        <span class="bundle-subitem-3-name">
+                            <div>1 month ad‑free</div>
+                            <div class="bundle-subitem-description">No ads, get right into the action!</div>
+                        </span>
+                        <div class="cta bundle-buy-button" id="bundle-2-buy-button">
+                            <div class="spinner black">
+                                <div></div>
+                            </div>
+                            <div class="bundle-price">$4.99</div>
+                        </div>
+                    </div>
+                    <div class="bundle-item" id="bundle-item-3">
+                        <div id="bundle-3-ribbon">
+                            <div class="ribbon"><span>POPULAR</span></div>
+                        </div>
+                        <div id="bundle-3-banner"></div>
+                        <div class="bundle-icon" id="bundle-3-icon"></div>
+                        <div class="bundle-qty" id="bundle-3-qty">
+                            <div><span class="new-bundle-qty">30,000</span><span>coins</span></div>
+                        </div>
+                        <div id="bundle-3-badge"></div>
+                        <h2>Pro Pack</h2>
+                        <div class="bundle-subitem-icon all-color-icon bundle-subitem-1-icon"></div>
+                        <span class="bundle-subitem-1-name">
+                            <div>All skin colors</div>
+                            <div class="bundle-subitem-description">Included in this pack</div>
+                        </span>
+                        <div class="bundle-subitem-icon coins-3000-icon bundle-subitem-2-icon"></div>
+                        <span class="bundle-subitem-2-name">
+                            <div class="bundle-subitem-2-inner-wrapper">30,000 coins</div>
+                            <div class="bundle-subitem-description">50% more coins / dollar</div>
+                        </span>
+                        <div class="bundle-subitem-icon no-ads-icon bundle-subitem-3-icon"></div>
+                        <span class="bundle-subitem-3-name">
+                            <div>3 months ad‑free</div><span class="bundle-subitem-description">Included in this pack</span>
+                        </span>
+                        <div class="cta bundle-buy-button" id="bundle-3-buy-button">
+                            <div class="spinner black">
+                                <div></div>
+                            </div>
+                            <div class="bundle-price">$9.99</div>
+                        </div>
+                    </div>
+                    <div class="bundle-item" id="bundle-item-4">
+                        <div id="bundle-4-ribbon">
+                            <div class="ribbon"><span>BEST VALUE</span></div>
+                        </div>
+                        <div id="bundle-4-banner"></div>
+                        <div class="bundle-icon" id="bundle-4-icon"></div>
+                        <div class="bundle-qty" id="bundle-4-qty">
+                            <div><span class="new-bundle-qty">70,000</span><span>coins</span></div>
+                        </div>
+                        <div id="bundle-4-badge"></div>
+                        <h2>Champion Pack</h2>
+                        <div class="bundle-subitem-icon all-color-icon bundle-subitem-1-icon"></div>
+                        <span class="bundle-subitem-1-name">
+                            <div>All skin colors</div>
+                            <div class="bundle-subitem-description">Included in this pack
+                            </div>
+                        </span>
+                        <div class="bundle-subitem-icon coins-7000-icon bundle-subitem-2-icon"></div>
+                        <span class="bundle-subitem-2-name">
+                            <div class="bundle-subitem-2-inner-wrapper">70,000 coins</div>
+                            <div class="bundle-subitem-description">75% more coins / dollar</div>
+                        </span>
+                        <div class="bundle-subitem-icon no-ads-icon bundle-subitem-3-icon"></div>
+                        <span class="bundle-subitem-3-name">
+                            <div>6 months ad‑free</div>
+                            <div class="bundle-subitem-description">Included in this pack</div>
+                        </span>
+                        <div class="cta bundle-buy-button" id="bundle-4-buy-button">
+                            <div class="spinner black">
+                                <div></div>
+                            </div>
+                            <div class="bundle-price">$19.99</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="profile-screen">
+            <div class="header">
+                <div class="profile-account-block">
+                    <div id="profile-unconnected-block" class="unconnected-block">
+                        <div id="profile-login-button" class="login-button primary-btn"></div>
+                    </div>
+                    <div id="profile-connected-block" class="connected-block">
+                        <span id="profile-my-account-button" class="button secondary-btn my-account-button" style="pointer-events: auto;">
+                            <img id="profile-profile-picture" class="profile-picture">
+                        </span>
+                    </div>
+                </div>
+                <a id="profile-screen-settings-btn" class="settings-btn secondary-btn">
+                    <div id="settings-icon"></div><span></span>
+                </a>
+                <a id="profile-screen-mute-btn" class="unmute-btn">
+                    <div id="mute-icon"></div><span></span>
+                </a>
+            </div>
+            <div class="logo"></div>
+            <div id="preview-cell">
+                <div id="profile-preview-container" class="preview-container">
+                    <img id="skin-preview-image" src="https://lolbeans.io/ui/skin-preview-desaturated.png">
+                </div>
+            </div>
+            <div id="profile-customize-btn-wrapper" class="customize-btn-wrapper">
+                <div id="profile-customize-btn" class="customize-btn">
+                    <p class="blinking"></p>
+                    <p class="icon">👆</p>
+                </div>
+            </div>
+            <div id="name-input-wrapper">
+                <div id="profile-player-name">Name</div>
+            </div>
+            <div id="profile-panel">
+                <div class="title">Stats</div>
+                <div id="wins-counter">
+                    <div class="wins">🏆 <span id="profile-wins-value">34</span></div>
+                </div>
+                <div id="xp-wrapper">
+                    <div id="profile-previous-level" class="level">99</div>
+                    <div id="xp-progress-profile" class="xp-progress">
+                        <div class="bar-bg">
+                            <div id="profile-level-bar-value" class="bar"></div>
+                            <div id="profile-level-bar-text" class="text">XP</div>
+                        </div>
+                    </div>
+                    <div id="profile-next-level" class="level">99</div>
+                </div>
+                <div id="profile-unlock-preview">
+                    <div class="label">Level <span id="profile-unlock-level">5</span> unlocks:</div>
+                    <div id="profile-unlock-thumbnail" class="preview-thumbnail"></div>
+                </div>
+                <div id="best-times-wrapper">                </div>
+            </div>
+            <div id="profile-back-btn-wrapper">
+                <span id="profile-back-btn" class="cta">BACK</span>
+            </div>
+        </div>
+        <div id="settings-screen">
+            <div class="left-panel">            </div>
+            <div class="center-panel">
+                <div class="top-section"></div>
+                <div class="mid-section">
+                    <div class="pc-tab">
+                        <input checked="checked" id="tab1" type="radio" name="pct">
+                        <input id="tab2" type="radio" name="pct">
+                        <input id="tab3" type="radio" name="pct">
+                        <input id="tab4" type="radio" name="pct">
+                        <nav>
+                            <ul>
+                                <li class="tab1">
+                                    <label for="tab1">Game &amp; Controls</label>
+                                </li>
+                                <li class="tab2">
+                                    <label for="tab2">Keybinds</label>
+                                </li>
+                                <li class="tab3">
+                                    <label for="tab3">Graphics &amp; Audio</label>
+                                </li>
+                                <li class="tab4">
+                                    <label for="tab4">Chat &amp; Safety</label>
+                                </li>
+                            </ul>
+                        </nav>
+                        <section>
+                            <div class="tab1">
+                                <div class="two-column-wrapper">
+                                    <div id="mouse-settings" class="slider-widget-wrapper">
+                                        <h2>Mouse Sensitivity</h2>
+                                        <div class="slider-wrapper">
+                                            <input type="range" min="1" max="100" value="50" id="mouse-sens-slider" tabindex="2">
+                                            <span id="mouse-sens-value" class="range-slider__value">20</span>
+                                        </div>
+                                    </div>
+                                    <div id="fov-settings" class="slider-widget-wrapper">
+                                        <h2>Field of view</h2>
+                                        <div class="slider-wrapper">
+                                            <input type="range" min="45" max="80" value="60" id="fov-slider">
+                                            <span id="fov-value" class="range-slider__value">75</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="mobile-settings" class="two-column-wrapper">
+                                    <div id="mobile-joystick-settings">
+                                        <h2>Mobile: virtual joystick has fixed position</h2>
+                                        <div class="radio-toolbar">
+                                            <input type="radio" id="mobile-joystick-off" name="mobile-joystick-option" value="false" checked="">
+                                            <label for="mobile-joystick-off">Off</label>
+                                            <input type="radio" id="mobile-joystick-on" name="mobile-joystick-option" value="true">
+                                            <label for="mobile-joystick-on">On</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="player-settings">
+                                    <div id="camera-locked-settings">
+                                        <h2>Player direction is locked to camera</h2>
+                                        <div class="radio-toolbar">
+                                            <input type="radio" id="camera-locked-off" name="camera-locked-option" value="false" checked="">
+                                            <label for="camera-locked-off">Off</label>
+                                            <input type="radio" id="camera-locked-on" name="camera-locked-option" value="true">
+                                            <label for="camera-locked-on">On</label>
+                                        </div>
+                                    </div>
+                                    <div id="air-movement-settings">
+                                        <h2>Stop air movement when a direction key/joystick is released</h2>
+                                        <div class="radio-toolbar">
+                                            <input type="radio" id="air-movement-off" name="air-movement-option" value="false" checked="">
+                                            <label for="air-movement-off">Off</label>
+                                            <input type="radio" id="air-movement-on" name="air-movement-option" value="true">
+                                            <label for="air-movement-on">On</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="speedrunning-settings">
+                                    <div id="speedrunning-overlay-settings">
+                                        <h2>Speedrunning Overlay</h2>
+                                        <div class="radio-toolbar">
+                                            <input type="radio" id="speedrunning-overlay-off" name="speedrunning-overlay-option" value="false" checked="">
+                                            <label for="speedrunning-overlay-off">Off</label>
+                                            <input type="radio" id="speedrunning-overlay-on" name="speedrunning-overlay-option" value="true">
+                                            <label for="speedrunning-overlay-on">On</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="gamepad-settings">
+                                    <div>Gamepad is supported, just plug-in and press any button.</div>
+                                    <ul>
+                                        <li>Move: Joystick 1</li>
+                                        <li>Look: Joystick 2</li>
+                                        <li>Jump: Any Button</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="tab2">
+                                <div id="keybind-settings">
+                                    <div id="key-info-wrapper">
+                                        <div id="movement-bindings-wrapper" class="bindings-section">
+                                            <h2>Movement</h2>
+                                        <div class="binding" id="binding-moveforward"><div class="name">Move Forward</div><div class="value"><kbd>KeyW</kbd></div><div class="value"><kbd>ArrowUp</kbd></div></div><div class="binding" id="binding-movebackward"><div class="name">Move Backward</div><div class="value"><kbd>KeyS</kbd></div><div class="value"><kbd>ArrowDown</kbd></div></div><div class="binding" id="binding-strafeleft"><div class="name">Strafe Left</div><div class="value"><kbd>KeyA</kbd></div><div class="value"><kbd>ArrowLeft</kbd></div></div><div class="binding" id="binding-straferight"><div class="name">Strafe Right</div><div class="value"><kbd>KeyD</kbd></div><div class="value"><kbd>ArrowRight</kbd></div></div><div class="binding" id="binding-jump"><div class="name">Jump</div><div class="value"><kbd>Right Click</kbd></div><div class="value"><kbd>Space</kbd></div></div></div>
+                                        <div id="other-bindings-wrapper" class="bindings-section">
+                                            <h2>Other</h2>
+                                        <div class="binding" id="binding-chat"><div class="name">Chat</div><div class="value"><kbd>Enter</kbd></div><div class="value"><kbd>&nbsp;</kbd></div></div><div class="binding" id="binding-showmenu"><div class="name">Show Menu</div><div class="value"><kbd class="disabled">Escape</kbd></div><div class="value"><kbd>&nbsp;</kbd></div></div><div class="binding" id="binding-zoomout"><div class="name">Zoom out</div><div class="value"><kbd>Wheel Down</kbd></div><div class="value"><kbd>&nbsp;</kbd></div></div><div class="binding" id="binding-zoomin"><div class="name">Zoom in</div><div class="value"><kbd>Wheel Up</kbd></div><div class="value"><kbd>&nbsp;</kbd></div></div><div class="binding" id="binding-pickup/release"><div class="name">Pickup/Release</div><div class="value"><kbd>KeyE</kbd></div><div class="value"><kbd>&nbsp;</kbd></div></div></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab3">
+                                <div id="first-section-wrapper">
+                                    <div id="sound-settings">
+                                        <h2>Sound</h2>
+                                        <div class="radio-toolbar">
+                                            <input class="sound-option" type="radio" id="sound-settings-on" name="sound-settings-option" value="true">
+                                            <label for="sound-settings-on">On</label>
+                                            <input class="sound-option" type="radio" id="sound-settings-off" name="sound-settings-option" value="false">
+                                            <label for="sound-settings-off">Off</label>
+                                        </div>
+                                    </div>
+                                    <div id="GPU-detection">
+                                        <h2>Detected GPU</h2>
+                                        <span id="detected-GPU">Google Inc. (NVIDIA) | ANGLE (NVIDIA, NVIDIA GeForce GTX 1050 Ti (0x00001C82) Direct3D11 vs_5_0 ps_5_0, D3D11)</span>
+                                        <span id="GPU-tip">Wrong graphics card detected or low performance? <a href="https://exodragon.com/lag-guide.html" target="_blank">Check out this FAQ</a></span>
+                                    </div>
+                                    <div id="material-settings">
+                                        <h2>Material quality</h2>
+                                        <div class="radio-toolbar">
+                                            <input class="graphics-option" type="radio" id="material-quality-settings-auto" name="material-settings-option" value="-1" checked="">
+                                            <label for="material-quality-settings-auto">Auto</label>
+                                            <input class="graphics-option" type="radio" id="material-quality-settings-low" name="material-settings-option" value="0" checked="">
+                                            <label for="material-quality-settings-low">Low</label>
+                                            <input class="graphics-option" type="radio" id="material-quality-settings-high" name="material-settings-option" value="1" checked="">
+                                            <label for="material-quality-settings-high">High</label>
+                                        </div>
+                                    </div>
+                                    <div id="graphics-settings">
+                                        <h2>Antialiasing &amp; normal maps</h2>
+                                        <div class="radio-toolbar">
+                                            <input class="graphics-option" type="radio" id="graphics-settings-low" name="graphics-settings-option" value="1" checked="">
+                                            <label for="graphics-settings-low">Off</label>
+                                            <input class="graphics-option" type="radio" id="graphics-settings-high" name="graphics-settings-option" value="2">
+                                            <label for="graphics-settings-high">On</label>
+                                        </div>
+                                        <div id="screen-resolution-settings" class="slider-widget-wrapper">
+                                            <h2>Screen Resolution</h2>
+                                            <div class="slider-wrapper">
+                                                <input type="range" step="0.05" min="0.1" max="1.0" value="1.0" id="screen-resolution-slider" tabindex="2">
+                                                <span id="screen-resolution-value" class="range-slider__value">1.00</span>
+                                                <div>Lowering this value will decrease quality but improve performance</div>
+                                            </div>
+                                        </div>
+                                        <div id="shadows-settings">
+                                            <h2>Shadows</h2>
+                                            <div class="radio-toolbar">
+                                                <input class="shadows-option" type="radio" id="shadows-settings-off" name="shadows-settings-option" value="0" checked="">
+                                                <label for="shadows-settings-off">Off</label>
+                                                <input class="shadows-option" type="radio" id="shadows-settings-basic" name="shadows-settings-option" value="1">
+                                                <label for="shadows-settings-basic">Basic</label>
+                                                <input class="shadows-option" type="radio" id="shadows-settings-full" name="shadows-settings-option" value="2">
+                                                <label for="shadows-settings-full">Full</label>
+                                                <div>Basic will only display a drop-shadow below your player. Full shadows need a powerful GPU</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab4">
+                                <div id="chat-section-wrapper">
+                                    <div id="chat-enabled-settings">
+                                        <h2>Chat</h2>
+                                        <div class="radio-toolbar">
+                                            <input type="radio" id="chat-enabled-on" name="chat-enabled-option" value="true">
+                                            <label for="chat-enabled-on">Enabled</label>
+                                            <input type="radio" id="chat-enabled-off" name="chat-enabled-option" value="false">
+                                            <label for="chat-enabled-off">Disabled</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="safe-usernames-section-wrapper">
+                                    <div id="safe-usernames-settings">
+                                        <h2>Safe usernames</h2>
+                                        <div class="radio-toolbar">
+                                            <input type="radio" id="safe-usernames-on" name="safe-usernames-option" value="true">
+                                            <label for="safe-usernames-on">Enabled</label>
+                                            <input type="radio" id="safe-usernames-off" name="safe-usernames-option" value="false">
+                                            <label for="safe-usernames-off">Disabled</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="network-section-wrapper">
+                                    <div id="csp-settings">
+                                        <h2>Client-Side Prediction</h2>
+                                        <div class="radio-toolbar">
+                                            <input class="csp-option" type="radio" id="csp-settings-auto" name="csp-settings-option" value="-1">
+                                            <label for="csp-settings-auto">Auto</label>
+                                            <input class="csp-option" type="radio" id="csp-settings-off" name="csp-settings-option" value="0">
+                                            <label for="csp-settings-off">Off</label>
+                                            <input class="csp-option" type="radio" id="csp-settings-on" name="csp-settings-option" value="1">
+                                            <label for="csp-settings-on">On</label>
+                                        </div>
+                                    </div>
+                                    <div id="csp-accuracy-settings">
+                                        <h2>Client-Side Prediction Accuracy</h2>
+                                        <div class="radio-toolbar">
+                                            <input class="csp-accuracy-option" type="radio" id="csp-accuracy-settings-auto" name="csp-accuracy-settings-option" value="-1" checked="">
+                                            <label for="csp-accuracy-settings-auto">Auto</label>
+                                            <input class="csp-accuracy-option" type="radio" id="csp-accuracy-settings-low" name="csp-accuracy-settings-option" value="3" checked="">
+                                            <label for="csp-accuracy-settings-low">Low</label>
+                                            <input class="csp-accuracy-option" type="radio" id="csp-accuracy-settings-medium" name="csp-accuracy-settings-option" value="2">
+                                            <label for="csp-accuracy-settings-medium">Medium</label>
+                                            <input class="csp-accuracy-option" type="radio" id="csp-accuracy-settings-high" name="csp-accuracy-settings-option" value="1">
+                                            <label for="csp-accuracy-settings-high">High</label>
+                                            <input class="csp-accuracy-option" type="radio" id="csp-accuracy-settings-best" name="csp-accuracy-settings-option" value="0">
+                                            <label for="csp-accuracy-settings-best">Best</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <div class="footer">
+                            <div class="secondary-btns">
+                            </div>
+                            <button id="settings-screen-done-btn" class="done-btn" tabindex="2">Done</button>
+                        </div>
+                    </div>
+
+                    <a class="btn-privacy-settings" href="javascript:void(0)">Privacy
+                        settings</a>
+                </div>
+                <div class="bottom-section">
+                    <div class="banner-bottom"></div>
+                </div>
+            </div>
+            <div class="right-panel">            </div>
+        </div>
+        <div id="death-screen">
+            <div class="left-panel">
+                <div class="banner-left"></div>
+            </div>
+            <div class="center-panel">
+                <div class="top-section"></div>
+                <div class="mid-section">
+                    <div id="death-screen-cp">
+                    </div>
+                    <div id="death-screen-finished">
+                        <div>You finished <span id="ds-level-name">level name</span> in <span id="ds-racetime">25.123</span></div>
+                        <div id="death-screen-finished-new-pb">🎉 New Personal Best! 🎉</div>
+                        <div id="death-screen-finished-new-wr">🥇 New World Record! 🥇</div>
+                    </div>
+                    <div id="death-screen-rating-section">
+                        <div>Rate this level</div>
+                        <div><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span></div>
+                        <button id="death-screen-rating-submit-btn" class="submit">Submit</button>
+                        <div id="death-screen-rating-ok">Thanks for your rating</div>
+                    </div>
+                    <div id="death-screen-competitive-info">
+                        <div>You can restart the level for training until everyone finishes the race.</div>
+                        <div>Your race time will not be recorded and counted for PB/WR.</div>
+                    </div>
+                    <div id="tagmode-survey-cta">Please help us, click here and answer a short survey on the TAG gamemode</div>
+
+                    <div id="lag-guide-link">
+                        <a href="https://exodragon.com/lag-guide.html" target="_blank" title="Lag Guide"><span>⚠️</span><span>Lag detected!<br>This guide can help</span></a>
+                    </div>
+
+                    <div class="footer">
+                        <div class="secondary-btns">
+                            <button id="death-screen-quit-btn" class="quit-btn" tabindex="3"> <img src="https://lolbeans.io/ui/exit-icon.svg" title="Quit match">
+                                <div>Quit</div>
+                            </button>
+                            <button id="death-screen-settings-btn" class="settings-btn" tabindex="2"><img src="https://lolbeans.io/ui/settings-icon.svg">
+                                <div>Settings</div>
+                            </button>
+
+                            <div id="feedback-button" tabindex="2">✉️ FEEDBACK</div>                        </div>
+                        <button id="death-screen-ready-btn" class="ready-btn" tabindex="1">Ready<span id="death-screen-respawn-timer" class="timer">(5)</span></button>
+                        <button id="death-screen-restart-btn" class="new-game-btn" tabindex="1">Restart Level</button>
+                        <button id="death-screen-new-game-btn" class="new-game-btn" tabindex="1">Play New Game</button>
+                        <button id="death-screen-resume-btn" class="ready-btn" tabindex="1">Resume</button>
+                    </div>
+                    <div class="pl-level-suggest">
+                        <div class="title">Suggested levels for you</div>
+                        <div id="ds-pl-level-suggest"></div>
+                    </div>
+                </div>
+                <div class="bottom-section">
+                    <div class="banner-bottom"></div>
+                </div>
+            </div>
+            <div class="right-panel">
+                <div class="banner-right"></div>
+            </div>
+        </div>
+        <div id="end-match-screen">
+            <div class="left-panel">
+                <div id="end-match-banner-left" class="banner-left"></div>
+            </div>
+            <div class="center-panel">
+                <div class="top-section"></div>
+                <div id="match-results-section" class="mid-section visible">
+                    <div class="header" id="end-match-header">
+                        <div class="header-title">Round Results</div>
+                        <div class="header-title-final">Final Results</div>
+                        <div class="header-subtitle">next round on <span id="end-match-screen-nextmapname">level</span> in: <span id="end-match-screen-countdown">00:45</span></div>
+                    </div>
+                    <div id="end-match-screen-table" class="scoreboard"></div>
+                    <div class="footer">
+                        <div class="secondary-btns">
+                            <button id="end-match-quit-btn" class="quit-btn" tabindex="3"> <img src="https://lolbeans.io/ui/exit-icon.svg" title="Quit match">
+                                <div>Quit</div>
+                            </button>
+                            <button id="end-match-settings-btn" class="settings-btn" tabindex="2"><img src="https://lolbeans.io/ui/settings-icon.svg">
+                                <div>Settings</div>
+                            </button>
+                        </div>
+                        <button id="end-match-ready-btn" class="ready-btn" tabindex="1" style="display: none;">Ready</button>
+                        <button id="end-match-continue-btn" class="continue-btn" tabindex="1">Continue</button>
+                    </div>
+                </div>
+                <div id="match-earnings-section" class="mid-section">
+                    <div class="header" id="end-match-header">
+                        <div class="header-title">Player Progress</div>
+                    </div>
+                    <div id="progression">
+                        <div id="player-progress-card">
+                            <div class="left">
+                                <div class="player-name"></div>
+                                <div id="progression-preview-container" class="player-character-preview"></div>
+                            </div>
+                            <div class="right">
+                                <div class="result-title">Game result</div>
+                                <div id="result-text">Eliminated round 1</div>
+                                <div class="xp-title">Experience</div>
+                                <div class="xp-block">
+                                    <div>
+                                        <div id="previous-level" class="level">99</div>
+                                        <div id="end-match-xp-progress" class="xp-progress">
+                                            <div class="bar-bg">
+                                                <div id="level-bar-value" class="bar"></div>
+                                                <div id="level-bar-text" class="text">25 / 100 XP</div>
+                                            </div>
+                                        </div>
+                                        <div id="next-level" class="level">99</div>
+                                    </div>
+                                    <div id="end-match-unlocks" class="unlocks-soon">
+                                        <div class="unlock-text">Reward at level <span id="end-match-next-unlock-level"></span>:</div>
+                                        <div id="end-match-next-unlock-card" class="unlock-card">
+                                            <div>COMING<br>SOON</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="coins-title">Rewards</div>
+                                <div class="coins-block">
+                                    <div class="coins1"><img src="https://lolbeans.io/ui/coin.png"></div>
+                                    <div class="coins2"><span id="progress-coins-earned"></span><span id="progress-coins-owned"></span></div>
+                                </div>
+                                <div id="match-earnings-account-incentive"><span>Don't lose your progress!</span><span>Create an account</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="footer">
+                        <button id="end-match-spectate-btn" class="spectate-btn" tabindex="1">Spectate</button>
+                        <button id="end-match-new-game-btn" class="new-game-btn" tabindex="1">New Game</button>
+                    </div>
+                </div>
+                <div class="bottom-section">
+                    <div class="banner-bottom"></div>
+                </div>
+            </div>
+            <div class="right-panel">
+                <div id="end-match-banner-right" class="banner-right"></div>
+                <div id="end-match-cross-promo" class="cp-banner-right"></div>
+            </div>
+        </div>
+    </div>
+    <div id="mobile-ui">
+        <div id="mobile-menu-button">☰ MENU</div>
+        <div id="mobile-chat-button"><img src="https://lolbeans.io/ui/bubble-chat.png"> Chat</div>
+    </div>
+    <div id="hud">
+        <div id="matchinfo">
+            <span id="timer">
+                <span id="matchtime"></span>
+            </span>
+            <div id="speedrunning-overlay">
+                <div id="speedrunning-timer">23.17</div>
+                <div id="speedrunning-pb">PB: 45.17</div>
+            </div>
+            <div id="mobile-jump-button"><img src="https://lolbeans.io/ui/icon-jump.svg"></div>
+            <div id="mobile-editor-up-button">⇧</div>
+            <div id="mobile-editor-down-button">⇩</div>
+            <div id="mobile-hints">
+                <div class="move"><img src="https://lolbeans.io/ui/mobile-hint-1.png"></div>
+                <div class="look"><img src="https://lolbeans.io/ui/mobile-hint-2.png"></div>
+                <div class="zoom"><img src="https://lolbeans.io/ui/mobile-hint-pinch.png"></div>
+                <div class="jump"></div>
+                <div class="separator"></div>
+            </div>
+            <div id="desktop-hints">
+                <div class="main-hints-wrapper">
+                    <div class="move"><img src="https://lolbeans.io/ui/desktop-hint-WASD.svg">
+                        <div class="hint-label">move</div>
+                    </div>
+                    <div class="look"><img src="https://lolbeans.io/ui/desktop-hint-MOUSE.svg">
+                        <div class="hint-label">look</div>
+                    </div>
+                    <div class="jump"><img src="https://lolbeans.io/ui/desktop-hint-SPACE.svg">
+                        <div class="hint-label">jump</div>
+                    </div>
+                    <div class="zoom"><img src="https://lolbeans.io/ui/desktop-hint-ZOOM.svg">
+                        <div class="hint-label">zoom</div>
+                    </div>
+                </div>
+                <div class="customize"><img src="https://lolbeans.io/ui/desktop-hint-ESC.svg">
+                    <div class="hint-label">to customize</div>
+                </div>
+
+            </div>
+            <div id="players-qualified"></div>
+            <div id="players-joined"></div>
+            <div id="eventmessages"></div>
+            <div id="ranksheet" class="scoreboard"></div>
+        </div>
+        <div id="end-of-round-overlay">
+            <div id="end-of-round-result">
+                Qualified!
+            </div>
+        </div>
+        <div id="pickup-hint-desktop">Press <kbd>E</kbd> to pickup/release</div>
+        <div id="pickup-hint-mobile">Tap anywhere right-side to pickup/release</div>
+    </div>
+    <div id="chat-container">
+        <div id="tips-container">
+            <div id="chat-tip" style="display: block;"><kbd>Enter</kbd> to chat</div>
+        </div>
+        <div id="feed"></div>
+        <div id="chat-input-container">
+            <div id="report-button" tabindex="-1"><img src="https://lolbeans.io/ui/red-flag.svg" alt="report"></div>
+            <div id="feed-history"></div>
+            <div class="input-line">
+                <label for="chat-input" id="chat-player-label">Player:</label>
+                <input type="text" name="chat" id="chat-input" maxlength="64" autocomplete="off" autocorrect="off">
+            </div>
+        </div>
+    </div>    <div id="login-popup" class="login-popup">
+        <table>
+            <tbody><tr>
+                <td>
+                    <h2>Account</h2>
+                    <div id="account-creation-desc-wrapper">
+                        <img src="https://lolbeans.io/ui/owned-checkmark.svg">
+                        <div>Sign in to save your progress and purchases</div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="checkbox-wrapper">
+                    <input id="privacy-policy-checkbox" type="checkbox" name="privacy-policy-checkbox">
+                    <label for="privacy-policy-checkbox">I have read and agree to the <a href="/tos.html" target="_blank">Terms of Service</a> and <a href="/privacypolicy.html" target="_blank">Privacy Policy</a></label>
+                </td>
+            </tr>
+            <tr>
+                <td class="checkbox-wrapper">
+                    <input id="emailing-consent-checkbox" name="emailing-consent-checkbox" type="checkbox">
+                    <label id="emailing-consent-text" for="emailing-consent-checkbox">I want to receive emails about game updates</label>
+                </td>
+            </tr>
+            <tr id="account-login-buttons-wrapper">
+                <td>
+                    <div id="email-login-button"><img draggable="false" src="https://lolbeans.io/ui/mail.svg"><span>Log-in With Email</span></div>
+                </td>
+                <td>
+                    <div id="g_id_onload" data-client_id="964366695455-4lers80dlpg8utqhkpmi6n60qb3hipnf.apps.googleusercontent.com" data-callback="onGoogleSignIn" data-auto_prompt="false" data-auto_select="true">
+                    </div>
+
+                    <div id="gsignin-intercept">
+                        <div id="gsignin-blocker"></div>
+                        <div id="google-login-button" class="g_id_signin" data-type="standard" data-size="large" data-theme="filled_blue" data-text="signin_with" data-shape="rectangular" data-logo_alignment="left"><div class="S9gUrf-YoZ4jf" style="position: relative;"><div><div tabindex="0" role="button" aria-labelledby="button-label" class="nsm7Bb-HzV7m-LgbsSe  hJDwNd-SxQuSe MFS4be-v3pZbf-Ia7Qfc MFS4be-Ia7Qfc uaxL4e-RbRzK"><div class="nsm7Bb-HzV7m-LgbsSe-MJoBVe"></div><div class="nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb "><div class="nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf"><div class="nsm7Bb-HzV7m-LgbsSe-Bz112c"><svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="LgbsSe-Bz112c"><g><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path><path fill="none" d="M0 0h48v48H0z"></path></g></svg></div></div><span class="nsm7Bb-HzV7m-LgbsSe-BPrWId">Sign in with Google</span><span class="L6cTce" id="button-label">Sign in with Google. Opens in new tab</span></div></div></div><iframe src="https://accounts.google.com/gsi/button?type=standard&amp;size=large&amp;theme=filled_blue&amp;text=signin_with&amp;shape=rectangular&amp;logo_alignment=left&amp;is_fedcm_supported=true&amp;client_id=964366695455-4lers80dlpg8utqhkpmi6n60qb3hipnf.apps.googleusercontent.com&amp;iframe_id=gsi_593467_529169&amp;cas=95TpFbNN8%2BwJx%2F47qxj3W4EUGOwuKldZAmreiRWCIS4" class="L5Fo6c-PQbLGe" allow="identity-credentials-get" id="gsi_593467_529169" title="Sign in with Google Button" style="display: block; position: relative; top: 0px; left: 0px; height: 0px; width: 0px; border: 0px;"></iframe></div></div>
+                    </div>
+
+                </td>
+                <td>
+                    <div id="fb-login-button" class="fb-button-lolbeans">
+                        <div class="image">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 216 216" class="_5h0m" color="#FFFFFF">
+                                <path fill="#FFFFFF" d="
+                  M204.1 0H11.9C5.3 0 0 5.3 0 11.9v192.2c0 6.6 5.3 11.9 11.9
+                  11.9h103.5v-83.6H87.2V99.8h28.1v-24c0-27.9 17-43.1 41.9-43.1
+                  11.9 0 22.2.9 25.2 1.3v29.2h-17.3c-13.5 0-16.2 6.4-16.2
+                  15.9v20.8h32.3l-4.2 32.6h-28V216h55c6.6 0 11.9-5.3
+                  11.9-11.9V11.9C216 5.3 210.7 0 204.1 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="text">Log in With Facebook</div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td><a href="https://yohoho.io/help.html#google" target="_blank" style="font-size: 0.7em">Sign-in doesn't work, help me!</a></td>
+            </tr>
+        </tbody></table>
+
+        <button type="button" class="primary-btn">CLOSE</button>
+    </div>
+    <div id="level-select-popup">
+        <div class="wrapper">
+            <div id="level-select-close">Close</div>
+            <div class="title">Select a community level</div>
+            <div class="tabs">
+                <span id="level-select-filters-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1792 1792" width="1em" height="1em">
+                        <path d="M1595 295q17 41-14 70l-493 493v742q0 42-39 59-13 5-25 5-27 0-45-19l-256-256q-19-19-19-45v-486l-493-493q-31-29-14-70 17-39 59-39h1280q42 0 59 39z"></path></svg> Filter</span>
+                <span id="level-select-search-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 490 490" width="1em" height="1em">
+                        <path fill="none" stroke="#000" stroke-width="64" stroke-linecap="round" d="m280,278a153,153 0 1,0-2,2l170,170m-91-117 110,110-26,26-110-110"></path></svg> Search</span>
+
+                <div id="level-select-sorting"><span class="selected">Best rated</span><span>New</span></div>
+            </div>
+            <div id="level-select-filters">
+                <span>Type:</span>
+                <select id="level-select-type" autocomplete="off">
+                    <option value="-1" selected="">ALL</option>
+                    <option value="0">Sandbox</option>
+                    <option value="1">Timed Race</option>
+                    <option value="2">Competitive Race</option>
+                    <option value="3">Elimination</option>
+                </select>
+                <span>Finish%:</span>
+                <select id="level-select-finishpct" autocomplete="off">
+                    <option value="0" selected="">ALL</option>
+                    <option value="1">Low (&lt;30%)</option>
+                    <option value="2">Average (30 to 70%)</option>
+                    <option value="3">High (&gt;70%)</option>
+                </select>
+                <span>Played:</span>
+                <select id="level-select-played" autocomplete="off">
+                    <option value="-1" selected="">ALL</option>
+                    <option value="0">Not played</option>
+                    <option value="1">Played but not finished</option>
+                    <option value="2">Played and finished</option>
+                </select>
+            </div>
+            <div id="level-select-search">
+                <span>Search author, name or description:</span>
+                <input id="level-select-search-input" placeholder="Enter at least 3 characters...">
+            </div>
+            <div id="level-select-levels">            </div>
+            <div id="level-select-pagination"></div>
+            <div id="level-open-editor">Got game design skills? <div id="open-level-editor-btn">create a level</div>
+            </div>
+        </div>
+    </div>
+    <div id="level-select-showcase">
+        <div id="level-showcase-wrapper">
+            <div id="level-select-showcase-thumbnail" class="thumbnail"></div>
+            <div id="level-select-showcase-details" class="details">            </div>
+            <div id="level-select-showcase-select" class="button">Select this level</div>
+            <div id="level-select-showcase-cancel" class="button cancel">Cancel</div>
+        </div>
+    </div>
+    <div id="editor-ui">
+        <div id="editor-cursor"></div>
+        <div id="editor-infopanel"></div>
+        <div id="editor-start-popin">
+            <div id="editor-popin-inner-wrapper">
+                <div id="editor-changelog-panel" class="panel">
+                    <div class="panel-title">changelog</div>
+                    <div class="wrapper">
+                        <div class="panel-card">
+                            <div class="date">2026-03-23</div>
+                            <div class="title">Updates</div>
+                            <div class="description">
+                                <ul>
+                                    <li>Add <b>secret</b> block to display a message to players when they enter a specific area, with how many are remaining to discover.</li>
+                                </ul>
+                            </div>                        </div>
+                        <div class="panel-card">
+                            <div class="date">2026-03-18</div>
+                            <div class="title">Updates</div>
+                            <div class="description">
+                                <ul>
+                                    <li>Draw call optimization for textures with custom colors</li>
+                                    <li>Added 2 new textures that allow custom colors</li>
+                                    <li>Bug fixes</li>
+                                </ul>
+                            </div>                        </div>
+                        <div class="panel-card">
+                            <div class="date">2025-07-08</div>
+                            <div class="title">Updates</div>
+                            <div class="description">
+                                <ul>
+                                    <li>Add UNDO button</li>
+                                    <li>Add ability to change rotation with 'follow-path' blocks</li>
+                                    <li>Add new 'programmatic' block type</li>
+                                </ul>
+                            </div>                        </div>
+                        <div class="panel-card">
+                            <div class="date">2025-06-19</div>
+                            <div class="title">Updates</div>
+                            <div class="description">
+                                <ul>
+                                    <li>Add 32 new blocks</li>
+                                    <li>Add checkpoint priority</li>
+                                </ul>
+                            </div>                        </div>
+                        <div class="panel-card">
+                            <div class="date">2025-05-06</div>
+                            <div class="title">Updates</div>
+                            <div class="description">
+                                <ul>
+                                    <li>Add support for picking-up dynamic objects</li>
+                                </ul>
+                            </div>                        </div>
+                        <div class="panel-card">
+                            <div class="date">2024-12-13</div>
+                            <div class="title">Updates</div>
+                            <div class="description">
+                                <ul>
+                                    <li>Add a feature to automatically generate nearby spawns</li>
+                                </ul>
+                            </div>                        </div>
+                        <div class="panel-card">
+                            <div class="date">2024-11-12</div>
+                            <div class="title">Updates</div>
+                            <div class="description">
+                                <ul>
+                                    <li>Triggers can also be activated by dynamic objects</li>
+                                </ul>
+                            </div>                        </div>
+                        <div class="panel-card">
+                            <div class="date">2024-10-25</div>
+                            <div class="title">Updates</div>
+                            <div class="description">
+                                <ul>
+                                    <li>Add new block type "follow-path" to make an object follow an arbitrary number of points</li>
+                                    <li>Add mass edit feature in multi-select menu to change a property for all selected blocks</li>
+                                </ul>
+                            </div>                        </div>
+                        <div class="panel-card">
+                            <div class="date">2024-09-16</div>
+                            <div class="title">Updates</div>
+                            <div class="description">
+                                <ul>
+                                    <li>Add trigger block to activate manually object spawners or kinematics</li>
+                                    <li>Add public link to play a submitted community level before it's reviewed</li>
+                                    <li>Minor bugfixes</li>
+                                </ul>
+                            </div>                        </div>
+                        <div class="panel-card">
+                            <div class="date">2024-09-02</div>
+                            <div class="title">Updates</div>
+                            <div class="description">
+                                <ul>
+                                    <li>Add new block types: moving-rotating and moving-swinging</li>
+                                    <li>Add option for dynamic objects to be recreated when destroyed</li>
+                                    <li>Add 2 blocks: Bean with swim ring, inflatable rotor</li>
+                                    <li>Minor bugfixes</li>
+                                </ul>
+                            </div>                        </div>
+                        <div class="panel-card">
+                            <div class="date">2023-07-07</div>
+                            <div class="title">Updates</div>
+                            <div class="description">
+                                <ul>
+                                    <li>New blocks - urban theme</li>
+                                </ul>
+                            </div>                        </div>
+                        <div class="panel-card">
+                            <div class="date">2023-06-05</div>
+                            <div class="title">Updates</div>
+                            <div class="description">
+                                <ul>
+                                    <li>Randomness for competitive/elimination levels: define variables and use them to change block properties when the round is reset</li>
+                                    <li>More blocks supported for object spawners (e.g. barrels) and added setting for initial rotation of spawned objects</li>
+                                    <li>Minor bugfixes and UI improvements (e.g. prevent setting scale to zero or too high, show red text when hovering a spawn colliding with decor)</li>
+                                </ul>
+                            </div>                        </div>
+                        <div class="panel-card">
+                            <div class="date">2023-05-15</div>
+                            <div class="title">Updates</div>
+                            <div class="description">
+                                <ul>
+                                    <li>New level types: competitive race &amp; elimination</li>
+                                </ul>
+                            </div>                        </div>
+                        <div class="panel-card">
+                            <div class="date">2023-04-19</div>
+                            <div class="title">Updates</div>
+                            <div class="description">
+                                <ul>
+                                    <li>Allow kinematics for blocks without a collider</li>
+                                    <li>Export/import groups (copy/paste between levels)</li>
+                                    <li>Multi-select: add to selection (and remove) with SHIFT key</li>
+                                    <li>Display limits for publishing (top-right corner)</li>
+                                    <li>Bugfixes &amp; small UI improvements</li>
+                                </ul>
+                            </div>                        </div>
+                        <div class="panel-card">
+                            <div class="date">2023-04-07</div>
+                            <div class="title">Updates</div>
+                            <div class="description">
+                                <ul>
+                                    <li>New feature: Multi-select to work with multiple blocks at the same time</li>
+                                    <li>New feature: Group management to save block selections</li>
+                                    <li> support changing texture for spawned objects (cubes)</li>
+                                    <li>Bugfixes</li>
+                                </ul>
+                            </div>                        </div>
+                        <div class="panel-card">
+                            <div class="date">2023-03-27</div>
+                            <div class="title">Updates</div>
+                            <div class="description">
+                                <ul>
+                                    <li>New in level settings : change background skydome</li>
+                                    <li>New in level settings : change level type and countdown start interval (timed race)</li>
+                                    <li>Fix respawn in gravity blocks</li>
+                                    <li>Do not change camera distance when moving/cloning</li>
+                                    <li>Minor bugfixes</li>
+                                </ul>
+                            </div>                        </div>
+                        <div class="panel-card">
+                            <div class="date">2023-03-17</div>
+                            <div class="title">Updates</div>
+                            <div class="description">
+                                <ul>
+                                    <li>New feature: Teleport (better than checkpoint-kill 😅)</li>
+                                    <li>10 new textures</li>
+                                    <li>50 new blocks (decor and obstacles)</li>
+                                    <li>Option for jumpads to unshock player when it's triggered (avoids getting stuck forever on vertical jumpads)</li>
+                                    <li>Better sliding controls: now relative to camera instead of bean orientation. Also better sliding initial player bump and make sliding work with altered gravity</li>
+                                    <li>Added option to change gravity strength</li>
+                                    <li>various bugfixes you probably don't care about because nobody reported them</li>
+                                </ul>
+                            </div>                        </div>
+                        <div class="panel-card">
+                            <div class="date">2023-03-09</div>
+                            <div class="title">Updates</div>
+                            <div class="description">
+                                <ul>
+                                    <li>New option for jumpads to affect dynamic objects</li>
+                                    <li>New gravity blocks</li>
+                                    <li>The "Add Velocity To Players" option for rotating blocks (e.g. poker roll) now supports any rotation</li>
+                                    <li>New buttons to lock movement on selected axis while moving/cloning blocks</li>
+                                </ul>
+                            </div>                        </div>
+                    </div>
+                </div>
+                <div id="editor-how-to-panel" class="panel">
+                    <div class="panel-title">how to create levels</div>
+                    <div id="editor-how-to-panel-inner-wrapper">
+                        <div class="panel-card">
+                            <div class="title">1. Read the Documentation</div>
+                            <div class="description">
+                                <p>Reading the editor documentation will save you a lot of time when creating your levels.</p>
+                                <p>You will learn:</p>
+                                <a href="https://editor-doc.lolbeans.io" target="_blank">
+                                    <ul>
+                                        <li>Navigation</li>
+                                        <li>Level Structure</li>
+                                        <li>Player physics</li>
+                                        <li>Editor Interface</li>
+                                    </ul>
+                                </a>
+                                <p>and much more...</p>
+                            </div>
+                            <a href="https://editor-doc.lolbeans.io" target="_blank">
+                                <div class="card-button"><span class="icon">📗</span>read documentation</div>
+                            </a>
+                        </div>
+                        <div class="panel-card">
+                            <div class="title">2. Explore the Editor</div>
+                            <div class="description">
+                                <p>Start by playing around with the editor and familiarising yourself with its interface and functions.</p>
+                                <p>Start small and test often, you can always save your work in progress to continue later or to share it with your friends.</p>
+                                <p><a href="https://discord.gg/sjGUmwS" target="_blank"><img src="https://lolbeans.io/ui/discord.svg"></a> Ask questions, exchange tips and gather feedback in the <a href="https://discord.gg/sjGUmwS" target="_blank" id="editor-popin-discord-link">LOLBeans Discord</a>.</p>
+                            </div><a id="start-creating-btn">
+                                <div class="card-button"><span class="icon">📐</span>start creating</div>
+                            </a>
+                        </div>
+                        <div class="panel-card">
+                            <div class="title">3. Publish Levels</div>
+                            <div class="description">
+                                <p>Ready for prime time? Submit your level for publishing. </p>
+                                <p>Following these guidelines improves your chances of being published:</p>
+                                <a href="https://editor-ldg.lolbeans.io" target="_blank">
+                                    <ul>
+                                        <li>Create fair challenges</li>
+                                        <li>Balance difficulty</li>
+                                        <li>Make levels enjoyable</li>
+                                        <li>Help players focus</li>
+                                    </ul>
+                                </a>
+                            </div>
+                            <a href="https://editor-ldg.lolbeans.io" target="_blank">
+                                <div class="card-button"><span class="icon">📙</span>read guidelines</div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div id="editor-start-popin-close-button">close</div>
+            </div>
+        </div>
+        <div id="editor-helppanel"></div>
+        <div id="editor-panel">
+            <div id="editor-properties"></div>
+        </div>
+        <div id="editor-buttons"></div>
+        <div id="editor-block-selection">
+            <div class="title">Select a block</div>
+            <div id="editor-block-selection-filters"></div>
+            <div id="editor-block-selection-list"></div>
+        </div>
+        <div id="editor-texture-selection">
+            <div class="title">Select a texture</div>
+            <div id="editor-texture-selection-list"></div>
+        </div>
+        <div id="editor-file-selection">
+            <div>
+                <div class="title">Select a file name</div>
+                <div class="subtitle">
+                    <div>List of levels stored within your browser storage - <span id="editor-file-selection-used"></span> used</div>
+                    <div id="editor-file-selection-persist-warning" style="display:none;color:orange;">⚠ Your levels may be cleared by the browser, download them to your device.</div>
+                </div>
+                <div class="upload">
+                    <label class="button" for="editor-upload-input">Import a file from your computer</label><input id="editor-upload-input" type="file" accept=".lol">
+                </div>
+                <div id="editor-file-selection-list"></div>
+            </div>
+            <div class="buttons">
+                <input id="editor-file-selection-name" type="text">
+                <div id="editor-file-selection-ok" class="button">OK</div>
+                <div id="editor-file-selection-cancel" class="button cancel">Cancel</div>
+            </div>
+        </div>
+        <div id="editor-publish-menu">
+            <table>
+                <tbody><tr>
+                    <td>
+                        <div id="editor-publish-menu-publish" class="button">Publish this level</div>
+                    </td>
+                    <td>
+                        <div id="editor-publish-menu-list" class="button">My submissions</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="subtitle">Publishing a level will make it available for anyone to play!</div>
+                    </td>
+                    <td>
+                        <div class="subtitle">Check the status of your submissions or get a public link to play your level</div>
+                    </td>
+                </tr>
+            </tbody></table>
+            <div id="editor-publish-menu-cancel" class="button cancel">Cancel</div>
+        </div>
+        <div id="editor-publish">
+            <div class="title">Publish your level</div>
+            <div id="editor-publish-errors"></div>
+            <div class="fields">
+                <div class="label">Type</div>
+                <div><select id="editor-publish-type" disabled="">
+                        <option value="-1"></option>
+                        <option value="0">Sandbox</option>
+                        <option value="1">Timed race</option>
+                        <option value="2">Competitive race</option>
+                        <option value="3">Elimination</option>
+                    </select>                </div>
+                <div class="fullrow" id="editor-publish-prove">This level has a finish line, please validate it is finishable: <div id="editor-publish-prove-play" class="button">Play it</div>
+                </div>
+                <div class="label">Author Name</div>
+                <div><input id="editor-publish-author" type="text" placeholder="Enter your public name"></div>
+                <div class="label">Level Name</div>
+                <div><input id="editor-publish-name" type="text" placeholder="Enter a name for the level"></div>
+                <div class="label">Description</div>
+                <div><textarea id="editor-publish-description" placeholder="This awesome level features..."></textarea></div>
+                <div class="label">Thumbnail</div>
+                <div><img id="editor-publish-thumbnail">
+                    <div id="editor-publish-snapshot" class="button">Click to move the camera and take a snapshot</div>
+                </div>
+                <div class="fullrow"><input id="editor-publish-checkbox1" type="checkbox">I certify the level and associated metadata does not depict any toxic, political, ideological, religious, sexual or hate speech content.</div>
+                <div class="fullrow"><input id="editor-publish-checkbox2" type="checkbox">I certify this level is my own original creation and I grant Exodragon (owner of LOLBeans.io) a worldwide, unlimited, unconditional, right to use, reproduce and adapt my creation.</div>
+                <div class="label">Comments for reviewers</div>
+                <div><textarea id="editor-publish-author-comments" placeholder="Indicate if this is a resubmission, what are the changes, etc"></textarea></div>
+                <div class="fullrow"><input id="editor-publish-checkbox3" type="checkbox" checked="">Send me an email when the level has been reviewed (we will not use the email for other purposes).</div>
+            </div>
+            <div class="buttons">
+                <div id="editor-publish-cancel" class="button cancel">Cancel</div>
+                <div id="editor-publish-validate" class="button">Submit for review</div>
+            </div>
+        </div>
+        <div id="editor-publish-list">
+            <div>
+                <div id="editor-publish-list-levels"></div>
+            </div>
+            <div id="editor-publish-list-details"></div>
+            <div class="buttons">
+                <div id="editor-publish-retract-btn" class="button cancel">Retract this submission</div>
+                <div id="editor-publish-list-close" class="button cancel">Close</div>
+            </div>
+        </div>
+        <div id="editor-variables-popup">
+            <div>
+                <div class="title">Variables</div>
+                <div class="subtitle">Variables are re-evalued in order at every round start (please read the documentation)</div>
+                <div id="editor-variables-list"></div>
+            </div>
+            <div class="buttons">
+                <div id="editor-variables-add" class="button">Add new variable</div>
+                <div id="editor-variables-eval" class="button">Re-evaluate all variables</div>
+                <div id="editor-variables-close" class="button cancel">Close</div>
+            </div>
+
+        </div>
+        <div id="editor-snapshot-borders"></div>
+    </div>
+    <div id="survey-newcomer-popup">
+        <div class="wrapper">
+            <div class="intro">
+                Hey, we would love your feedback to improve the game!
+            </div>
+
+            <div class="question">
+                Have you played LOLBeans.io before?
+            </div>
+            <div class="survey-choices">
+                <div id="survey-newcomer-yes" class="button">YES</div>
+                <div id="survey-newcomer-no" class="button">NO</div>
+            </div>
+
+            <div class="question">
+                What do you think of LOLBeans.io?
+            </div>
+            <div class="survey-choices">
+                <div id="survey-newcomer-up" class="button">👍</div>
+                <div id="survey-newcomer-down" class="button">👎</div>
+            </div>
+
+            <div class="question">
+                Leave us any comment or suggestion (optional)
+            </div>
+            <div class="survey-choices">
+                <textarea id="survey-newcomer-comment"></textarea>
+            </div>
+
+            <div class="bottom-buttons">
+                <div id="survey-newcomer-send" class="button">Send feedback</div>
+                <div id="survey-newcomer-close" class="button">Close</div>
+            </div>
+
+        </div>
+    </div>
+    <div id="survey-tagmode-popup">
+        <div class="wrapper">
+            <div class="intro">
+                Help us to improve the game!
+            </div>
+
+            <div class="question">
+                Rate your experience with the TAG gamemode
+            </div>
+            <div class="survey-choices">
+                <div>👎</div>
+                <div id="survey-tagmode-rating-1" class="button">1</div>
+                <div id="survey-tagmode-rating-2" class="button">2</div>
+                <div id="survey-tagmode-rating-3" class="button">3</div>
+                <div id="survey-tagmode-rating-4" class="button">4</div>
+                <div id="survey-tagmode-rating-5" class="button">5</div>
+                <div>👍</div>
+            </div>            <div class="question">
+                Would you recommend the TAG gamemode to your friends?
+            </div>
+            <div class="survey-choices">
+                <div>👎</div>
+                <div id="survey-tagmode-recommend-1" class="button">1</div>
+                <div id="survey-tagmode-recommend-2" class="button">2</div>
+                <div id="survey-tagmode-recommend-3" class="button">3</div>
+                <div id="survey-tagmode-recommend-4" class="button">4</div>
+                <div id="survey-tagmode-recommend-5" class="button">5</div>
+                <div>👍</div>
+            </div>
+
+            <div class="question">
+                What would you change to improve the TAG gamemode?
+            </div>
+            <div class="survey-choices">
+                <textarea id="survey-tagmode-comment"></textarea>
+            </div>
+
+            <div class="bottom-buttons">
+                <div id="survey-tagmode-send" class="button">Send feedback</div>
+                <div id="survey-tagmode-close" class="button">Close</div>
+            </div>
+
+        </div>
+    </div>
+    <div id="chat-guidelines-popup">
+        <div class="wrapper">
+            <div class="title">Rules for in-game chat</div>
+            <ul>
+                <li>No sexual content</li>
+                <li>No slurs, hate speech or toxic chat</li>
+                <li>No political or religious propaganda</li>
+                <li>Do not collect, ask or provide personal information</li>
+            </ul>
+            <div class="toslink">See full details in <a href="/tos.html" target="_blank">Terms of Service</a></div>
+            <div class="buttons">
+                <div id="chat-guidelines-accept" class="button">I'm 13+ and agree</div>
+                <div id="chat-guidelines-deny" class="button">Disable chat</div>
+            </div>
+        </div>
+    </div>
+    <div id="report-popup">
+        <div class="wrapper">
+            <div class="title"><img src="https://lolbeans.io/ui/red-flag.svg"> Report in-game chat or nickname</div>
+            <div class="section">
+                What would you like to report?
+            </div>
+            <div class="choice">
+                <select id="report-what" autocomplete="off">
+                    <option value="1" selected="">A chat message</option>
+                    <option value="2">A player nickname</option>
+                </select>
+            </div>
+            <div class="section">
+                Please select the infringing content:
+            </div>
+            <div class="choice">
+                <select id="report-chat-list" autocomplete="off">
+                </select>
+                <select id="report-nickname-list" autocomplete="off">
+                </select>
+            </div>
+            <div class="section">
+                How is it breaching the <a href="/tos.html" target="_blank">Terms of Service</a>?
+            </div>
+            <div class="choice">
+                <select id="report-rule" autocomplete="off">
+                    <option value="0" selected="">Please select...</option>
+                    <option value="1">Sexual content</option>
+                    <option value="2">Hate speech</option>
+                    <option value="3">Obsene or toxic language</option>
+                    <option value="4">Political or religious propaganda</option>
+                    <option value="5">Asking or providing personal information</option>
+                    <option value="6">Spam</option>
+                    <option value="7">Other</option>
+                </select>
+            </div>
+            <div class="section">
+                Additional comment:
+            </div>
+            <div class="choice">
+                <textarea id="report-comment" autocomplete="off"></textarea>
+            </div>
+            <div class="buttons">
+                <div id="report-validate" class="button">Send report &amp; block</div>
+                <div id="report-cancel" class="button">Cancel</div>
+            </div>
+        </div>
+    </div>
+    <div id="level-spinner">
+        <div class="title">Next level...</div>
+        <div id="level-spinner-list" class="list">        </div>
+        <div id="level-spinner-marker" class="marker">▲</div>
+        <div id="level-spinner-chosen" class="chosen">Beacon Bay</div>
+    </div>
+    <div id="pointerlock-popup">
+        <div class="wrapper">
+            <div class="title">Permission to lock and use your mouse is required to play the game.</div>
+            <div class="subtitle">If you denied the permission, click the left side of your address bar to enable it back.</div>
+            <div class="img-container"><img src="https://lolbeans.io/ui/pointerlockpopup.png"></div>
+            <div class="button" id="pointerlock-popup-close-btn">Close</div>
+        </div>
+    </div>
+    <div id="email-login-popup">
+        <div id="email-login-popup-outer"></div>
+        <div class="wrapper">
+            <div class="title">Log in With Email</div>
+            <div id="email-login-popup-action" class="subtitle">Create a new account</div>
+            <div id="email-login-popup-text" class="text">Get instructions sent to this email that explain how to reset your password</div>
+            <div class="fields">
+                <div id="email-login-popup-email-lb" class="label">Email</div>
+                <input id="email-login-popup-email" type="text">
+                <div id="email-login-popup-password-lb" class="label">Choose password</div>
+                <input id="email-login-popup-password" type="password">
+                <div id="email-login-popup-password2-lb" class="label">Retype password</div>
+                <input id="email-login-popup-password2" type="password">
+            </div>
+            <div id="email-login-popup-error" class="error">The passwords do not match</div>
+            <div class="bottom">
+                <div id="email-login-popup-reset" class="reset-link">Password reset</div>
+                <div id="email-login-popup-cancel" class="button">Cancel</div>
+                <div id="email-login-popup-confirm" class="button">OK</div>
+            </div>
+            <div class="loading">
+                <div class="spinner">
+                    <div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="account-popup">
+        <div class="wrapper">
+            <div class="title"><span><img id="account-img" src="https://lolbeans.io/ui/user-icon-outline.svg"></span><span>Account Details</span></div>
+            <div class="text"><span>Type: </span><span id="account-type">Google</span></div>
+            <div class="text"><span>E-mail: </span><span id="account-email">demo@example.com</span></div>
+            <div class="bottom">
+                <div id="account-logout-btn"><img src="https://lolbeans.io/ui/logout.svg">Logout</div>
+                <div id="account-close-btn" class="cta">Close</div>
+            </div>
+        </div>
+    </div>
+    <div id="leaderboard-popup">
+        <div id="leaderboard-popup-outer"></div>
+        <div class="wrapper">
+            <div class="header">
+                <div class="names">
+                    <div>Region</div>                    <div>Period length</div>
+                    <div>Period</div>
+                </div>
+                <div class="choices">
+                    <div>
+                        <select id="leaderboard-region">                        </select>
+                    </div>                    <div>
+                        <select id="leaderboard-period-length">
+                            <option value="0">Daily</option>
+                            <option value="1">Weekly</option>
+                            <option value="2">Monthly</option>
+                        </select>
+                    </div>
+                    <div>
+                        <select id="leaderboard-period">
+                            <option value="1">Current Period</option>
+                            <option value="0">Previous Period</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div id="leaderboard-results-title" class="results-title">Results for period ending <b>2023-09-14 at 00:00 UTC</b> <span style="font-size: 0.8em;">(in 5 days 3 h 45 mins)</span></div>
+            <div class="results-rewards">The reward for #1 is : <span id="leaderboard-reward">Daily Wins Hat<img src="https://lolbeans.io/ui/item-thumbnails/673.png"></span></div>
+            <div id="leaderboard-notavailable">You need an account to participate in leaderboards</div>
+            <div class="loading">
+                <div class="spinner">
+                    <div class="lds-dual-ring"></div>
+                </div>
+            </div>
+            <div id="leaderboard-results" class="results">
+                <div class="table">                </div>
+            </div>
+            <div id="leaderboard-close" class="close"><img draggable="false" src="https://lolbeans.io/ui/close.svg"></div>
+        </div>
+    </div>
+    <div id="gamemode-popup">
+        <div id="gamemode-popup-outer"></div>
+        <div class="wrapper">
+            <div class="title">Select your game-mode:</div>
+            <div id="gamemode-popup-choices" class="choices">
+                <div id="gamemode-choice-0"><span><img src="https://lolbeans.io/ui/gamemode-0.png"></span><span>Battle Royale</span><span>30 players • 3 rounds • 1 winner</span><span>Classic mode with the slowest players eliminated each round.</span></div>
+                <div id="gamemode-choice-3"><span><img src="https://lolbeans.io/ui/gamemode-3.png"></span><span>Tag</span><span>8 players • 3 minutes per game</span><span>Chase other players or escape within a small enclosed arena.</span></div>
+                <div id="gamemode-choice-1"><span><img src="https://lolbeans.io/ui/gamemode-1.png"></span><span>Community Levels</span><span>Choose your level</span><span>Timed Race (beat records with no pushing) • Competitive Race (round-based) • Elimination (no respawn) • Sandbox (no time limit).</span></div>
+                <div id="gamemode-choice-2"><span><img src="https://lolbeans.io/ui/gamemode-2.png"></span><span>Lounge</span><span>Chill with friends</span><span>Hang-out and chat respectfully with other players.</span></div>
+                <div id="gamemode-choice-100"><span><img src="https://lolbeans.io/ui/gamemode-100.png"></span><span>Level Editor</span><span>Create alone or with friends</span><span>Share levels to the world or keep it private. Edit with your friends by creating a party beforehands.</span></div>
+            </div>
+        </div>
+    </div>    <div id="preroll"></div>
+<iframe marginwidth="0" marginheight="0" scrolling="no" frameborder="0" id="12e325fa5c62e4" width="0" height="0" src="about:blank" name="__pb_locator__" style="display: none; height: 0px; width: 0px; border: 0px;"></iframe><deepl-input-controller translate="no"></deepl-input-controller><div class="fps-extension is-hidden" style="width: 190px; height: 70px; top: 10px; right: 10px;"><canvas width="190" height="70"></canvas></div><veepn-lock-screen></veepn-lock-screen><iframe sandbox="allow-scripts allow-same-origin" src="https://static.btloader.com/safeFrame.html?upapi=true" style="width: 0px; height: 0px; display: none !important;"></iframe><iframe name="googlefcPresent" style="display: none; width: 0px; height: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; z-index: -1000; left: -1000px; top: -1000px;"></iframe><iframe src="/robots.txt?upapi=true" style="width: 0px; height: 0px; display: none;"></iframe><iframe name="__tcfapiLocator" src="about:blank" style="display: none; width: 0px; height: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; z-index: -1000; left: -1000px; top: -1000px;"></iframe><iframe name="__uspapiLocator" src="about:blank" style="display: none; width: 0px; height: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; z-index: -1000; left: -1000px; top: -1000px;"></iframe><iframe name="__gppLocator" src="about:blank" style="display: none; width: 0px; height: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; z-index: -1000; left: -1000px; top: -1000px;"></iframe><iframe name="googlefcInactive" src="about:blank" style="display: none; width: 0px; height: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; z-index: -1000; left: -1000px; top: -1000px;"></iframe><iframe name="googlefcLoaded" src="about:blank" style="display: none; width: 0px; height: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; z-index: -1000; left: -1000px; top: -1000px;"></iframe><div id="fb-root" class=" fb_reset"><div style="position: absolute; top: -10000px; width: 0px; height: 0px;"><div></div></div></div><button id="doorbell-button" class="bottom_right" style="visibility: hidden;">Feedback</button><div id="doorbell-background" class="" style="display: none;"></div><div id="doorbell" role="dialog" aria-labelledby="doorbell-title" tabindex="-1" aria-hidden="true" style="display: none;"><div id="doorbell-container" role="dialog" aria-labelledby="doorbell-title"><button id="doorbell-close" title="Close" class="close" aria-label="Close"><span>×</span></button><form id="doorbell-form" class="">                <fieldset>                    <legend id="doorbell-title">Feedback</legend>                    <div id="doorbell-success" class="alert alert-success" style="display: none;"></div>                    
+<textarea placeholder="Send us your comments or suggestions..." aria-label="Send us your comments or suggestions..." class="form-control" name="message" id="doorbell-feedback" required="required"></textarea>
+<input type="email" id="doorbell-email" aria-label="Your email address" class="form-control" placeholder="Your email address" name="email" value="" required="required">
+
+
+
+<input type="hidden" name="session_id" value="" id="doorbell-session-id">                                        <div class="buttons"><button class="btn btn-primary" id="doorbell-submit-button">Send</button></div>                </fieldset>                <a href="https://doorbell.io/?utm_source=feedback_form&amp;utm_medium=web_sdk&amp;utm_campaign=application_11992" target="_blank" rel="noopener noreferrer" id="doorbell-powered-by">Powered by Doorbell.io</a>                            </form></div></div><needle-editor-chrome style="position: fixed; inset: 0px; z-index: 2147483647; pointer-events: none;"></needle-editor-chrome><iframe src="https://www.google.com/recaptcha/api2/aframe" width="0" height="0" style="display: none;"></iframe></body><iframe id="goog_plcm_frame" src="https://cm.g.doubleclick.net/partnerpixels?gdpr=0&amp;us_privacy=1---&amp;gpp_sid=-1&amp;url=https%3A%2F%2Flolbeans.io%2F" style="display: none;"></iframe><iframe sandbox="allow-scripts allow-same-origin" id="50a61872f0a97868" frameborder="0" allowtransparency="true" marginheight="0" marginwidth="0" width="0" hspace="0" vspace="0" height="0" style="height:0px;width:0px;display:none;" scrolling="no" src="https://eb2.3lift.com/sync?&amp;upapi=true">
+    </iframe><iframe sandbox="allow-scripts allow-same-origin" id="5118fdb15defb1b" frameborder="0" allowtransparency="true" marginheight="0" marginwidth="0" width="0" hspace="0" vspace="0" height="0" style="height:0px;width:0px;display:none;" scrolling="no" src="https://public.servenobid.com/sync.html">
+    </iframe><iframe sandbox="allow-scripts allow-same-origin" id="52b3bc37822d75a" frameborder="0" allowtransparency="true" marginheight="0" marginwidth="0" width="0" hspace="0" vspace="0" height="0" style="height:0px;width:0px;display:none;" scrolling="no" src="https://ads.pubmatic.com/AdServer/js/user_sync.html?kdntuid=1&amp;p=156857">
+    </iframe><iframe sandbox="allow-scripts allow-same-origin" id="530f6a7a3597bdb8" frameborder="0" allowtransparency="true" marginheight="0" marginwidth="0" width="0" hspace="0" vspace="0" height="0" style="height:0px;width:0px;display:none;" scrolling="no" src="https://acdn.adnxs.com/dmp/async_usersync.html">
+    </iframe><iframe sandbox="allow-scripts allow-same-origin" id="54b86bd9447af6b8" frameborder="0" allowtransparency="true" marginheight="0" marginwidth="0" width="0" hspace="0" vspace="0" height="0" style="height:0px;width:0px;display:none;" scrolling="no" src="https://js-sec.indexww.com/um/ixmatch.html">
+    </iframe><iframe sandbox="allow-scripts allow-same-origin" id="555f98ec6cb07f8" frameborder="0" allowtransparency="true" marginheight="0" marginwidth="0" width="0" hspace="0" vspace="0" height="0" style="height:0px;width:0px;display:none;" scrolling="no" src="https://u.openx.net/w/1.0/pd?ph=2d1251ae-7f3a-47cf-bd2a-2f288854a0ba">
+    </iframe><iframe sandbox="allow-scripts allow-same-origin" id="5678a65f5aec5a7" frameborder="0" allowtransparency="true" marginheight="0" marginwidth="0" width="0" hspace="0" vspace="0" height="0" style="height:0px;width:0px;display:none;" scrolling="no" src="https://onetag-sys.com/usync/?cb=1776200595782">
+    </iframe><iframe sandbox="allow-scripts allow-same-origin" id="57883a211e58f488" frameborder="0" allowtransparency="true" marginheight="0" marginwidth="0" width="0" hspace="0" vspace="0" height="0" style="height:0px;width:0px;display:none;" scrolling="no" src="https://visitor.omnitagjs.com/visitor/isync?uid=19340f4f097d16f41f34fc0274981ca4">
+    </iframe><iframe sandbox="allow-scripts allow-same-origin" id="582a377bab98dd7" frameborder="0" allowtransparency="true" marginheight="0" marginwidth="0" width="0" hspace="0" vspace="0" height="0" style="height:0px;width:0px;display:none;" scrolling="no" src="https://eus.rubiconproject.com/usync.html">
+    </iframe></html>
