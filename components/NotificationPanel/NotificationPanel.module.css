@@ -1,0 +1,203 @@
+.panel {
+    position: fixed;
+    top: 50%;
+    right: 0;
+    /* Anchored to RIGHT */
+    transform: translateY(-50%);
+    height: 80vh;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-right: none;
+    border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+    /* Rounded Left corners */
+    box-shadow: -5px 0 20px rgba(0, 0, 0, 0.05);
+    /* Shadow to left */
+    z-index: 100;
+    transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.4s ease;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* State: Peek (Closed) */
+.panel.peek {
+    width: 24px;
+    background: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    border-color: rgba(0, 0, 0, 0.03);
+}
+
+.panel.peek:hover {
+    width: 32px;
+    background: rgba(255, 255, 255, 0.6);
+}
+
+/* State: Open */
+.panel.open {
+    width: 300px;
+    background: rgba(255, 255, 255, 0.95);
+}
+
+/* Content visibility handling */
+.content {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+    width: 300px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.panel.open .content {
+    opacity: 1;
+    pointer-events: auto;
+    transition-delay: 0.1s;
+}
+
+/* Vertical Peek Handle */
+.peekVisual {
+    position: absolute;
+    top: 50%;
+    /* Left side of the panel when on right edge? No, stick to visible edge */
+    left: 4px;
+    /* Visible strip is on the left of the component because component is right-aligned? 
+                  Wait, if right:0, the left edge is the "inner" edge.
+                  Width grows to the LEFT.
+               */
+    transform: translateY(-50%);
+    width: 4px;
+    height: 48px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 99px;
+    transition: var(--transition-fast);
+}
+
+.panel.peek:hover .peekVisual {
+    background: var(--accent-primary);
+    height: 64px;
+}
+
+.panel.open .peekVisual {
+    opacity: 0;
+}
+
+.header {
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.closeButton {
+    background: transparent;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.item {
+    position: relative;
+    width: 100%;
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    background: rgba(0, 0, 0, 0.02);
+    border: 1px solid transparent;
+    cursor: default;
+    transition: var(--transition-fast);
+}
+
+.item:hover {
+    background: white;
+    box-shadow: var(--shadow-sm);
+}
+
+.item.unread {
+    background: white;
+    border-color: rgba(var(--accent-rgb), 0.2);
+    box-shadow: var(--shadow-sm);
+}
+
+.itemHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.iconWrapper {
+    opacity: 0.8;
+}
+
+.time {
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+}
+
+.itemTitle {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.2rem;
+}
+
+.itemDesc {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.unreadDot {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 8px;
+    height: 8px;
+    background: var(--accent-primary);
+    border-radius: 50%;
+}
+
+@media (max-width: 1024px) {
+    .panel {
+        top: 0;
+        transform: none;
+        height: 100vh;
+        border-radius: 0;
+        z-index: 2000;
+    }
+
+    .panel.open {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .panel.peek {
+        width: 0;
+        opacity: 0;
+        pointer-events: none;
+    }
+}

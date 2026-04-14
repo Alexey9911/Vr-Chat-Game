@@ -1,0 +1,114 @@
+.grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.6rem;
+    max-width: 620px;
+    margin: 1rem auto 0;
+    padding: 0 1rem;
+}
+
+.card {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    background: var(--surface-color, rgba(255, 255, 255, 0.6));
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    position: relative;
+    overflow: visible;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+.card:active {
+    transform: translateY(0);
+}
+
+.cardDisabled {
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.cardDisabled .label,
+.cardDisabled svg {
+    opacity: 0.4;
+}
+
+.cardIcon {
+    color: var(--text-primary, #111827);
+    flex-shrink: 0;
+}
+
+.label {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Soon Badge */
+.soonBadge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #6B7280;
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 6px;
+    letter-spacing: 0.3px;
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* New Badge with animated glow */
+.newBadge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #0078D2;
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 6px;
+    letter-spacing: 0.3px;
+    z-index: 10;
+    pointer-events: none;
+    animation: pulseGlow 2s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+    0%, 100% {
+        box-shadow: 0 0 4px rgba(0, 120, 210, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 12px rgba(0, 120, 210, 0.6);
+    }
+}
+
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: repeat(3, 1fr);
+        max-width: 480px;
+    }
+}
+
+@media (max-width: 560px) {
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+        max-width: 360px;
+    }
+}

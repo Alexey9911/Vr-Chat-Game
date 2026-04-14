@@ -1,0 +1,130 @@
+.gridLayout {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  width: 100%;
+  max-width: 90rem;
+  margin: 0 auto;
+  padding: 0 2rem;
+  position: relative;
+  align-items: start;
+}
+
+@media (min-width: 768px) {
+  .gridLayout {
+    padding: 0 4rem;
+    gap: 2rem;
+  }
+}
+
+.stickyHeader {
+  position: sticky;
+  top: 6rem;
+  padding-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+  .stickyHeader {
+    top: 8rem;
+    padding-bottom: 0;
+  }
+}
+
+.title {
+  color: #fff;
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+@media (min-width: 768px) {
+  .title {
+    font-size: 4rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .title {
+    font-size: 5rem;
+  }
+}
+
+.title span {
+  display: block;
+}
+
+.faqList {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.faqItem {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.questionButton {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  gap: 2rem;
+}
+
+.questionText {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.05em;
+  transition: color 0.3s ease;
+}
+
+@media (min-width: 768px) {
+  .questionText {
+    font-size: 1.5rem;
+  }
+}
+
+.questionButton:hover .questionText {
+  color: #fff;
+}
+
+.iconContainer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.questionButton:hover .iconContainer {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.answerText {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1rem;
+  line-height: 1.6;
+  padding-bottom: 2rem;
+  max-width: 90%;
+  letter-spacing: 0.02em;
+}
+
+@media (min-width: 768px) {
+  .answerText {
+    font-size: 1.125rem;
+  }
+}

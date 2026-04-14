@@ -1,0 +1,196 @@
+.panel {
+    position: absolute;
+    /* Anchored to the right sidebar wrapper */
+    right: 5rem;
+    /* Opens to the LEFT of the sidebar */
+    bottom: 0;
+    width: 360px;
+    max-height: 55vh;
+    margin-right: 1.5rem;
+
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-float), 0 0 0 1px rgba(0, 0, 0, 0.02);
+
+    padding: 1.5rem;
+    z-index: 200;
+    overflow-y: auto;
+
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(10px) scale(0.95);
+    transform-origin: right bottom;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.panel.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0) scale(1);
+}
+
+/* Custom Scrollbar */
+.panel::-webkit-scrollbar {
+    width: 4px;
+}
+
+.panel::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.2rem;
+}
+
+.subtitle {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.closeButton {
+    background: none;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: color 0.2s;
+    padding: 0.2rem;
+}
+
+.closeButton:hover {
+    color: var(--text-primary);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+}
+
+.card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.875rem 1rem;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(0, 0, 0, 0.03);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    opacity: 0;
+    animation: fadeInCard 0.4s ease forwards;
+}
+
+/* Animation triggers when component mounts */
+
+@keyframes fadeInCard {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card:hover {
+    background: white;
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
+    border-color: rgba(0, 0, 0, 0.06);
+}
+
+.iconWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: 0.75rem;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+
+.card:hover .iconWrapper {
+    background: var(--text-primary);
+    color: white;
+    transform: rotate(-5deg);
+}
+
+.cardContent {
+    flex: 1;
+}
+
+.cardTitle {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.cardDesc {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+}
+
+.action {
+    color: var(--text-tertiary);
+    font-size: 1.2rem;
+    font-weight: 300;
+    transition: transform 0.2s;
+}
+
+.card.active {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: var(--text-primary);
+    box-shadow: var(--shadow-md);
+}
+
+.card.active .iconWrapper {
+    background: var(--text-primary);
+    color: white;
+}
+
+.card.active .action {
+    color: var(--text-primary);
+    /* No rotation needed for Check icon */
+}
+
+@media (max-width: 1024px) {
+    .panel {
+        position: fixed;
+        left: 0;
+        bottom: 70px;
+        /* Above Bottom Nav */
+        right: 0;
+        width: 100%;
+        max-height: calc(100vh - 80px);
+        margin: 0;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        transform: translateY(100%);
+        transform-origin: center bottom;
+        z-index: 1001;
+        /* Above Nav */
+    }
+
+    .panel.open {
+        transform: translateY(0);
+    }
+}

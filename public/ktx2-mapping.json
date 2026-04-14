@@ -1,0 +1,259 @@
+{
+  "generatedAt": "2026-03-26T08:52:53.885Z",
+  "inputRoot": "public",
+  "outputRoot": "public/ktx2",
+  "textures": [
+    {
+      "original": "/floor/white-quilted-fabric_albedo.png",
+      "optimized": "/ktx2/floor/white-quilted-fabric_albedo_KTX2.ktx2",
+      "kind": "color",
+      "resize": "1024x1024",
+      "beforeKB": 2461,
+      "afterKB": 45,
+      "reductionPct": 98
+    },
+    {
+      "original": "/floor/white-quilted-fabric_ao.png",
+      "optimized": "/ktx2/floor/white-quilted-fabric_ao_KTX2.ktx2",
+      "kind": "ao",
+      "resize": "1024x1024",
+      "beforeKB": 535,
+      "afterKB": 48,
+      "reductionPct": 91
+    },
+    {
+      "original": "/floor/white-quilted-fabric_height.png",
+      "optimized": "/ktx2/floor/white-quilted-fabric_height_KTX2.ktx2",
+      "kind": "height",
+      "resize": "1024x1024",
+      "beforeKB": 406,
+      "afterKB": 51,
+      "reductionPct": 87
+    },
+    {
+      "original": "/floor/white-quilted-fabric_metallic.png",
+      "optimized": "/ktx2/floor/white-quilted-fabric_metallic_KTX2.ktx2",
+      "kind": "metallic",
+      "resize": "1024x1024",
+      "beforeKB": 55,
+      "afterKB": 1,
+      "reductionPct": 98
+    },
+    {
+      "original": "/floor/white-quilted-fabric_normal-ogl.png",
+      "optimized": "/ktx2/floor/white-quilted-fabric_normal-ogl_KTX2.ktx2",
+      "kind": "normal",
+      "resize": "1024x1024",
+      "beforeKB": 2335,
+      "afterKB": 238,
+      "reductionPct": 90
+    },
+    {
+      "original": "/floor/white-quilted-fabric_preview.jpg",
+      "optimized": "/ktx2/floor/white-quilted-fabric_preview_KTX2.ktx2",
+      "kind": "color",
+      "resize": "512x512",
+      "beforeKB": 209,
+      "afterKB": 46,
+      "reductionPct": 78
+    },
+    {
+      "original": "/floor/white-quilted-fabric_roughness.png",
+      "optimized": "/ktx2/floor/white-quilted-fabric_roughness_KTX2.ktx2",
+      "kind": "roughness",
+      "resize": "1024x1024",
+      "beforeKB": 87,
+      "afterKB": 21,
+      "reductionPct": 76
+    },
+    {
+      "original": "/image1.png",
+      "optimized": "/ktx2/image1_KTX2.ktx2",
+      "kind": "color",
+      "resize": "1024x1024",
+      "beforeKB": 24,
+      "afterKB": 47,
+      "reductionPct": 0
+    },
+    {
+      "original": "/image2.jpg",
+      "optimized": "/ktx2/image2_KTX2.ktx2",
+      "kind": "color",
+      "resize": "1024x1024",
+      "beforeKB": 112,
+      "afterKB": 158,
+      "reductionPct": 0
+    },
+    {
+      "original": "/image3.jpg",
+      "optimized": "/ktx2/image3_KTX2.ktx2",
+      "kind": "color",
+      "resize": "1024x1024",
+      "beforeKB": 148,
+      "afterKB": 176,
+      "reductionPct": 0
+    },
+    {
+      "original": "/image4.png",
+      "optimized": "/ktx2/image4_KTX2.ktx2",
+      "kind": "color",
+      "resize": "1024x1024",
+      "beforeKB": 38,
+      "afterKB": 46,
+      "reductionPct": 0
+    },
+    {
+      "original": "/image5.jpg",
+      "optimized": "/ktx2/image5_KTX2.ktx2",
+      "kind": "color",
+      "resize": "1024x1024",
+      "beforeKB": 146,
+      "afterKB": 164,
+      "reductionPct": 0
+    },
+    {
+      "original": "/logos/boringcomany.png",
+      "optimized": "/ktx2/logos/boringcomany_KTX2.ktx2",
+      "kind": "color",
+      "resize": "512x512",
+      "beforeKB": 22,
+      "afterKB": 18,
+      "reductionPct": 18
+    },
+    {
+      "original": "/logos/neuralink.png",
+      "optimized": "/ktx2/logos/neuralink_KTX2.ktx2",
+      "kind": "color",
+      "resize": "512x512",
+      "beforeKB": 17,
+      "afterKB": 15,
+      "reductionPct": 12
+    },
+    {
+      "original": "/logos/OpenAI_Logo.svg.png",
+      "optimized": "/ktx2/logos/OpenAI_Logo.svg_KTX2.ktx2",
+      "kind": "color",
+      "resize": "512x512",
+      "beforeKB": 53,
+      "afterKB": 21,
+      "reductionPct": 60
+    },
+    {
+      "original": "/logos/paypal.png",
+      "optimized": "/ktx2/logos/paypal_KTX2.ktx2",
+      "kind": "color",
+      "resize": "512x512",
+      "beforeKB": 114,
+      "afterKB": 40,
+      "reductionPct": 65
+    },
+    {
+      "original": "/logos/solarcity.png",
+      "optimized": "/ktx2/logos/solarcity_KTX2.ktx2",
+      "kind": "color",
+      "resize": "512x512",
+      "beforeKB": 41,
+      "afterKB": 13,
+      "reductionPct": 68
+    },
+    {
+      "original": "/logos/spacex.png",
+      "optimized": "/ktx2/logos/spacex_KTX2.ktx2",
+      "kind": "color",
+      "resize": "512x512",
+      "beforeKB": 17,
+      "afterKB": 15,
+      "reductionPct": 12
+    },
+    {
+      "original": "/logos/starlink.png",
+      "optimized": "/ktx2/logos/starlink_KTX2.ktx2",
+      "kind": "color",
+      "resize": "512x512",
+      "beforeKB": 23,
+      "afterKB": 22,
+      "reductionPct": 4
+    },
+    {
+      "original": "/logos/tesla.png",
+      "optimized": "/ktx2/logos/tesla_KTX2.ktx2",
+      "kind": "color",
+      "resize": "512x512",
+      "beforeKB": 103,
+      "afterKB": 9,
+      "reductionPct": 91
+    },
+    {
+      "original": "/logos/zip2.png",
+      "optimized": "/ktx2/logos/zip2_KTX2.ktx2",
+      "kind": "color",
+      "resize": "512x512",
+      "beforeKB": 13,
+      "afterKB": 29,
+      "reductionPct": 0
+    },
+    {
+      "original": "/metal/worn_metal4_albedo.png",
+      "optimized": "/ktx2/metal/worn_metal4_albedo_KTX2.ktx2",
+      "kind": "color",
+      "resize": "1024x1024",
+      "beforeKB": 5743,
+      "afterKB": 182,
+      "reductionPct": 97
+    },
+    {
+      "original": "/metal/worn_metal4_ao.png",
+      "optimized": "/ktx2/metal/worn_metal4_ao_KTX2.ktx2",
+      "kind": "ao",
+      "resize": "1024x1024",
+      "beforeKB": 2052,
+      "afterKB": 150,
+      "reductionPct": 93
+    },
+    {
+      "original": "/metal/worn_metal4_Height.png",
+      "optimized": "/ktx2/metal/worn_metal4_Height_KTX2.ktx2",
+      "kind": "height",
+      "resize": "1024x1024",
+      "beforeKB": 935,
+      "afterKB": 78,
+      "reductionPct": 92
+    },
+    {
+      "original": "/metal/worn_metal4_Metallic.png",
+      "optimized": "/ktx2/metal/worn_metal4_Metallic_KTX2.ktx2",
+      "kind": "metallic",
+      "resize": "1024x1024",
+      "beforeKB": 19,
+      "afterKB": 2,
+      "reductionPct": 89
+    },
+    {
+      "original": "/metal/worn_metal4_Normal-ogl.png",
+      "optimized": "/ktx2/metal/worn_metal4_Normal-ogl_KTX2.ktx2",
+      "kind": "normal",
+      "resize": "1024x1024",
+      "beforeKB": 3820,
+      "afterKB": 761,
+      "reductionPct": 80
+    },
+    {
+      "original": "/metal/worn_metal4_preview.jpg",
+      "optimized": "/ktx2/metal/worn_metal4_preview_KTX2.ktx2",
+      "kind": "color",
+      "resize": "512x512",
+      "beforeKB": 59,
+      "afterKB": 40,
+      "reductionPct": 32
+    },
+    {
+      "original": "/metal/worn_metal4_Roughness.png",
+      "optimized": "/ktx2/metal/worn_metal4_Roughness_KTX2.ktx2",
+      "kind": "roughness",
+      "resize": "1024x1024",
+      "beforeKB": 2995,
+      "afterKB": 178,
+      "reductionPct": 94
+    }
+  ]
+}

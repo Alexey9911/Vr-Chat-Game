@@ -1,0 +1,119 @@
+.container {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    z-index: 100;
+}
+
+.socialLink {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    color: var(--text-secondary);
+    background: linear-gradient(180deg, #1a1a1a 0%, #000000 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+        inset 0 1px 1px rgba(255, 255, 255, 0.15),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.8),
+        0 4px 15px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.03);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.socialLink::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 100%);
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+.socialLink:hover {
+    color: var(--text-primary);
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow:
+        inset 0 1px 2px rgba(255, 255, 255, 0.25),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.8),
+        0 8px 25px rgba(0, 0, 0, 0.6),
+        0 0 15px rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+}
+
+.socialLink svg {
+    position: relative;
+    z-index: 10;
+}
+
+/* Tooltip */
+.socialLink::after {
+    left: 50%;
+    transform: translateX(-50%) translateY(5px);
+    background: var(--text-primary);
+    color: var(--accent-contrast);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: var(--transition-fast);
+    white-space: nowrap;
+}
+
+/* Light Theme Overrides (from commit 9cd4fd311) */
+:global(.chat-theme[data-theme="light"]) .container {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 9999px;
+    box-shadow: var(--shadow-md);
+    padding: 0.5rem 0.75rem;
+}
+
+:global(.chat-theme[data-theme="light"]) .socialLink {
+    width: 2.25rem;
+    height: 2.25rem;
+    color: var(--text-secondary);
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+:global(.chat-theme[data-theme="light"]) .socialLink::before {
+    display: none;
+}
+
+:global(.chat-theme[data-theme="light"]) .socialLink .sweep-glass {
+    display: none;
+}
+
+:global(.chat-theme[data-theme="light"]) .socialLink:hover {
+    color: var(--text-primary);
+    background: rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
+    border: none;
+    box-shadow: none;
+}
+
+:global(.chat-theme[data-theme="light"]) .socialLink::after {
+    color: white;
+}
+
+@media (max-width: 1024px) {
+    .container {
+        display: none;
+    }
+}

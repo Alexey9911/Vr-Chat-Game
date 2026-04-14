@@ -1,0 +1,208 @@
+.dropdown {
+    position: absolute;
+    right: 5rem;
+    bottom: 0;
+    min-width: 260px;
+    margin-right: 1rem;
+
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(10px) scale(0.95);
+    transform-origin: right bottom;
+
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 1);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-float), 0 0 0 1px rgba(0, 0, 0, 0.02);
+    padding: 1.25rem;
+    z-index: 200;
+    transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.dropdown.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0) scale(1);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.closeButton {
+    background: none;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.closeButton:hover {
+    color: var(--text-primary);
+}
+
+.userCard {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: var(--radius-sm);
+    margin-bottom: 1rem;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-tertiary);
+}
+
+.userInfo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.userName {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.userTier {
+    font-size: 0.65rem;
+    color: var(--text-tertiary);
+}
+
+.section {
+    margin-bottom: 1rem;
+}
+
+.section:last-child {
+    margin-bottom: 0;
+}
+
+.sectionTitle {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.4rem;
+}
+
+.statCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.5rem 0.25rem;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: var(--radius-sm);
+    text-align: center;
+    color: var(--text-tertiary);
+}
+
+.statValue {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.statLabel {
+    font-size: 0.55rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+}
+
+.achievementList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.achievementItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.5rem;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+}
+
+.achievementItem.locked {
+    opacity: 0.4;
+}
+
+.achievementInfo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.achievementName {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.achievementDesc {
+    font-size: 0.6rem;
+    color: var(--text-tertiary);
+}
+
+@media (max-width: 1024px) {
+    .dropdown {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100vh;
+        max-width: 100%;
+        margin: 0;
+        border-radius: 0;
+        transform: translateY(100%);
+        transform-origin: bottom center;
+        padding: 1.5rem;
+        padding-bottom: 6rem;
+        overflow-y: auto;
+        z-index: 2000;
+    }
+
+    .dropdown.open {
+        transform: translateY(0);
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .statsGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

@@ -1,0 +1,424 @@
+/* =============================================
+   HUD PANEL — Right-side horizontal grid (3-4 rows)
+   ============================================= */
+
+.hud-panel {
+  position: fixed;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  z-index: 1500;
+  display: grid;
+  grid-template-columns: repeat(2, 60px);
+  gap: 8px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.78);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+}
+
+/* Base button — all black */
+.hud-btn {
+  width: 60px;
+  height: 60px;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  color: #ffffff;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.hud-btn:hover:not(:disabled) {
+  background: #2a2a2a;
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: scale(1.06);
+}
+
+.hud-btn:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.hud-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+  background: #0f0f0f;
+}
+
+.hud-btn-label {
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1;
+  font-family: 'Inter', Arial, sans-serif;
+  color: #ffffff;
+}
+
+/* No separators needed in grid layout */
+
+/* All buttons use the same black style — no color overrides */
+.hud-btn--view .hud-btn-label {
+  font-size: 16px;
+  letter-spacing: 0.4px;
+}
+
+.hud-btn--emote .hud-btn-label {
+  font-size: 21px;
+}
+
+/* Music button and Skin button — eye-catching gradient */
+.hud-btn--music:not(:disabled):not(.cooldown),
+.hud-btn--skin {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: rgba(102, 126, 234, 0.5);
+  box-shadow: 0 0 12px rgba(102, 126, 234, 0.4);
+  animation: pulse-music 2s ease-in-out infinite;
+}
+
+.hud-btn--music:not(:disabled):not(.cooldown):hover,
+.hud-btn--skin:hover {
+  background: linear-gradient(135deg, #7c8ff0 0%, #8a5bb8 100%);
+  box-shadow: 0 0 16px rgba(102, 126, 234, 0.6);
+  transform: scale(1.08);
+}
+
+.hud-btn--music.is-playing {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  border-color: rgba(240, 147, 251, 0.5);
+  box-shadow: 0 0 12px rgba(240, 147, 251, 0.5);
+  animation: pulse-playing 1.5s ease-in-out infinite;
+}
+
+.hud-btn--music.is-playing:hover {
+  background: linear-gradient(135deg, #f5a3ff 0%, #ff6b7f 100%);
+  box-shadow: 0 0 16px rgba(240, 147, 251, 0.7);
+}
+
+.hud-btn--music.cooldown {
+  opacity: 0.4;
+  cursor: not-allowed;
+  animation: none;
+}
+
+@keyframes pulse-music {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(102, 126, 234, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.7);
+  }
+}
+
+@keyframes pulse-playing {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(240, 147, 251, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(240, 147, 251, 0.8);
+  }
+}
+
+.hud-icon-disabled {
+  color: #666;
+}
+
+/* YouTube button — dark like other buttons, red glow when playing */
+.hud-btn--youtube {
+  background: #1a1a1a;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.hud-btn--youtube:hover {
+  background: #2a2a2a;
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: scale(1.06);
+}
+
+.hud-btn--youtube.is-playing {
+  border-color: rgba(255, 0, 0, 0.5);
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
+  animation: pulse-youtube 1.5s ease-in-out infinite;
+}
+
+.hud-btn--youtube.is-playing:hover {
+  box-shadow: 0 0 14px rgba(255, 0, 0, 0.6);
+}
+
+@keyframes pulse-youtube {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(255, 0, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(255, 0, 0, 0.7);
+  }
+}
+
+/* MIC PUSH-TO-TALK button — green glow when active */
+.hud-btn--mic {
+  position: relative;
+  flex-direction: column;
+  gap: 2px;
+  background: #1a1a1a;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.hud-btn--mic:hover {
+  background: #2a2a2a;
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: scale(1.06);
+}
+
+.hud-btn--mic.is-active {
+  background: linear-gradient(135deg, #00c853, #00bfa5);
+  border-color: rgba(0, 255, 136, 0.5);
+  box-shadow: 0 0 14px rgba(0, 255, 136, 0.5), 0 0 28px rgba(0, 255, 136, 0.2);
+  animation: mic-hud-pulse 0.7s ease-in-out infinite;
+}
+
+.hud-btn-sublabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: 'Inter', Arial, sans-serif;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.hud-btn--mic.is-active .hud-btn-sublabel {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* MIC ACTIVE indicator — spans full row, green glow */
+.hud-mic-active {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 0;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #00c853, #00bfa5);
+  border: 1px solid rgba(0, 255, 136, 0.5);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'Inter', Arial, sans-serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  animation: mic-hud-pulse 0.7s ease-in-out infinite;
+  box-shadow: 0 0 14px rgba(0, 255, 136, 0.5), 0 0 28px rgba(0, 255, 136, 0.2);
+  user-select: none;
+}
+
+.hud-mic-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+}
+
+@keyframes mic-hud-pulse {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.4), 0 0 20px rgba(0, 255, 136, 0.15);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(0, 255, 136, 0.7), 0 0 36px rgba(0, 255, 136, 0.3);
+    transform: scale(1.03);
+  }
+}
+
+/* =============================================
+   SKIN BAR — Horizontal bar at bottom (top layer)
+   ============================================= */
+.skin-bar {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(10, 10, 26, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  z-index: 500;
+}
+
+.skin-bar-item {
+  padding: 10px 18px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.skin-bar-item:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(74, 158, 255, 0.4);
+  color: rgba(255, 255, 255, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(74, 158, 255, 0.2);
+}
+
+.skin-bar-item.active {
+  background: linear-gradient(135deg, #4a9eff, #6c5ce7);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+  box-shadow: 0 4px 16px rgba(74, 158, 255, 0.4);
+}
+
+.skin-bar-label {
+  display: block;
+}
+
+/* =============================================
+   EMOTE BAR — Horizontal bar at bottom (smaller, below skins)
+   ============================================= */
+.emote-bar {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(10, 10, 26, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  z-index: 500;
+}
+
+.emote-bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.emote-bar-item:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(74, 158, 255, 0.4);
+  color: rgba(255, 255, 255, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(74, 158, 255, 0.2);
+}
+
+.emote-bar-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.emote-bar-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.emote-bar-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Responsive — mobile */
+@media (max-width: 768px) {
+  .hud-panel {
+    right: 8px;
+    grid-template-columns: repeat(2, 50px);
+    gap: 6px;
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .hud-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+  }
+
+  .skin-bar {
+    bottom: 60px;
+    gap: 6px;
+    padding: 8px 10px;
+    max-width: 90vw;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .skin-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .skin-bar-item {
+    padding: 8px 12px;
+    font-size: 11px;
+  }
+
+  .emote-bar {
+    bottom: 10px;
+    gap: 5px;
+    padding: 6px 8px;
+    max-width: 90vw;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .emote-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .emote-bar-item {
+    padding: 5px 8px;
+    gap: 3px;
+  }
+
+  .emote-bar-label {
+    font-size: 8px;
+  }
+
+  .emote-bar-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .hud-btn-label {
+    font-size: 16px;
+  }
+
+  .hud-btn--view .hud-btn-label {
+    font-size: 13px;
+  }
+
+  .hud-btn--emote .hud-btn-label {
+    font-size: 18px;
+  }
+}

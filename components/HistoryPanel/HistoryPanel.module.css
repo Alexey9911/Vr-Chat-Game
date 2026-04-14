@@ -1,0 +1,201 @@
+.panel {
+    position: fixed;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    height: 80vh;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-left: none;
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+    box-shadow: var(--shadow-float);
+    z-index: 100;
+    transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.4s ease;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* State: Peek (Closed) */
+.panel.peek {
+    width: 24px;
+    /* Thin visibility */
+    background: rgba(255, 255, 255, 0.4);
+    /* More transparent */
+    cursor: pointer;
+    border-color: rgba(0, 0, 0, 0.03);
+}
+
+.panel.peek:hover {
+    width: 32px;
+    /* Slight expansion on hover */
+    background: rgba(255, 255, 255, 0.6);
+}
+
+/* State: Open */
+.panel.open {
+    width: 300px;
+    background: rgba(255, 255, 255, 0.95);
+}
+
+/* Content visibility handling */
+.content {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+    width: 300px;
+    /* Fixed width to prevent reflow during anim */
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.panel.open .content {
+    opacity: 1;
+    pointer-events: auto;
+    transition-delay: 0.1s;
+}
+
+/* Vertical Peek Handle (Visual Cue) */
+.peekVisual {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 4px;
+    height: 48px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 99px;
+    transition: var(--transition-fast);
+}
+
+.panel.peek:hover .peekVisual {
+    background: var(--accent-primary);
+    height: 64px;
+}
+
+.panel.open .peekVisual {
+    opacity: 0;
+    /* Hide when open */
+}
+
+/* Header & List styles (copied/maintained) */
+.header {
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.newChatButton {
+    background: var(--text-primary);
+    color: white;
+    border: none;
+    padding: 0.4rem;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.closeButton {
+    background: transparent;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.chatItem {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: var(--transition-fast);
+    text-align: left;
+    border: 1px solid transparent;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.chatItem:hover {
+    background: var(--surface-hover);
+}
+
+.chatItem.active {
+    background: white;
+    box-shadow: var(--shadow-sm);
+    border-color: rgba(0, 0, 0, 0.05);
+}
+
+.chatTitle {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chatDate {
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+}
+
+.emptyState {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--text-tertiary);
+    font-size: 0.875rem;
+    font-size: 0.875rem;
+}
+
+@media (max-width: 1024px) {
+    .panel {
+        top: 0;
+        transform: none;
+        height: 100vh;
+        border-radius: 0;
+        z-index: 2000;
+        /* Above everything */
+    }
+
+    .panel.open {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .panel.peek {
+        /* Hide peek on mobile, trigger via button only */
+        width: 0;
+        opacity: 0;
+        pointer-events: none;
+    }
+}

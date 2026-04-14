@@ -1,0 +1,239 @@
+@font-face {
+  font-family: "Druk Cond";
+  font-style: normal;
+  font-weight: bold;
+  src: url("/fonts/DrukCond-Super.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Guti Regular";
+  font-style: normal;
+  src: url("/fonts/GutiRegular.woff2") format("woff2");
+  font-display: swap;
+}
+
+.loading-screen { 
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100dvh;
+  z-index: 99999;
+  visibility: visible;
+  opacity: 1;
+}
+
+html.loading-active {
+  overflow-y: scroll !important;
+  overflow-x: hidden !important;
+  scrollbar-gutter: stable !important;
+  background-color: #0A0A0A !important;
+  overscroll-behavior: none !important;
+  -webkit-overflow-scrolling: auto !important;
+}
+
+html.loading-active body {
+  overflow: hidden !important;
+  height: 100vh !important;
+  overscroll-behavior: none !important;
+  -webkit-overflow-scrolling: auto !important;
+  touch-action: none !important;
+}
+
+html.loading-active::-webkit-scrollbar {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+html.loading-active::-webkit-scrollbar-thumb {
+  background-color: transparent !important;
+}
+
+html.loading-active::-webkit-scrollbar-track {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+/* Firefox - keep scrollbar space but make it invisible */
+html.loading-active {
+  scrollbar-color: transparent transparent !important;
+}
+
+.loading-bg {
+  width: 100%;
+  height: 100%;
+  background: #0A0A0A;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.counter-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-header {
+  position: absolute;
+  top: clamp(0.5rem, 2vh, 2rem);
+  left: 0;
+  width: 100%;
+  padding-left: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.loading-header-small {
+  font-family: "Guti Regular", sans-serif;
+  font-size: 10px;
+  color: #FFFFFF;
+  text-transform: uppercase;
+  font-weight: 300;
+  letter-spacing: 0.05em;
+  opacity: 0;
+}
+
+.loading-header-bold {
+  font-family: "Guti Regular", sans-serif;
+  font-size: 14px;
+  color: #FFFFFF;
+  text-transform: uppercase;
+  font-weight: normal;
+  opacity: 0;
+}
+
+.loading-marquee {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  transform: translateY(calc(-50% - clamp(2rem, 22vw, 420px) + 60px));
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.marquee-track {
+  display: flex;
+  width: fit-content;
+  will-change: transform;
+  position: relative;
+}
+
+.marquee-item {
+  font-family: "Guti Regular", sans-serif;
+  font-size: 14px;
+  color: #FFFFFF;
+  text-transform: uppercase;
+  white-space: pre;
+  margin-right: 20rem;
+  opacity: 0;
+  font-weight: normal;
+  line-height: 1;
+  display: inline-block;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.marquee-percent {
+  font-family: "Guti Regular", sans-serif;
+  font-size: 16.1px;
+  font-weight: normal;
+  vertical-align: baseline;
+  font-variant-numeric: tabular-nums;
+  display: inline-block;
+  min-width: 2ch;
+  text-align: center;
+  color: #FFFFFF;
+}
+
+.counter {
+  font-family: "Druk Cond", "Arial Black", "Impact", sans-serif;
+  font-size: clamp(2rem, 36.5vw, 700px);
+  color: #FFFFFF;
+  line-height: 1;
+  font-weight: bold;
+  position: absolute;
+  white-space: nowrap;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
+  font-feature-settings: "kern" 1;
+  font-variant-numeric: tabular-nums;
+  will-change: transform, opacity, left;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform-style: preserve-3d;
+  font-synthesis: none;
+}
+
+.progress-bar {
+  position: absolute;
+  bottom: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 2px;
+  background-color: #FFFFFF;
+  opacity: 0;
+}
+
+.loading-footer {
+  position: absolute;
+  bottom: 4%;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1.5rem;
+  box-sizing: border-box;
+}
+
+.footer-text {
+  font-family: "Guti Regular", sans-serif;
+  font-size: 10px;
+  color: #FFFFFF;
+  text-transform: uppercase;
+  font-weight: 300;
+  letter-spacing: 0.05em;
+  opacity: 0;
+  white-space: nowrap;
+}
+
+.footer-text-code {
+  white-space: pre-line;
+  text-align: left;
+  line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+  .loading-header {
+    top: 5%;
+    transform: none;
+  }
+
+  .loading-marquee {
+    top: 15%;
+    transform: none;
+  }
+
+  .counter {
+    font-size: clamp(2rem, 50vw, 300px);
+  }
+
+  .marquee-item {
+    margin-right: 5rem;
+  }
+}

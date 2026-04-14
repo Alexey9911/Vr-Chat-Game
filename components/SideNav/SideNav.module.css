@@ -1,0 +1,93 @@
+.navContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.5rem 0.75rem;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 9999px;
+    /* Fully rounded pill shape */
+    box-shadow: var(--shadow-float), var(--shadow-glow);
+    transition: var(--transition-smooth);
+    position: relative;
+    z-index: 5;
+}
+
+.navContainer:hover {
+    background: rgba(255, 255, 255, 0.85);
+    transform: translateY(-2px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+.navItem {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    color: var(--text-secondary);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    position: relative;
+}
+
+.navItem:hover {
+    color: var(--text-primary);
+    background: rgba(0, 0, 0, 0.04);
+    transform: scale(1.1);
+}
+
+.navItem.active {
+    color: var(--surface-color);
+    background: var(--text-primary);
+    /* High contrast active state */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Tooltip on hover - Default: LEFT side (for left sidebar) */
+.navItem::after {
+    content: attr(data-label);
+    position: absolute;
+    right: 120%;
+    /* Opens to the LEFT of the icon */
+    left: auto;
+    top: 50%;
+    transform: translateY(-50%) translateX(10px);
+    background: var(--text-primary);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: var(--transition-fast);
+    white-space: nowrap;
+}
+
+.navItem:hover::after {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+}
+
+/* Right sidebar: tooltips on RIGHT side */
+.rightSidebar .navItem::after {
+    left: 120%;
+    right: auto;
+    transform: translateY(-50%) translateX(-10px);
+}
+
+.rightSidebar .navItem:hover::after {
+    transform: translateY(-50%) translateX(0);
+}
+
+@media (max-width: 1024px) {
+    .navContainer {
+        display: none;
+    }
+}
