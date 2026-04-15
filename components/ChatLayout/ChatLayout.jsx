@@ -17,8 +17,6 @@ import SkillTags from '../SkillTags/SkillTags';
 import PromptCards from '../PromptCards/PromptCards';
 import useChatHistory from '../../hooks/useChatHistory';
 import useUserStats from '../../hooks/useUserStats';
-import useWalletAuth from '../../hooks/useWalletAuth';
-import useSolanaActions from '../../hooks/useSolanaActions';
 import { Home, MessageSquare, Clock, Compass, Bell, Shield, User, Settings as SettingsIcon, Wallet } from 'lucide-react';
 import { usePageTransition } from '../PageTransition/PageTransition';
 
@@ -51,14 +49,8 @@ export default function ChatLayout() {
         style: 0.55
     });
 
-    // Wallet Auth & Solana Actions
-    const wallet = useWalletAuth();
-    const solanaActions = useSolanaActions({
-        publicKey: wallet.publicKey,
-        signAndSendTransaction: wallet.signAndSendTransaction,
-        signTransaction: wallet.signTransaction,
-        walletType: wallet.walletType,
-    });
+    // Wallet stub (Solana features removed)
+    const wallet = { isConnected: false, publicKey: null, balance: null, usdcBalance: null, refreshBalance: () => {} };
 
     // Chat History Hook
     const {
@@ -182,73 +174,6 @@ export default function ChatLayout() {
         }
     }, [isTTSEnabled, ttsSettings]);
 
-    // Handle Solana actions returned by the AI
-    const handleSolanaAction = useCallback(async (action, chatId, aiMessageId) => {
-        if (!action) return;
-
-        try {
-            const type = action.type;
-
-            if (type === 'swap') {
-                updateMessageInChat(chatId, aiMessageId, { pending: true, pendingType: 'swap' });
-                const sig = await solanaActions.executeSwap(action.from, action.to, action.amount);
-                updateMessageInChat(chatId, aiMessageId, { pending: false, txSignature: sig, txType: 'swap', txDetails: action });
-                wallet.refreshBalance();
-            } else if (type === 'send_sol') {
-                updateMessageInChat(chatId, aiMessageId, { pending: true, pendingType: 'send' });
-                const sig = await solanaActions.executeSendSol(action.to, action.amount);
-                updateMessageInChat(chatId, aiMessageId, { pending: false, txSignature: sig, txType: 'send', txDetails: action });
-                wallet.refreshBalance();
-            } else if (type === 'stake') {
-                updateMessageInChat(chatId, aiMessageId, { pending: true, pendingType: 'stake' });
-                const sig = await solanaActions.executeStake(action.token, action.amount);
-                updateMessageInChat(chatId, aiMessageId, { pending: false, txSignature: sig, txType: 'stake', txDetails: action });
-                wallet.refreshBalance();
-            } else if (type === 'unstake') {
-                updateMessageInChat(chatId, aiMessageId, { pending: true, pendingType: 'unstake' });
-                const sig = await solanaActions.executeUnstake(action.token, action.amount);
-                updateMessageInChat(chatId, aiMessageId, { pending: false, txSignature: sig, txType: 'unstake', txDetails: action });
-                wallet.refreshBalance();
-            } else if (type === 'get_tokens' || type === 'get_portfolio') {
-                updateMessageInChat(chatId, aiMessageId, { pending: true, pendingType: 'portfolio' });
-                const assets = await solanaActions.getPortfolio();
-                updateMessageInChat(chatId, aiMessageId, { pending: false, portfolio: assets });
-            } else if (type === 'get_history') {
-                updateMessageInChat(chatId, aiMessageId, { pending: true, pendingType: 'history' });
-                const txHistory = await solanaActions.getHistory();
-                updateMessageInChat(chatId, aiMessageId, { pending: false, txHistory });
-            } else if (type === 'get_price') {
-                updateMessageInChat(chatId, aiMessageId, { pending: true, pendingType: 'price' });
-                const priceData = await solanaActions.getPrice(action.tokenId);
-                updateMessageInChat(chatId, aiMessageId, { pending: false, priceData });
-            } else if (type === 'amazon_search') {
-                updateMessageInChat(chatId, aiMessageId, { pending: true, pendingType: 'amazon' });
-                const resp = await fetch('/api/amazon/search', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query: action.query, maxPrice: action.maxPrice, minRating: action.minRating }),
-                });
-                const amazonData = await resp.json();
-                updateMessageInChat(chatId, aiMessageId, { pending: false, amazonProducts: amazonData.success ? amazonData.products : [] });
-            } else if (type === 'flight_search') {
-                updateMessageInChat(chatId, aiMessageId, { flightSearchForm: true, pending: false });
-                return; // No async work needed, form handles everything
-            } else if (type === 'prediction_markets') {
-                updateMessageInChat(chatId, aiMessageId, { predictionMarketsForm: true, pending: false });
-                return; // No async work needed, form handles everything
-            } else if (type === 'create_limit_order') {
-                updateMessageInChat(chatId, aiMessageId, { pending: true, pendingType: 'limit_order' });
-                const result = await solanaActions.createLimitOrder(action.inputToken, action.outputToken, action.amount, action.targetPrice);
-                updateMessageInChat(chatId, aiMessageId, { pending: false, txSignature: result.signature, txType: 'limit_order', txDetails: action });
-            }
-        } catch (err) {
-            console.error('Solana action error:', err);
-            updateMessageInChat(chatId, aiMessageId, {
-                pending: false,
-                actionError: err.message || 'Transaction failed'
-            });
-        }
-    }, [solanaActions, wallet, updateMessageInChat]);
 
     const handleSend = async () => {
         if (!inputValue.trim() || isLoading) return;
@@ -270,25 +195,15 @@ export default function ChatLayout() {
         try {
             const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
 
-            // Build wallet info for the API
-            const walletInfo = wallet.isConnected ? {
-                isConnected: true,
-                publicKey: wallet.publicKey,
-                balance: wallet.balance,
-                usdcBalance: wallet.usdcBalance,
-                assets: [], // Will be populated by portfolio calls
-            } : null;
-
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     message: currentInput,
-                    history: messages.slice(-5), // Reduced for speed
+                    history: messages.slice(-5),
                     mode: chatMode,
-                    userName: userName, // Pass current known name
+                    userName: userName,
                     userTimezone,
-                    walletInfo,
                 }),
             });
 
@@ -314,10 +229,6 @@ export default function ChatLayout() {
                 // Play TTS in background (non-blocking)
                 playTTS(data.response);
 
-                // Execute action if AI returned one
-                if (data.action) {
-                    handleSolanaAction(data.action, chatId, aiMessageId);
-                }
             } else {
                 saveMessageToChat(chatId, {
                     id: Date.now() + 1,
