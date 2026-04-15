@@ -70,3 +70,7 @@ export default function TrumpSkinAvatar({ animation }: { animation?: string | nu
     </group>
   )
 }
+
+if (typeof window !== 'undefined') {
+  setTimeout(() => useGLTF.preload('/trumpskin-v1.glb'), 100)
+}

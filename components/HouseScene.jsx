@@ -125,9 +125,6 @@ function HouseDancer({ gltf }) {
   return <group ref={groupRef}><primitive object={clone} /></group>
 }
 
-// Global collision mesh for raycasting (accessed by useCameraControls)
-export let houseCollisionMesh = null
-
 export default function HouseScene() {
   const gltf = useGLTF('/alon_house/house_scene-v1.glb')
   const sceneRef = useRef()
@@ -138,7 +135,9 @@ export default function HouseScene() {
       // Store collision geometry mesh for raycasting (keep invisible)
       if (child.name === 'colisiones') {
         child.visible = false
-        houseCollisionMesh = child
+        import('../lib/collisionRef').then(({ setHouseCollisionMesh }) => {
+          setHouseCollisionMesh(child)
+        })
       }
       // Hide the original char1/Armature — the animated clone in HouseDancer replaces it
       if (child.name === 'char1' || child.name === 'Armature') {
@@ -176,4 +175,6 @@ export default function HouseScene() {
   )
 }
 
-useGLTF.preload('/alon_house/house_scene-v1.glb')
+if (typeof window !== 'undefined') {
+  setTimeout(() => useGLTF.preload('/alon_house/house_scene-v1.glb'), 100)
+}

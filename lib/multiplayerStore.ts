@@ -1,5 +1,10 @@
 import { create } from 'zustand'
 import { EYE_HEIGHT } from './camera/cameraConstants'
+
+// Initial spawn position - must match useCameraControls.ts
+const SPAWN_X = -59.95
+const SPAWN_Z = -87.86
+const SPAWN_ROT = (74.61 + 180) * (Math.PI / 180) // 74.61° display + 180° offset
 import { LobbyInfo, LobbyCode, createDefaultLobbyInfo, getLobbyIndex } from './lobbyConfig'
 
 export interface ChatMessage {
@@ -92,8 +97,8 @@ export const useMultiplayerStore = create<MultiplayerState>((set, get) => ({
       skinId: 'alon',
       isAdmin: false,
       colors: { primary: '#4a9eff' },
-      position: { x: 0, y: EYE_HEIGHT, z: 5 },
-      rotationY: 0,
+      position: { x: SPAWN_X, y: EYE_HEIGHT, z: SPAWN_Z },
+      rotationY: SPAWN_ROT,
       chatMessage: null,
       animation: null,
     }

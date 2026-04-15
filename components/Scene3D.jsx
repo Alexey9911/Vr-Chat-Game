@@ -1,7 +1,10 @@
 import RemotePlayerAvatar from "./multiplayer/RemotePlayerAvatar";
 import HouseScene from "./HouseScene";
+import CheckpointEntryHouse from "./checkpoints/CheckpointEntryHouse";
+import CheckpointExitHouse from "./checkpoints/CheckpointExitHouse";
+import Room1 from "./rooms/Room1";
 
-import React from "react";
+import React, { Suspense } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useMultiplayerStore } from "../lib/multiplayerStore";
@@ -20,10 +23,12 @@ export default function Scene3D({ containerRef }) {
     const remotePlayersArray = Array.from(remotePlayers.values());
 
     // Spatial Audio: Update volume based on distance (OPTIMIZED: skip if no music)
+    // IMPORTANT: Exclude local player's own audio — they should hear their own music at full volume
     const activeAudioInstances = getActiveAudioInstances();
     if (activeAudioInstances.size > 0) {
       const myPosition = { x: camera.position.x, z: camera.position.z };
-      const audioPositions = getActiveAudioPositions(remotePlayersArray, activeAudioInstances);
+      const remoteOnly = remotePlayersArray.filter(p => p.id !== localPlayerId);
+      const audioPositions = getActiveAudioPositions(remoteOnly, activeAudioInstances);
       updateSpatialAudio(myPosition, audioPositions, performance.now());
     }
 
@@ -60,6 +65,17 @@ export default function Scene3D({ containerRef }) {
 
       {/* House scene from Blender (exterior + cars + decoration + dance + floating texts) */}
       <HouseScene />
+
+      {/* Checkpoint: GTA SA style entry to house interior */}
+      <Suspense fallback={null}>
+        <CheckpointEntryHouse />
+        <CheckpointExitHouse />
+      </Suspense>
+
+      {/* Interior rooms (loaded high above exterior) */}
+      <Suspense fallback={null}>
+        <Room1 />
+      </Suspense>
 
       {/* ============================================= */}
       {/* MULTIPLAYER: Remote Player Avatars */}

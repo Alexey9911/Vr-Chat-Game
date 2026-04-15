@@ -96,23 +96,33 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
   // Determine animation: Prioritize custom emote state from Playroom, fallback to movement
   const animation = player.animation || (isMoving.current ? 'Run' : 'Idle')
 
-  // Scale for Alon skin: 25% bigger for normal, 40% bigger for admin
+  // Scale for all skins to match new map size
   const isAlonSkin = player.skinId === 'alon'
   const isAdmin = player.isAdmin || false
-  const alonScale = isAlonSkin ? (isAdmin ? 1.4 : 1.25) : 1
+  
+  // All skins scaled up to match the larger map
+  // Alon: internal 5.6x (AlonAvatar) * external 1.25 = 7x total
+  // Trump/Elon: internal 1.5x (their avatar) * external 5.0 = 7.5x total
+  let skinScale = 1
+  if (isAlonSkin) {
+    skinScale = isAdmin ? 1.4 : 1.25
+  } else if (player.skinId === 'trumpskin' || player.skinId === 'elonmuskchibi') {
+    skinScale = 5.0
+  }
+  
+  // Y offset to raise skins above floor (Alon has built-in offset in AlonAvatar.tsx)
+  const skinYOffset = isAlonSkin ? 0 : (player.skinId === 'trumpskin' || player.skinId === 'elonmuskchibi') ? 0.8 : 0
 
-  // Nickname/chat vertical offsets — adjusted for Alon scale (5.6x base * 1.25 alonScale = 7x total)
-  const baseNameY = player.skinId === 'elonmuskchibi' ? 2.9 : player.skinId === 'trumpskin' ? 2.9 : 2.5
-  const baseChatY = player.skinId === 'elonmuskchibi' ? 3.6 : player.skinId === 'trumpskin' ? 3.6 : 3.2
-  const baseYtY = player.skinId === 'elonmuskchibi' ? 4.4 : player.skinId === 'trumpskin' ? 4.4 : 3.9
-  const nameBillboardY = isAlonSkin ? 8.5 * alonScale : baseNameY
-  const chatBillboardY = isAlonSkin ? 10.5 * alonScale : baseChatY
-  const ytBillboardY = isAlonSkin ? 12.5 * alonScale : baseYtY
+  // Nickname/chat vertical offsets — proportional to total rendered height
+  // Characters are ~2 units tall at scale 1, so ~14 units at 7x scale
+  const nameBillboardY = isAlonSkin ? 15.5 : (player.skinId === 'trumpskin' || player.skinId === 'elonmuskchibi') ? 16.5 : 2.5
+  const chatBillboardY = nameBillboardY + 1.8
+  const ytBillboardY = nameBillboardY + 1.8
 
   return (
     <group ref={groupRef} position={[player.position.x, 0, player.position.z]}>
       {/* Character model — at feet level, per-player Suspense to avoid full-scene blink */}
-      <group ref={characterRef} scale={[alonScale, alonScale, alonScale]}>
+      <group ref={characterRef} scale={[skinScale, skinScale, skinScale]} position-y={skinYOffset}>
         <Suspense fallback={null}>
         {/* TEMPORARILY DISABLED: elon, ai16z, soldier — uncomment to re-enable */}
         {/* player.skinId === 'elon' ? (
@@ -132,7 +142,7 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
 
       {/* Admin glow effect — OUTSIDE characterRef to prevent trembling */}
       {isAdmin && (
-        <mesh position={[0, 1.4, 0]} scale={[alonScale, alonScale, alonScale]}>
+        <mesh position={[0, 1.4, 0]} scale={[skinScale, skinScale, skinScale]}>
           <sphereGeometry args={[1.5, 32, 32]} />
           <meshBasicMaterial 
             color="#ff00ff" 
@@ -148,7 +158,7 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
         <Billboard position-y={nameBillboardY + 0.6}>
           <Html
             center
-            distanceFactor={3}
+            distanceFactor={18}
             zIndexRange={[0, 0]}
             style={{
               pointerEvents: 'none',
@@ -183,26 +193,26 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
         {/* Music indicator - shown when player has music active */}
         {player.isMusicPlaying && (
           <Html 
-            position={[1.2, 0, 0]} 
+            position={[2.5, 0, 0]} 
             center 
-            distanceFactor={8}
+            distanceFactor={22}
             style={{ pointerEvents: 'none' }}
             zIndexRange={[100, 0]}
           >
-            <div className="music-indicator">♪</div>
+            <div className="music-indicator" style={{ fontSize: '22px' }}>♪</div>
           </Html>
         )}
         {/* Mic indicator - shown when player is push-to-talking */}
         {player.isMicActive && (
           <Html 
-            position={[player.isMusicPlaying ? -1.2 : 1.2, 0, 0]} 
+            position={[player.isMusicPlaying ? -2.5 : 2.5, 0, 0]} 
             center 
-            distanceFactor={8}
+            distanceFactor={22}
             style={{ pointerEvents: 'none' }}
             zIndexRange={[100, 0]}
           >
             <div className="mic-indicator">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
                 <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
                 <line x1="12" x2="12" y1="19" y2="22"/>
@@ -213,7 +223,7 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
         {isAdmin ? (
           <Html
             center
-            distanceFactor={3}
+            distanceFactor={18}
             zIndexRange={[0, 0]}
             style={{
               pointerEvents: 'none',
@@ -232,11 +242,11 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
           </Html>
         ) : (
           <Text
-            fontSize={isAdmin ? 0.24 : 0.2}
-            color={isAdmin ? '#ffff00' : '#ffffff'}
+            fontSize={1.4}
+            color={'#ffffff'}
             anchorX="center"
             anchorY="middle"
-            outlineWidth={0.02}
+            outlineWidth={0.06}
             outlineColor="#000000"
           >
             {player.name}
@@ -249,14 +259,14 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
         <Billboard position-y={chatBillboardY}>
           <Html
             center
-            distanceFactor={3}
+            distanceFactor={18}
             zIndexRange={[0, 0]}
             style={{
               pointerEvents: 'none',
               userSelect: 'none',
             }}
           >
-            <div className={`chat-bubble-3d ${isLocal ? 'chat-bubble-3d--local' : ''}`}>
+            <div className={`chat-bubble-3d ${isLocal ? 'chat-bubble-3d--local' : ''}`} style={{ fontSize: '20px', padding: '12px 18px', maxWidth: '300px' }}>
               {parseEmoteCodes(player.chatMessage).map((part, index) => {
                 if (part.type === 'emote') {
                   const emote = getEmoteById(part.content)
@@ -268,7 +278,7 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
                         alt={emote.name}
                         className="chat-emote-inline"
                         title={emote.name}
-                        style={{ maxWidth: '32px', maxHeight: '32px' }}
+                        style={{ maxWidth: '48px', maxHeight: '48px' }}
                       />
                     )
                   }
@@ -281,7 +291,7 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
                       alt={part.content}
                       className="chat-emote-inline"
                       title="GIF"
-                      style={{ maxWidth: '32px', maxHeight: '32px' }}
+                      style={{ maxWidth: '48px', maxHeight: '48px' }}
                     />
                   )
                 }
@@ -298,7 +308,7 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
         <Billboard position-y={ytBillboardY}>
           <Html
             center
-            distanceFactor={10}
+            distanceFactor={22}
             zIndexRange={[0, 0]}
             style={{
               pointerEvents: 'none',
@@ -307,9 +317,9 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
           >
             <div style={{
               position: 'relative',
-              width: '240px',
-              height: '135px',
-              borderRadius: '8px',
+              width: '320px',
+              height: '180px',
+              borderRadius: '10px',
               overflow: 'hidden',
               boxShadow: '0 2px 16px rgba(255,0,0,0.5), 0 0 24px rgba(255,0,0,0.2)',
               border: '2px solid #ff0000',
@@ -355,11 +365,6 @@ const RemotePlayerAvatar = memo(RemotePlayerAvatarInner, (prev, next) => {
 
 export default RemotePlayerAvatar
 
-// Preload active skin GLBs at module level so Suspense never triggers on skin switch
-// Note: elonMusk2Anim_KTX2.glb is excluded — it requires KTX2 loader setup via useGLTFKtx2
-// TEMPORARILY DISABLED: soldier, ai16z preloads
-// useGLTF.preload('/models/Character_Soldier.gltf')
-// useGLTF.preload('/ai16z-v1.glb')
-useGLTF.preload('/elonmuskchibi-v1.glb')
-useGLTF.preload('/trumpskin-v1.glb')
-useGLTF.preload('/alonskin-v1.glb')
+// Preloads removed — each avatar component (AlonAvatar, TrumpSkinAvatar, ElonMuskChibiAvatar)
+// already has its own useGLTF.preload(). Duplicate preloads at module level caused
+// intermittent 'JSON content not found' errors with Turbopack when fired before dev server is ready.

@@ -151,11 +151,10 @@ export function playMusicForPlayer(playerId: string, skinId: string, startTime?:
       }
     }
 
-    audio.onerror = (e) => {
+    // Only cleanup on natural end — do NOT use onerror (fires spuriously during HMR/WebGL context loss)
+    audio.onended = () => {
       cleanup()
     }
-    
-    audio.onended = cleanup
 
     // Set current time if syncing with ongoing music
     if (startTime && startTime > 0) {
@@ -176,8 +175,18 @@ export function playMusicForPlayer(playerId: string, skinId: string, startTime?:
         audioLoadingState.delete(playerId)
       })
       .catch((err) => {
+        console.warn('[Music] Play failed, retrying with user gesture...', err.name)
         audioLoadingState.delete(playerId)
-        cleanup()
+        // On NotAllowedError (autoplay policy), retry on next user click
+        if (err.name === 'NotAllowedError') {
+          const retryPlay = () => {
+            audio.play().catch(() => {})
+            document.removeEventListener('click', retryPlay)
+          }
+          document.addEventListener('click', retryPlay, { once: true })
+        } else {
+          cleanup()
+        }
       })
   } catch (error) {
     audioLoadingState.delete(playerId) // Clear loading flag on exception

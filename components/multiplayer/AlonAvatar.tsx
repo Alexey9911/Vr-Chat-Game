@@ -71,4 +71,7 @@ export default function AlonAvatar({ animation }: { animation?: string | null })
   )
 }
 
-useGLTF.preload('/alonskin-v1.glb')
+// Defer preload to avoid Turbopack serving HTML instead of binary during startup
+if (typeof window !== 'undefined') {
+  setTimeout(() => useGLTF.preload('/alonskin-v1.glb'), 100)
+}

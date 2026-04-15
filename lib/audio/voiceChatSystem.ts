@@ -15,7 +15,7 @@
  */
 
 // Spatial audio config for voice
-export const VOICE_MAX_DISTANCE = 12 // meters — silence beyond 12m
+export const VOICE_MAX_DISTANCE = 80 // units — map is ~248x229, hear voice across ~1/3 of map
 export const VOICE_MAX_VOLUME = 1.0  // 100% max volume at 0m
 
 // Voice boost: 50% extra volume for remote players' mic so voice is clearly audible over music

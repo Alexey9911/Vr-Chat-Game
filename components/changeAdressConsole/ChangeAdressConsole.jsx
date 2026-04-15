@@ -2,7 +2,7 @@
 import { useState } from "react";
 
 export default function ChangeAdressConsole({ text }) {
-  const [mensaje, setMensaje] = useState("4kCzTiCPBDqCE3JR7g4haoW6Lqu6Q719HuBRHvfppump");
+  const [mensaje, setMensaje] = useState("");
 
   const copyToClipboard = async () => {
     try {

@@ -8,7 +8,9 @@ import { useViewStore } from '../lib/camera/viewStore'
 import { useSkinStore } from '../lib/skins/skinStore'
 import { compressPosition, compressRotation } from './usePositionSync'
 import { setLocalPlayerLive } from '../lib/localPlayerRef'
-import { houseCollisionMesh } from '../components/HouseScene'
+import { getHouseCollisionMesh } from '../lib/collisionRef'
+import { setTeleportFunction } from '../lib/teleportController'
+import { useZoneStore } from '../lib/zoneStore'
 
 // Physics constants
 const GRAVITY = -35
@@ -26,14 +28,26 @@ export const useCameraControls = () => {
   const moveSpeed = useRef(12.5)
   const rotateSpeed = useRef(2)
   
-  // Camera state
-  const playerPos = useRef(new Vector3(0, EYE_HEIGHT, 5))
+  // Camera state - Initial spawn position
+  const SPAWN_X = -59.95
+  const SPAWN_Z = -87.86
+  // SPAWN_ROT_DISPLAY is what shows in PositionDebug HUD
+  // Internal quaternion angle = display angle + 180° (offset from atan2 convention)
+  const SPAWN_ROT_DISPLAY = 74.61 // degrees shown in HUD
+  const SPAWN_ROT = (SPAWN_ROT_DISPLAY + 180) * (Math.PI / 180)
+  
+  const playerPos = useRef(new Vector3(SPAWN_X, EYE_HEIGHT, SPAWN_Z))
   const velocity = useRef(new Vector3())
   const direction = useRef(new Vector3())
   const rotation = useRef(new Quaternion())
-  const lastSafePos = useRef(new Vector3(0, EYE_HEIGHT, 5))
-  const cameraTarget = useRef(new Vector3(0, EYE_HEIGHT, 5))
-  const lookTarget = useRef(new Vector3(0, EYE_HEIGHT, 0))
+  const lastSafePos = useRef(new Vector3(SPAWN_X, EYE_HEIGHT, SPAWN_Z))
+  const cameraTarget = useRef(new Vector3(SPAWN_X, EYE_HEIGHT, SPAWN_Z))
+  // lookTarget points forward from spawn position based on initial rotation
+  const lookTarget = useRef(new Vector3(
+    SPAWN_X + Math.sin(SPAWN_ROT) * 10,
+    EYE_HEIGHT,
+    SPAWN_Z + Math.cos(SPAWN_ROT) * 10
+  ))
 
   // Jump physics
   const velocityY = useRef(0)        // vertical velocity
@@ -45,8 +59,8 @@ export const useCameraControls = () => {
   const playroomRef = useRef<any>(null)
   
   // Position throttling for network optimization
-  const lastSentPos = useRef(new Vector3(0, EYE_HEIGHT, 5))
-  const lastSentRotY = useRef(0)
+  const lastSentPos = useRef(new Vector3(SPAWN_X, EYE_HEIGHT, SPAWN_Z))
+  const lastSentRotY = useRef(SPAWN_ROT)
   const POSITION_THRESHOLD = 0.08 // Only sync if moved >8cm
   const ROTATION_THRESHOLD = 0.04 // Only sync if rotated >2.3 degrees
   
@@ -60,13 +74,47 @@ export const useCameraControls = () => {
   // Cinematic mode is now managed by useViewStore (toggled via F9)
   // The free-fly camera is handled by CinematicCamera.tsx component
   
-  // Initialize rotation with current camera rotation
-  useEffect(() => {
-    rotation.current.copy(camera.quaternion)
-    playerPos.current.copy(camera.position)
-    playerPos.current.y = Math.max(EYE_HEIGHT, playerPos.current.y)
-    lastSafePos.current.copy(playerPos.current)
+  // Teleport flag — skips validation for one frame after teleport
+  const isTeleporting = useRef(false)
+  
+  // Teleport function for checkpoints
+  const teleport = useCallback((pos: Vector3, rotY: number) => {
+    isTeleporting.current = true
+    
+    playerPos.current.copy(pos)
+    lastSafePos.current.copy(pos)
+    cameraTarget.current.copy(pos)
+    camera.position.copy(pos)
+    
+    // Set rotation
+    rotation.current.setFromAxisAngle(new Vector3(0, 1, 0), rotY)
+    camera.quaternion.copy(rotation.current)
+    
+    // Reset velocity and ground state
+    velocity.current.set(0, 0, 0)
+    velocityY.current = 0
+    isOnGround.current = true
+    
+    // Clear teleporting flag after a frame
+    requestAnimationFrame(() => { isTeleporting.current = false })
   }, [camera])
+
+  // Initialize rotation and position with spawn values
+  useEffect(() => {
+    // Set initial rotation from SPAWN_ROT (Y-axis rotation)
+    rotation.current.setFromAxisAngle(new Vector3(0, 1, 0), SPAWN_ROT)
+    
+    // Set initial position
+    playerPos.current.set(SPAWN_X, EYE_HEIGHT, SPAWN_Z)
+    lastSafePos.current.copy(playerPos.current)
+    
+    // Set camera to spawn position
+    camera.position.copy(playerPos.current)
+    camera.quaternion.copy(rotation.current)
+    
+    // Register teleport function for checkpoints
+    setTeleportFunction(teleport)
+  }, [camera, teleport])
 
   // Load PlayroomKit dynamically
   useEffect(() => {
@@ -242,28 +290,31 @@ export const useCameraControls = () => {
     // Move player vertically
     playerPos.current.y += velocityY.current * delta
 
-    // Ground check
-    if (playerPos.current.y <= EYE_HEIGHT) {
-      playerPos.current.y = EYE_HEIGHT
+    // Ground check — zone-aware floor height
+    const currentZone = useZoneStore.getState().currentZone
+    const floorY = currentZone === 'interior' ? 311 + EYE_HEIGHT : EYE_HEIGHT
+    if (playerPos.current.y <= floorY) {
+      playerPos.current.y = floorY
       velocityY.current = 0
       isOnGround.current = true
     }
 
     // Apply lateral movement with collision detection
-    if (velocity.current.lengthSq() > 0.001 && houseCollisionMesh) {
+    const collisionMesh = getHouseCollisionMesh()
+    if (velocity.current.lengthSq() > 0.001 && collisionMesh) {
       // Check collision in movement direction
       const moveDir = velocity.current.clone().normalize()
       raycaster.current.set(playerPos.current, moveDir)
       raycaster.current.far = velocity.current.length() + 0.5 // Check a bit ahead
       
-      const intersects = raycaster.current.intersectObject(houseCollisionMesh, false)
+      const intersects = raycaster.current.intersectObject(collisionMesh, false)
       
       if (intersects.length > 0 && intersects[0].distance < velocity.current.length() + 0.3) {
         // Collision detected - slide along wall instead of stopping
         const normal = intersects[0].face?.normal
         if (normal) {
           // Transform normal to world space
-          const worldNormal = normal.clone().transformDirection(houseCollisionMesh.matrixWorld)
+          const worldNormal = normal.clone().transformDirection(collisionMesh.matrixWorld)
           // Project velocity onto wall plane (slide)
           const slideVel = velocity.current.clone().sub(
             worldNormal.clone().multiplyScalar(velocity.current.dot(worldNormal))
@@ -290,15 +341,18 @@ export const useCameraControls = () => {
       }
     }
 
-    // World boundaries (invisible wall) — based on collision house externo.glb
-    // Blender bbox: X[-270.01, -20.67] Z[-23.94, 206.56] + offset(190.12, -88.67)
-    // World coords: X[-79.89, 169.45] Z[-112.61, 117.89]
-    const xMin = -79
-    const xMax = 169
-    const zMin = -112
-    const zMax = 117
-    playerPos.current.x = Math.max(xMin, Math.min(xMax, playerPos.current.x))
-    playerPos.current.z = Math.max(zMin, Math.min(zMax, playerPos.current.z))
+    // World boundaries (invisible wall) — zone-aware
+    if (currentZone === 'exterior') {
+      // Exterior: based on collision house externo.glb
+      const xMin = -79, xMax = 169, zMin = -112, zMax = 117
+      playerPos.current.x = Math.max(xMin, Math.min(xMax, playerPos.current.x))
+      playerPos.current.z = Math.max(zMin, Math.min(zMax, playerPos.current.z))
+    } else if (currentZone === 'interior') {
+      // Interior: room1 bounds from GLB inspector
+      const xMin = -197, xMax = -87, zMin = 13, zMax = 163
+      playerPos.current.x = Math.max(xMin, Math.min(xMax, playerPos.current.x))
+      playerPos.current.z = Math.max(zMin, Math.min(zMax, playerPos.current.z))
+    }
 
     // =============================================
     // CAMERA VALIDATION — prevents bad positions (NaN / huge jumps)
@@ -312,7 +366,7 @@ export const useCameraControls = () => {
       const dy = pos.y - lastSafePos.current.y
       const dz = pos.z - lastSafePos.current.z
       const maxStep = 3
-      if (dx * dx + dy * dy + dz * dz > maxStep * maxStep) {
+      if (!isTeleporting.current && dx * dx + dy * dy + dz * dz > maxStep * maxStep) {
         pos.copy(lastSafePos.current)
       } else {
         lastSafePos.current.copy(pos)

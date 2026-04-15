@@ -10,6 +10,8 @@ import EntryLoadingOverlay from '../components/EntryLoadingOverlay'
 import { useMultiplayerStore } from '../lib/multiplayerStore'
 import Navbar from '../components/Navbar'
 import CinematicHUD from '../components/CinematicHUD'
+import FadeOverlay from '../components/checkpoints/FadeOverlay'
+import { useZoneStore } from '../lib/zoneStore'
 
 // Dynamically import Canvas3D to avoid SSR issues
 const Canvas3D = dynamic(() => import('../components/Canvas3D'), {
@@ -32,12 +34,14 @@ const AudioButton = dynamic(() => import('../components/ui/AudioButton'), { ssr:
 const SkinBar = dynamic(() => import('../components/ui/SkinBar'), { ssr: false })
 const EmoteBar = dynamic(() => import('../components/ui/EmoteBar'), { ssr: false })
 const SettingsModal = dynamic(() => import('../components/settings/SettingsModal'), { ssr: false })
+const PositionDebug = dynamic(() => import('../components/PositionDebug'), { ssr: false })
 
 function HomePage() {
   const [isClient, setIsClient] = useState(false)
   const [readyForLobby, setReadyForLobby] = useState(false)
   const isMobile = useIsMobile()
   const lobbyVisible = useMultiplayerStore((s) => s.lobbyVisible)
+  const isTransitioning = useZoneStore((s) => s.isTransitioning)
   const playroomRef = React.useRef<any>(null)
 
   useEffect(() => {
@@ -110,6 +114,7 @@ function HomePage() {
                 <CASection />
                 {isMobile ? <TouchControls /> : <KeyboardHUD />}
                 <CinematicHUD />
+                <PositionDebug />
               </>
             )}
 
@@ -136,6 +141,9 @@ function HomePage() {
           </>
         )}
         
+        {/* Zone transition fade overlay (GTA SA style) */}
+        <FadeOverlay isActive={isTransitioning} />
+
         {!isClient && (
           <div className="loading">
             {/* Initializing 3D Explorer... */}

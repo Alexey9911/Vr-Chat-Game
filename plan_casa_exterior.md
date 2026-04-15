@@ -29,7 +29,77 @@ Archivo: `public/alon_house/house_scene-v1.glb` (Draco compressed)
 - Billboard + Text (drei) con `sin()` loop vertical
 - Font: `/font1.json`, outline, emissive glow
 
-## Notas
-- El GLB usa compresión Draco
-- Visualmente todo está perfecto, solo falta optimización
-- Ir poco a poco, verificar en cada paso
+## 5. Sistema de Checkpoints — Entrar/Salir Casa (GTA SA Style) 🚧 EN PROGRESO
+
+### Checkpoint de Entrada a Casa ✅ IMPLEMENTADO
+- **GLB**: `public/alon_house/checkpoint_entry_house.glb`
+- **Posición GLB**: Center (-175.84, 9.60, 86.21), Size 0x12.91x8.20
+- **Shader**: Gradient amarillo con opacity 0.35 arriba → 1.0 abajo (GTA SA style)
+- **Trigger distance**: 8 unidades
+- **Teleport destino**: (-141.60, ~321, 87.89) → room1 floor level
+- **Componente**: `components/checkpoints/CheckpointEntryHouse.tsx`
+
+### Checkpoint de Salida (Interior → Exterior) ✅ IMPLEMENTADO
+- **Posición**: Cerca de room1 floor edge (-141.60, 321, 87.89)
+- **Teleport destino**: Exterior spawn (-59.95, EYE_HEIGHT, -87.86) Rot:74.61°
+- **Componente**: `components/checkpoints/CheckpointExitHouse.tsx`
+
+### Infraestructura ✅ IMPLEMENTADO
+- `lib/zoneStore.ts` — Zustand store para zona actual (exterior/interior/balcon)
+- `lib/teleportController.ts` — Global teleport function registration
+- `components/checkpoints/FadeOverlay.tsx` — CSS fade a negro
+- `useCameraControls.ts` — Zone-aware ground check, boundaries, maxStep skip
+- `pages/index.tsx` — FadeOverlay integrado
+  
+### Optimización Camera Rendering ✅ DEBUG HUD LISTO
+- **CameraDebugHUD** (F8): Slider en tiempo real para ajustar `camera.far`
+- **Presets**: Exterior (500) / Interior (100)
+- **TODO**: Implementar cambio dinámico basado en zona actual
+
+### Posiciones
+- **Exterior spawn**: X:-59.95, Z:-87.86, Rot:74.61° (display) = 254.61° (internal)
+- **Interior**: room1 center (-141.60, 341.43, 87.89), floor ~Y:311
+- **Checkpoint door**: (-175.84, 9.60, 86.21)
+- **Checkpoint balcón**: TBD
+
+## 6. Interior — Rooms & Escaleras 🚧 PENDIENTE
+
+### Estructura Interior
+- **Ubicación**: Muy arriba (Y ~500+) para que camera.far lo oculte desde exterior
+- **Habitaciones**: 3 rooms + sótano opcional
+- **Escaleras**: 
+  - Planos invisibles inclinados desde Blender
+  - Importados como collision mesh
+  - Sin librería de físicas adicional — usar collision slope existente
+  - El personaje sube naturalmente si la inclinación es correcta
+  
+### Collision Meshes (Blender → GLB)
+- **Escaleras**: Planos inclinados invisibles (`visible: false`)
+- **Pisos separados**: Un mesh por habitación para evitar glitches
+- **Paredes**: Envueltas como en exterior (`colisiones` mesh)
+- **Naming convention**: `colisiones_interior`, `escaleras_01`, `escaleras_02`, etc.
+
+### Decoración
+- **NPCs estáticos**: Modelos 3D de humanos (no skins jugables)
+- **Props**: Sin interactividad, solo visual
+- **GLBs separados**: Fácil de cargar/descargar según zona
+
+## 7. Optimizaciones Multiplayer 🚧 PENDIENTE
+
+### Performance
+- **Camera.far dinámico**: Cambia según zona (exterior/interior)
+- **Spatial audio range**: Ya ajustado (120 units música, 80 units voz)
+- **GLB mesh merging**: Ya optimizado en gltf.report
+- **Posible mejora**: Deno KV backend para state sync si necesario
+
+### Audio Spatial
+- **Problema potencial**: Jugadores en interior/exterior muy separados
+- **Solución**: Verificar si distance check funciona correctamente con Y diferencial grande
+- **Alternativa**: Desactivar audio espacial entre zonas diferentes
+
+## Notas Técnicas
+- **Camera.far**: Es distancia esférica 3D desde cámara, no solo horizontal/vertical
+- **Escaleras**: Inclinación óptima ~30-40° para que personaje suba naturalmente
+- **Checkpoints**: Solo teleport + fade, sin cargar/descargar escenas (todo en memoria)
+- **GLB compression**: Mantener Draco para todos los assets nuevos
+- **Testing**: CameraDebugHUD con sliders para ajustar far/near en tiempo real

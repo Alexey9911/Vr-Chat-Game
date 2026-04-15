@@ -8,7 +8,7 @@ import * as THREE from 'three'
 import { getGlobalVolumeMultiplier } from './musicSystem'
 
 // Configuration
-export const MAX_DISTANCE = 17 // meters - silence at 17m+
+export const MAX_DISTANCE = 120 // units — map is ~248x229, hear music across ~half the map
 export const MAX_VOLUME = 0.5 // 50% maximum volume at 0m
 
 // Throttling for performance

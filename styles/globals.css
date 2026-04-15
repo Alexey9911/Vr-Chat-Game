@@ -476,6 +476,9 @@ a {
 .lobby-logo-area {
   text-align: center;
   margin-top: 2vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .lobby-logo-img {
   width: 90px;
@@ -484,6 +487,9 @@ a {
   margin-bottom: 12px;
   box-shadow: 0 0 30px rgba(74, 158, 255, 0.3);
   animation: simpleFade 3s infinite ease-in-out;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 .lobby-title {
   font-size: 42px;
@@ -571,7 +577,7 @@ a {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 14px;
   margin-bottom: 4vh;
 }
 
@@ -602,19 +608,19 @@ a {
 
 .lobby-color-picker {
   display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+  gap: 8px;
+  flex-wrap: nowrap;
   justify-content: center;
   background: rgba(0,0,0,0.4);
-  padding: 12px 20px;
+  padding: 8px 16px;
   border-radius: 20px;
   backdrop-filter: blur(5px);
   border: 1px solid rgba(255,255,255,0.08);
 }
 
 .color-swatch {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: 3px solid transparent;
   cursor: pointer;
@@ -646,7 +652,7 @@ a {
   box-shadow: 0 8px 0 #cc6600, 0 15px 25px rgba(0,0,0,0.5);
   text-transform: uppercase;
   font-family: inherit;
-  margin-top: 10px;
+  margin-top: 4px;
   text-shadow: 0 1px 2px rgba(255,255,255,0.5);
 }
 .lobby-play-btn-huge:hover {
@@ -687,15 +693,74 @@ a {
   }
   .lobby-main {
     padding: 0;
+    justify-content: flex-start;
+    padding-top: 2vh;
+  }
+  .lobby-logo-area {
+    margin-top: 0;
+    margin-bottom: 2vh;
+  }
+  .lobby-logo-img { 
+    width: 60px; 
+    height: 60px; 
+  }
+  .lobby-title { 
+    font-size: 32px; 
+  }
+  .lobby-character-area {
+    margin: 1vh 0;
+    min-height: 280px;
+    max-height: 350px;
+  }
+  .character-canvas-container {
+    min-height: 280px;
+    max-height: 350px;
+  }
+  .lobby-action-area { 
+    gap: 12px; 
+    margin-bottom: 2vh;
+    max-width: 100%;
+    padding: 0 10px;
+  }
+  .lobby-name-input {
+    height: 50px;
+    font-size: 18px;
+  }
+  .lobby-color-picker {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 14px;
+  }
+  .color-swatch {
+    width: 30px;
+    height: 30px;
+  }
+  .skin-nav-btn { 
+    width: 44px;
+    height: 44px;
+    font-size: 28px;
   }
   .skin-nav-btn.left { left: 10px; }
   .skin-nav-btn.right { right: 10px; }
-  .lobby-logo-img { width: 60px; height: 60px; }
-  .lobby-title { font-size: 32px; }
-  .lobby-action-area { gap: 16px; margin-bottom: 2vh; }
-  .lobby-play-btn-huge { height: 64px; font-size: 24px; box-shadow: 0 6px 0 #cc6600, 0 10px 20px rgba(0,0,0,0.5); }
-  .lobby-play-btn-huge:active { transform: translateY(6px); box-shadow: 0 0px 0 #cc6600; }
-  .lobby-play-btn-huge:disabled { transform: translateY(6px); box-shadow: 0 0px 0 #333; }
+  .lobby-play-btn-huge { 
+    height: 48px; 
+    font-size: 20px; 
+    box-shadow: 0 5px 0 #cc6600, 0 8px 15px rgba(0,0,0,0.5);
+    margin-top: 2px;
+  }
+  .lobby-play-btn-huge:active { 
+    transform: translateY(5px); 
+    box-shadow: 0 0px 0 #cc6600; 
+  }
+  .lobby-play-btn-huge:disabled { 
+    transform: translateY(5px); 
+    box-shadow: 0 0px 0 #333; 
+  }
+  .skin-name-badge {
+    font-size: 13px;
+    padding: 6px 16px;
+    bottom: 10px;
+  }
 }
 
 /* =============================================
