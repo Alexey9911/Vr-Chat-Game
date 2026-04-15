@@ -20,7 +20,11 @@
     "react-dom": "^18.2.0",
     "three": "^0.177.0",
     "three-stdlib": "^2.27.1",
-    "zustand": "^4.4.7"
+    "zustand": "^4.4.7",
+    "@solana/web3.js": "^1.95.0",
+    "@solana/pay": "^0.2.5",
+    "bignumber.js": "^9.1.2",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "@gltf-transform/core": "^4.3.0",
