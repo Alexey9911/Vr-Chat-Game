@@ -66,16 +66,16 @@ export default function Scene3D({ containerRef }) {
       {/* House scene from Blender (exterior + cars + decoration + dance + floating texts) */}
       <HouseScene />
 
-      {/* Checkpoint: GTA SA style entry to house interior */}
-      <Suspense fallback={null}>
-        <CheckpointEntryHouse />
-        <CheckpointExitHouse />
-      </Suspense>
-
-      {/* Interior rooms (loaded high above exterior) */}
-      <Suspense fallback={null}>
-        <Room1 />
-      </Suspense>
+      {/* Checkpoint + Interior rooms — same Blender scene offset as HouseScene */}
+      <group position={[190.12, 1.1857, -88.67]}>
+        <Suspense fallback={null}>
+          <CheckpointEntryHouse />
+          <CheckpointExitHouse />
+        </Suspense>
+        <Suspense fallback={null}>
+          <Room1 />
+        </Suspense>
+      </group>
 
       {/* ============================================= */}
       {/* MULTIPLAYER: Remote Player Avatars */}

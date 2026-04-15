@@ -292,7 +292,8 @@ export const useCameraControls = () => {
 
     // Ground check — zone-aware floor height
     const currentZone = useZoneStore.getState().currentZone
-    const floorY = currentZone === 'interior' ? 311 + EYE_HEIGHT : EYE_HEIGHT
+    // Interior floor: Blender Y ~311 + HouseScene OY offset (1.1857)
+    const floorY = currentZone === 'interior' ? 311 + 1.1857 + EYE_HEIGHT : EYE_HEIGHT
     if (playerPos.current.y <= floorY) {
       playerPos.current.y = floorY
       velocityY.current = 0
@@ -348,8 +349,8 @@ export const useCameraControls = () => {
       playerPos.current.x = Math.max(xMin, Math.min(xMax, playerPos.current.x))
       playerPos.current.z = Math.max(zMin, Math.min(zMax, playerPos.current.z))
     } else if (currentZone === 'interior') {
-      // Interior: room1 bounds from GLB inspector
-      const xMin = -197, xMax = -87, zMin = 13, zMax = 163
+      // Interior: room1 Blender bounds + HouseScene offset (OX=190.12, OZ=-88.67)
+      const xMin = -197 + 190.12, xMax = -87 + 190.12, zMin = 13 + (-88.67), zMax = 163 + (-88.67)
       playerPos.current.x = Math.max(xMin, Math.min(xMax, playerPos.current.x))
       playerPos.current.z = Math.max(zMin, Math.min(zMax, playerPos.current.z))
     }

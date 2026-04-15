@@ -7,14 +7,16 @@ import { teleportPlayer } from '../../lib/teleportController'
 import { EYE_HEIGHT } from '../../lib/camera/cameraConstants'
 import { localPlayerLive } from '../../lib/localPlayerRef'
 
-// Checkpoint GLB position (from inspector)
-const CHECKPOINT_POS: [number, number, number] = [-175.84, 3.15, 86.21]
-const CHECKPOINT_MIN_Y = 3.15
-const CHECKPOINT_MAX_Y = 16.06
-const CHECKPOINT_HEIGHT = CHECKPOINT_MAX_Y - CHECKPOINT_MIN_Y // ~12.91
+// HouseScene offset (must match HouseScene.jsx OX/OY/OZ)
+const OX = 190.12, OY = 1.1857, OZ = -88.67
 
-// Where to teleport when entering the house (room1 center)
-const INTERIOR_POS = new THREE.Vector3(-141.60, 341.43 - 20, 87.89) // slightly below room center for floor level
+// Checkpoint position in WORLD space (Blender coords + offset)
+// Blender: (-175.84, 3.15, 86.21)
+const CHECKPOINT_WORLD: [number, number, number] = [-175.84 + OX, 3.15 + OY, 86.21 + OZ]
+
+// Where to teleport when entering the house (room1 center in world space)
+// Blender room1 center: (-141.60, 341.43, 87.89), offset for floor level
+const INTERIOR_POS = new THREE.Vector3(-141.60 + OX, 341.43 - 20 + OY, 87.89 + OZ)
 const INTERIOR_ROT = 0 // radians — will be adjusted later
 
 const TRIGGER_DISTANCE = 8 // units — how close player must be
@@ -111,8 +113,8 @@ export default function CheckpointEntryHouse() {
     if (!localPlayerLive.ready) return
     const playerX = localPlayerLive.x
     const playerZ = localPlayerLive.z
-    const dx = playerX - CHECKPOINT_POS[0]
-    const dz = playerZ - CHECKPOINT_POS[2]
+    const dx = playerX - CHECKPOINT_WORLD[0]
+    const dz = playerZ - CHECKPOINT_WORLD[2]
     const dist = Math.sqrt(dx * dx + dz * dz)
 
     if (dist < TRIGGER_DISTANCE) {
