@@ -96,20 +96,18 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
   // Determine animation: Prioritize custom emote state from Playroom, fallback to movement
   const animation = player.animation || (isMoving.current ? 'Run' : 'Idle')
 
-  if (isLocal && viewMode === 'firstPerson') return null
-
   // Scale for Alon skin: 25% bigger for normal, 40% bigger for admin
   const isAlonSkin = player.skinId === 'alon'
   const isAdmin = player.isAdmin || false
   const alonScale = isAlonSkin ? (isAdmin ? 1.4 : 1.25) : 1
 
-  // Nickname/chat vertical offsets — adjusted for Alon scale
+  // Nickname/chat vertical offsets — adjusted for Alon scale (5.6x base * 1.25 alonScale = 7x total)
   const baseNameY = player.skinId === 'elonmuskchibi' ? 2.9 : player.skinId === 'trumpskin' ? 2.9 : 2.5
   const baseChatY = player.skinId === 'elonmuskchibi' ? 3.6 : player.skinId === 'trumpskin' ? 3.6 : 3.2
   const baseYtY = player.skinId === 'elonmuskchibi' ? 4.4 : player.skinId === 'trumpskin' ? 4.4 : 3.9
-  const nameBillboardY = isAlonSkin ? 2.9 * alonScale : baseNameY
-  const chatBillboardY = isAlonSkin ? 3.6 * alonScale : baseChatY
-  const ytBillboardY = isAlonSkin ? 4.4 * alonScale : baseYtY
+  const nameBillboardY = isAlonSkin ? 8.5 * alonScale : baseNameY
+  const chatBillboardY = isAlonSkin ? 10.5 * alonScale : baseChatY
+  const ytBillboardY = isAlonSkin ? 12.5 * alonScale : baseYtY
 
   return (
     <group ref={groupRef} position={[player.position.x, 0, player.position.z]}>
@@ -150,7 +148,7 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
         <Billboard position-y={nameBillboardY + 0.6}>
           <Html
             center
-            distanceFactor={8}
+            distanceFactor={3}
             zIndexRange={[0, 0]}
             style={{
               pointerEvents: 'none',
@@ -215,7 +213,7 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
         {isAdmin ? (
           <Html
             center
-            distanceFactor={8}
+            distanceFactor={3}
             zIndexRange={[0, 0]}
             style={{
               pointerEvents: 'none',
@@ -251,7 +249,7 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
         <Billboard position-y={chatBillboardY}>
           <Html
             center
-            distanceFactor={8}
+            distanceFactor={3}
             zIndexRange={[0, 0]}
             style={{
               pointerEvents: 'none',

@@ -4,6 +4,9 @@ import { useAnimations, useGLTF } from '@react-three/drei'
 import { SkeletonUtils } from 'three-stdlib'
 import { validateModelUrl } from '../../lib/skins/validateModelUrl'
 
+const ALON_GLTF_SCALE_FIX = 5.6
+const ALON_FEET_Y_OFFSET = 1.5
+
 export default function AlonAvatar({ animation }: { animation?: string | null }) {
   const gltf = useGLTF('/alonskin-v1.glb') as any
   const group = useRef<THREE.Group>(null)
@@ -61,7 +64,9 @@ export default function AlonAvatar({ animation }: { animation?: string | null })
     <group
       ref={group}
     >
-      <primitive object={clone} />
+      <group scale={[ALON_GLTF_SCALE_FIX, ALON_GLTF_SCALE_FIX, ALON_GLTF_SCALE_FIX]} position={[0, ALON_FEET_Y_OFFSET, 0]}>
+        <primitive object={clone} />
+      </group>
     </group>
   )
 }

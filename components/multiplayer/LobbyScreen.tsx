@@ -624,116 +624,119 @@ export default function LobbyScreen() {
   }
 
   return (
-    <div className="lobby-overlay">
+    <div className="lobby-fullscreen">
       {/* Background image */}
       <img
-        className="lobby-video-bg"
+        className="lobby-bg-image"
         src="/alonVersion/image.png"
         alt=""
       />
-      <div className="lobby-card lobby-card--new">
-        <div className="lobby-grid">
-          <div className="lobby-left">
-            {/* Logo / Title */}
-            <div className="lobby-header lobby-header--new">
-              <img src="/elonkiss.png" alt="AlonVerse" className="lobby-logo" />
-              <h1 className="lobby-title">$alonverse</h1>
-              <p className="lobby-title-white">alonverse</p>
+      
+      <div className="lobby-content">
+        {/* LEFT SIDEBAR */}
+        <div className="lobby-sidebar lobby-sidebar-left">
+          <div className="lobby-info-box">
+            <div className="info-box-title">How to play</div>
+            <div className="info-box-body">
+              <p><b>WASD</b> Move character</p>
+              <p><b>SPACE</b> Jump</p>
+              <p><b>V</b> Push to talk</p>
+              <p><b>ENTER</b> Chat</p>
             </div>
+          </div>
+        </div>
 
-            {/* Nickname Input */}
-            <div className="lobby-section">
-              <label className="lobby-label">NAME</label>
-              <input
-                type="text"
-                value={nickname}
-                onChange={(e) => {
-                  initAudioOnInteraction()
-                  setNickname(e.target.value)
-                }}
-                placeholder="Enter nickname..."
-                maxLength={16}
-                className="lobby-input lobby-input--new"
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handlePlayClick()
-                }}
+        {/* CENTER MAIN */}
+        <div className="lobby-main">
+          <div className="lobby-logo-area">
+            <img src="/elonkiss.png" alt="AlonVerse" className="lobby-logo-img" />
+            <h1 className="lobby-title">$alonverse</h1>
+          </div>
+
+          <div className="lobby-character-area">
+            <button
+              type="button"
+              className="skin-nav-btn left"
+              onClick={onPrevSkin}
+              aria-label="Previous skin"
+            >
+              ‹
+            </button>
+            
+            <div className="character-canvas-container">
+              <SkinPreviewCanvas
+                skin={skin}
+                colors={undefined}
+                neighborUrls={neighborUrls}
+                transparent
               />
             </div>
+            
+            <button
+              type="button"
+              className="skin-nav-btn right"
+              onClick={onNextSkin}
+              aria-label="Next skin"
+            >
+              ›
+            </button>
+            
+            <div className="skin-name-badge">{skin?.label ?? 'Skin'}</div>
+          </div>
 
-            {/* Name color */}
-            <div className="lobby-section">
-              <label className="lobby-label">NAME COLOR</label>
-              <div className="lobby-colors lobby-colors--new">
-                {SKIN_COLORS.map((c) => (
-                  <button
-                    key={c.hex}
-                    className={`lobby-color-btn ${selectedColor === c.hex ? 'selected' : ''}`}
-                    style={{ backgroundColor: c.hex }}
-                    onClick={() => setSelectedColor(c.hex)}
-                    title={c.name}
-                    type="button"
-                  />
-                ))}
-              </div>
+          <div className="lobby-action-area">
+            <input
+              type="text"
+              value={nickname}
+              onChange={(e) => {
+                initAudioOnInteraction()
+                setNickname(e.target.value)
+              }}
+              placeholder="ENTER NICKNAME"
+              maxLength={16}
+              className="lobby-name-input"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handlePlayClick()
+              }}
+            />
+
+            <div className="lobby-color-picker">
+              {SKIN_COLORS.map((c) => (
+                <button
+                  key={c.hex}
+                  className={`color-swatch ${selectedColor === c.hex ? 'active' : ''}`}
+                  style={{ backgroundColor: c.hex }}
+                  onClick={() => setSelectedColor(c.hex)}
+                  title={c.name}
+                  type="button"
+                />
+              ))}
             </div>
 
-            {/* Error */}
-            {error && <p className="lobby-error">{error}</p>}
+            {error && <div className="lobby-error-msg">{error}</div>}
 
-            {/* Play Button */}
             <button
-              className="lobby-play-btn lobby-play-btn--new"
+              className="lobby-play-btn-huge"
               onClick={handlePlayClick}
               disabled={isConnecting}
             >
               {isConnecting ? (
-                <span className="lobby-loading">Connecting{connectingLobby ? ` to ${connectingLobby}` : ''}...</span>
+                <span className="lobby-loading">CONNECTING...</span>
               ) : (
-                'PLAY'
+                'PLAY NOW'
               )}
             </button>
-
-            <p className="lobby-footer">
-              Move with WASD · Space to jump · Enter to chat · V to talk
-            </p>
           </div>
+        </div>
 
-          <div className="lobby-right">
-            <div className="lobby-avatar-stage">
-              <button
-                type="button"
-                className="lobby-skin-arrow lobby-skin-arrow--left"
-                onClick={onPrevSkin}
-                aria-label="Previous skin"
-              >
-                ‹
-              </button>
-              <button
-                type="button"
-                className="lobby-skin-arrow lobby-skin-arrow--right"
-                onClick={onNextSkin}
-                aria-label="Next skin"
-              >
-                ›
-              </button>
-
-              <div className="lobby-avatar-canvas">
-                <SkinPreviewCanvas
-                  skin={skin}
-                  colors={undefined}
-                  neighborUrls={neighborUrls}
-                  transparent
-                />
-              </div>
-
-              <div className="lobby-skin-label">
-                {skin?.label ?? 'Skin'}
-              </div>
-            </div>
-
-            <div className="lobby-skin-hint">
-              Click arrows to customize
+        {/* RIGHT SIDEBAR */}
+        <div className="lobby-sidebar lobby-sidebar-right">
+          <div className="lobby-info-box">
+            <div className="info-box-title">Updates</div>
+            <div className="info-box-body">
+              <p>Welcome to $alonverse!</p>
+              <p>Explore the map, interact with other players, and enjoy the AI-generated world.</p>
             </div>
           </div>
         </div>

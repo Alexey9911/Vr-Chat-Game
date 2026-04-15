@@ -1,6 +1,6 @@
 import { useRef, useEffect, useCallback } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { Vector3, Quaternion } from 'three'
+import { Vector3, Quaternion, Raycaster } from 'three'
 import { useKeyboardStore } from '../lib/useKeyboardStore'
 import { useMultiplayerStore } from '../lib/multiplayerStore'
 import { EYE_HEIGHT } from '../lib/camera/cameraConstants'
@@ -8,32 +8,32 @@ import { useViewStore } from '../lib/camera/viewStore'
 import { useSkinStore } from '../lib/skins/skinStore'
 import { compressPosition, compressRotation } from './usePositionSync'
 import { setLocalPlayerLive } from '../lib/localPlayerRef'
+import { houseCollisionMesh } from '../components/HouseScene'
 
 // Physics constants
-const GRAVITY = -20
-const JUMP_FORCE = 8
-const GROUND_Y = EYE_HEIGHT
+const GRAVITY = -35
+const JUMP_FORCE = 16
 
 export const useCameraControls = () => {
   const { camera } = useThree()
   const { addPressedKey, removePressedKey, setPressedKeys, isKeyPressed, chatActive, setCurrentAnimation } = useKeyboardStore()
-  const viewMode = useViewStore((s) => s.viewMode)
-  const toggleViewMode = useViewStore((s) => s.toggleViewMode)
+  const cinematicMode = useViewStore((s) => s.cinematicMode)
+  const toggleCinematicMode = useViewStore((s) => s.toggleCinematicMode)
   const activeSkinId = useSkinStore((s) => s.activeSkinId)
   const lobbyVisible = useMultiplayerStore((s) => s.lobbyVisible)
   
   // Movement parameters
-  const moveSpeed = useRef(5)
+  const moveSpeed = useRef(12.5)
   const rotateSpeed = useRef(2)
   
   // Camera state
-  const playerPos = useRef(new Vector3(0, GROUND_Y, 5))
+  const playerPos = useRef(new Vector3(0, EYE_HEIGHT, 5))
   const velocity = useRef(new Vector3())
   const direction = useRef(new Vector3())
   const rotation = useRef(new Quaternion())
-  const lastSafePos = useRef(new Vector3(0, GROUND_Y, 5))
-  const cameraTarget = useRef(new Vector3(0, GROUND_Y, 5))
-  const lookTarget = useRef(new Vector3(0, GROUND_Y, 0))
+  const lastSafePos = useRef(new Vector3(0, EYE_HEIGHT, 5))
+  const cameraTarget = useRef(new Vector3(0, EYE_HEIGHT, 5))
+  const lookTarget = useRef(new Vector3(0, EYE_HEIGHT, 0))
 
   // Jump physics
   const velocityY = useRef(0)        // vertical velocity
@@ -45,27 +45,26 @@ export const useCameraControls = () => {
   const playroomRef = useRef<any>(null)
   
   // Position throttling for network optimization
-  const lastSentPos = useRef(new Vector3(0, GROUND_Y, 5))
+  const lastSentPos = useRef(new Vector3(0, EYE_HEIGHT, 5))
   const lastSentRotY = useRef(0)
   const POSITION_THRESHOLD = 0.08 // Only sync if moved >8cm
   const ROTATION_THRESHOLD = 0.04 // Only sync if rotated >2.3 degrees
   
   // Custom animation state override
   const currentEmote = useRef<string | null>(null)
+  
+  // Collision detection
+  const raycaster = useRef(new Raycaster())
+  raycaster.current.far = 1.0 // Check 1 unit ahead
 
-  // Cinematic orbit camera (F9 toggle) — slow 360° rotation for recording clips
-  const cinematicMode = useRef(false)
-  const cinematicAngle = useRef(0)
-  const CINEMATIC_RADIUS = 18
-  const CINEMATIC_HEIGHT = 6
-  const CINEMATIC_SPEED = 0.15 // radians/sec (~42s per full rotation)
-  const CINEMATIC_CENTER = new Vector3(0, 0, -6) // scene center
+  // Cinematic mode is now managed by useViewStore (toggled via F9)
+  // The free-fly camera is handled by CinematicCamera.tsx component
   
   // Initialize rotation with current camera rotation
   useEffect(() => {
     rotation.current.copy(camera.quaternion)
     playerPos.current.copy(camera.position)
-    playerPos.current.y = Math.max(GROUND_Y, playerPos.current.y)
+    playerPos.current.y = Math.max(EYE_HEIGHT, playerPos.current.y)
     lastSafePos.current.copy(playerPos.current)
   }, [camera])
 
@@ -86,32 +85,21 @@ export const useCameraControls = () => {
     if (typing || chatActive || lobbyVisible) return
 
     const key = event.key.toLowerCase()
-    if (key === 'j') {
-      event.preventDefault()
-      toggleViewMode()
-      return
-    }
-    // F9: Toggle cinematic orbit camera for recording
+    // F9: Toggle cinematic free camera (handled by CinematicCamera.tsx)
     if (event.key === 'F9') {
       event.preventDefault()
-      cinematicMode.current = !cinematicMode.current
-      if (cinematicMode.current) {
-        // Start from current camera angle relative to center
-        const dx = camera.position.x - CINEMATIC_CENTER.x
-        const dz = camera.position.z - CINEMATIC_CENTER.z
-        cinematicAngle.current = Math.atan2(dx, dz)
-        console.log('[Cinematic] Orbit camera ON — press F9 to stop')
-      } else {
-        console.log('[Cinematic] Orbit camera OFF')
-      }
+      toggleCinematicMode()
       return
     }
-    if (['w', 'a', 's', 'd', '1', '2', '3', '4', '5', '6'].includes(key)) {
-      // Solo preventDefault para wasd
-      if (['w', 'a', 's', 'd'].includes(key)) {
+    if (['w', 'a', 's', 'd', 'e', 'q', '1', '2', '3', '4', '5', '6'].includes(key)) {
+      if (['w', 'a', 's', 'd', 'e', 'q'].includes(key)) {
         event.preventDefault()
       }
       addPressedKey(key)
+    }
+    // Shift key for cinematic sprint
+    if (event.key === 'Shift') {
+      addPressedKey('shift')
     }
     // Space: track for jump (prevent page scroll)
     if (event.code === 'Space') {
@@ -153,7 +141,7 @@ export const useCameraControls = () => {
       }
     }
 
-  }, [addPressedKey, chatActive, lobbyVisible, setCurrentAnimation, activeSkinId, toggleViewMode])
+  }, [addPressedKey, chatActive, lobbyVisible, setCurrentAnimation, activeSkinId])
 
   const handleKeyUp = useCallback((event: KeyboardEvent) => {
     const el = document.activeElement as any
@@ -161,11 +149,14 @@ export const useCameraControls = () => {
     if (typing || chatActive) return
 
     const key = event.key.toLowerCase()
-    if (['w', 'a', 's', 'd', '1', '2', '3', '4', '5', '6'].includes(key)) {
-      if (['w', 'a', 's', 'd'].includes(key)) {
+    if (['w', 'a', 's', 'd', 'e', 'q', '1', '2', '3', '4', '5', '6'].includes(key)) {
+      if (['w', 'a', 's', 'd', 'e', 'q'].includes(key)) {
         event.preventDefault()
       }
       removePressedKey(key)
+    }
+    if (event.key === 'Shift') {
+      removePressedKey('shift')
     }
     if (event.code === 'Space') {
       event.preventDefault()
@@ -195,18 +186,8 @@ export const useCameraControls = () => {
   }, [handleKeyDown, handleKeyUp])
 
   useFrame((state, delta) => {
-    // Cinematic orbit camera — overrides normal camera
-    if (cinematicMode.current) {
-      cinematicAngle.current += CINEMATIC_SPEED * delta
-      const a = cinematicAngle.current
-      camera.position.set(
-        CINEMATIC_CENTER.x + Math.sin(a) * CINEMATIC_RADIUS,
-        CINEMATIC_HEIGHT,
-        CINEMATIC_CENTER.z + Math.cos(a) * CINEMATIC_RADIUS
-      )
-      camera.lookAt(CINEMATIC_CENTER.x, 1.5, CINEMATIC_CENTER.z)
-      return
-    }
+    // Cinematic free camera — handled by CinematicCamera.tsx, skip normal controls
+    if (cinematicMode) return
 
     // Block movement while chat is active
     if (chatActive) return
@@ -262,13 +243,36 @@ export const useCameraControls = () => {
     playerPos.current.y += velocityY.current * delta
 
     // Ground check
-    if (playerPos.current.y <= GROUND_Y) {
-      playerPos.current.y = GROUND_Y
+    if (playerPos.current.y <= EYE_HEIGHT) {
+      playerPos.current.y = EYE_HEIGHT
       velocityY.current = 0
       isOnGround.current = true
     }
 
-    // Apply lateral movement
+    // Apply lateral movement with collision detection
+    if (velocity.current.lengthSq() > 0.001 && houseCollisionMesh) {
+      // Check collision in movement direction
+      const moveDir = velocity.current.clone().normalize()
+      raycaster.current.set(playerPos.current, moveDir)
+      raycaster.current.far = velocity.current.length() + 0.5 // Check a bit ahead
+      
+      const intersects = raycaster.current.intersectObject(houseCollisionMesh, false)
+      
+      if (intersects.length > 0 && intersects[0].distance < velocity.current.length() + 0.3) {
+        // Collision detected - slide along wall instead of stopping
+        const normal = intersects[0].face?.normal
+        if (normal) {
+          // Transform normal to world space
+          const worldNormal = normal.clone().transformDirection(houseCollisionMesh.matrixWorld)
+          // Project velocity onto wall plane (slide)
+          const slideVel = velocity.current.clone().sub(
+            worldNormal.clone().multiplyScalar(velocity.current.dot(worldNormal))
+          )
+          velocity.current.copy(slideVel.multiplyScalar(0.9))
+        }
+      }
+    }
+    
     playerPos.current.add(velocity.current)
 
     // Clear emote if player starts moving
@@ -286,11 +290,15 @@ export const useCameraControls = () => {
       }
     }
 
-    // World boundaries (invisible wall)
-    const xMax = 30
-    const zMax = 20
-    playerPos.current.x = Math.max(-xMax, Math.min(xMax, playerPos.current.x))
-    playerPos.current.z = Math.max(-zMax, Math.min(zMax, playerPos.current.z))
+    // World boundaries (invisible wall) — based on collision house externo.glb
+    // Blender bbox: X[-270.01, -20.67] Z[-23.94, 206.56] + offset(190.12, -88.67)
+    // World coords: X[-79.89, 169.45] Z[-112.61, 117.89]
+    const xMin = -79
+    const xMax = 169
+    const zMin = -112
+    const zMax = 117
+    playerPos.current.x = Math.max(xMin, Math.min(xMax, playerPos.current.x))
+    playerPos.current.z = Math.max(zMin, Math.min(zMax, playerPos.current.z))
 
     // =============================================
     // CAMERA VALIDATION — prevents bad positions (NaN / huge jumps)
@@ -316,21 +324,17 @@ export const useCameraControls = () => {
     const liveRotY = Math.atan2(direction.current.x, direction.current.z)
     setLocalPlayerLive(playerPos.current.x, playerPos.current.y, playerPos.current.z, liveRotY)
 
-    if (viewMode === 'firstPerson') {
-      camera.position.copy(playerPos.current)
-      camera.quaternion.copy(rotation.current)
-    } else {
-      const camDist = 4.2
-      const camUp = 0.45
-      cameraTarget.current.copy(playerPos.current)
-      cameraTarget.current.add(direction.current.clone().multiplyScalar(-camDist))
-      cameraTarget.current.y += camUp
-      // Frame-rate independent lerp (equivalent to ~0.12 at 60fps)
-      camera.position.lerp(cameraTarget.current, 1 - Math.exp(-8 * delta))
+    // Third-person camera
+    const camDist = 20
+    const camUp = 6.0
+    cameraTarget.current.copy(playerPos.current)
+    cameraTarget.current.add(direction.current.clone().multiplyScalar(-camDist))
+    cameraTarget.current.y += camUp
+    // Frame-rate independent lerp (equivalent to ~0.12 at 60fps)
+    camera.position.lerp(cameraTarget.current, 1 - Math.exp(-8 * delta))
 
-      lookTarget.current.set(playerPos.current.x, playerPos.current.y - 0.35, playerPos.current.z)
-      camera.lookAt(lookTarget.current)
-    }
+    lookTarget.current.set(playerPos.current.x, playerPos.current.y + 2.5, playerPos.current.z)
+    camera.lookAt(lookTarget.current)
 
     // =============================================
     // MULTIPLAYER: Sync camera position with throttling (OPTIMIZED)

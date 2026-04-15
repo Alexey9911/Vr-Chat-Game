@@ -9,6 +9,7 @@ import CASection from '../components/CASection'
 import EntryLoadingOverlay from '../components/EntryLoadingOverlay'
 import { useMultiplayerStore } from '../lib/multiplayerStore'
 import Navbar from '../components/Navbar'
+import CinematicHUD from '../components/CinematicHUD'
 
 // Dynamically import Canvas3D to avoid SSR issues
 const Canvas3D = dynamic(() => import('../components/Canvas3D'), {
@@ -108,6 +109,7 @@ function HomePage() {
                 <Navbar />
                 <CASection />
                 {isMobile ? <TouchControls /> : <KeyboardHUD />}
+                <CinematicHUD />
               </>
             )}
 

@@ -1,2 +1,2 @@
-export const EYE_HEIGHT = 2.3
+export const EYE_HEIGHT = 5.0
 

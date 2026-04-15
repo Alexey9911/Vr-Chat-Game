@@ -2,6 +2,7 @@ import React, { Suspense, useRef } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { Environment, PerspectiveCamera, useProgress } from '@react-three/drei'
 import Scene3D from './Scene3D'
+import CinematicCamera from './CinematicCamera'
 import { useCameraControls } from '../hooks/useCameraControls'
 import { EYE_HEIGHT } from '../lib/camera/cameraConstants'
 import { useSettingsStore } from '../lib/settings/settingsStore'
@@ -139,6 +140,7 @@ const Canvas3D: React.FC<{ loadingOverlayEnabled?: boolean; forceHidden?: boolea
           
           {/* Camera Controls */}
           <CameraController />
+          <CinematicCamera />
          
           {/* Perspective Camera Setup */}
           <PerspectiveCamera

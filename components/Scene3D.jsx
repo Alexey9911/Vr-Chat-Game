@@ -1,4 +1,5 @@
 import RemotePlayerAvatar from "./multiplayer/RemotePlayerAvatar";
+import HouseScene from "./HouseScene";
 
 import React from "react";
 import { useFrame, useThree } from "@react-three/fiber";
@@ -57,19 +58,8 @@ export default function Scene3D({ containerRef }) {
         shadow-camera-bottom={-10}
       />
 
-      {/* Floor — placeholder until Blender house model is ready */}
-      <mesh
-        rotation={[-Math.PI / 2, 0, 0]}
-        position={[0, -0.01, 0]}
-        receiveShadow
-      >
-        <planeGeometry args={[80, 80]} />
-        <meshStandardMaterial
-          color="#2a2a2a"
-          roughness={0.8}
-          metalness={0.1}
-        />
-      </mesh>
+      {/* House scene from Blender (exterior + cars + decoration + dance + floating texts) */}
+      <HouseScene />
 
       {/* ============================================= */}
       {/* MULTIPLAYER: Remote Player Avatars */}

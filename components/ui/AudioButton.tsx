@@ -143,8 +143,6 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
 
   const hasAudio = currentSkinId && hasSkinAudio(currentSkinId)
   const emoteKeys = getEmoteKeys(currentSkinId)
-  const viewLabel = viewMode === 'firstPerson' ? '1P' : '3P'
-  const viewTitle = viewMode === 'firstPerson' ? 'Third-person view (J)' : 'First-person view (J)'
 
   // Mutual exclusion: skin music disabled if YouTube playing, YouTube disabled if skin music playing
   const skinMusicDisabled = isYouTubePlaying || (!hasAudio && !isActuallyPlaying)
@@ -152,11 +150,6 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
   return (
     <>
     <div className="hud-panel">
-
-      {/* VIEW TOGGLE */}
-      <button className="hud-btn hud-btn--view" onClick={toggleViewMode} title={viewTitle}>
-        <span className="hud-btn-label">{viewLabel}</span>
-      </button>
 
       {/* MUSIC (skin) */}
       <button
