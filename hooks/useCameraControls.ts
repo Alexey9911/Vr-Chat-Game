@@ -1,6 +1,6 @@
 import { useRef, useEffect, useCallback } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { Vector3, Quaternion, Raycaster } from 'three'
+import { Vector3, Raycaster } from 'three'
 import { useKeyboardStore } from '../lib/useKeyboardStore'
 import { useMultiplayerStore } from '../lib/multiplayerStore'
 import { EYE_HEIGHT } from '../lib/camera/cameraConstants'
@@ -16,8 +16,18 @@ import { useZoneStore } from '../lib/zoneStore'
 const GRAVITY = -35
 const JUMP_FORCE = 16
 
+// Camera orbit constants
+const CAM_DIST = 20                // distance from player to camera
+const CAM_MIN_PITCH = 0.05        // ~3° above horizontal (nearly level)
+const CAM_MAX_PITCH = 1.35        // ~77° (nearly top-down)
+const CAM_INITIAL_PITCH = 0.32    // ~18° — comfortable default
+const MOUSE_SENSITIVITY = 0.003
+const CAM_COLLISION_OFFSET = 0.5   // stop camera this far before wall
+const CAM_COLLISION_MIN = 1.0      // never closer than this to player
+const CAM_LOOK_HEIGHT = 2.5       // look-at point above player feet
+
 export const useCameraControls = () => {
-  const { camera } = useThree()
+  const { camera, gl } = useThree()
   const { addPressedKey, removePressedKey, setPressedKeys, isKeyPressed, chatActive, setCurrentAnimation } = useKeyboardStore()
   const cinematicMode = useViewStore((s) => s.cinematicMode)
   const toggleCinematicMode = useViewStore((s) => s.toggleCinematicMode)
@@ -26,7 +36,6 @@ export const useCameraControls = () => {
   
   // Movement parameters
   const moveSpeed = useRef(12.5)
-  const rotateSpeed = useRef(2)
   
   // Camera state - Initial spawn position
   const SPAWN_X = -59.95
@@ -38,16 +47,15 @@ export const useCameraControls = () => {
   
   const playerPos = useRef(new Vector3(SPAWN_X, EYE_HEIGHT, SPAWN_Z))
   const velocity = useRef(new Vector3())
-  const direction = useRef(new Vector3())
-  const rotation = useRef(new Quaternion())
   const lastSafePos = useRef(new Vector3(SPAWN_X, EYE_HEIGHT, SPAWN_Z))
-  const cameraTarget = useRef(new Vector3(SPAWN_X, EYE_HEIGHT, SPAWN_Z))
-  // lookTarget points forward from spawn position based on initial rotation
-  const lookTarget = useRef(new Vector3(
-    SPAWN_X + Math.sin(SPAWN_ROT) * 10,
-    EYE_HEIGHT,
-    SPAWN_Z + Math.cos(SPAWN_ROT) * 10
-  ))
+
+  // Mouse orbit state — yaw controls where the camera orbits, pitch controls height
+  // orbitYaw = angle where camera sits relative to player (same convention as old SPAWN_ROT)
+  const orbitYaw = useRef(SPAWN_ROT)
+  const orbitPitch = useRef(CAM_INITIAL_PITCH)
+  // playerFacingY = direction the character model faces (matches old liveRotY convention)
+  const initFacing = Math.atan2(-Math.sin(SPAWN_ROT), -Math.cos(SPAWN_ROT))
+  const playerFacingY = useRef(initFacing)
 
   // Jump physics
   const velocityY = useRef(0)        // vertical velocity
@@ -60,16 +68,16 @@ export const useCameraControls = () => {
   
   // Position throttling for network optimization
   const lastSentPos = useRef(new Vector3(SPAWN_X, EYE_HEIGHT, SPAWN_Z))
-  const lastSentRotY = useRef(SPAWN_ROT)
+  const lastSentRotY = useRef(initFacing)
   const POSITION_THRESHOLD = 0.08 // Only sync if moved >8cm
   const ROTATION_THRESHOLD = 0.04 // Only sync if rotated >2.3 degrees
   
   // Custom animation state override
   const currentEmote = useRef<string | null>(null)
   
-  // Collision detection
-  const raycaster = useRef(new Raycaster())
-  raycaster.current.far = 1.0 // Check 1 unit ahead
+  // Collision detection — separate raycasters for movement and camera
+  const moveRaycaster = useRef(new Raycaster())
+  const camRaycaster = useRef(new Raycaster())
 
   // Cinematic mode is now managed by useViewStore (toggled via F9)
   // The free-fly camera is handled by CinematicCamera.tsx component
@@ -83,12 +91,21 @@ export const useCameraControls = () => {
     
     playerPos.current.copy(pos)
     lastSafePos.current.copy(pos)
-    cameraTarget.current.copy(pos)
-    camera.position.copy(pos)
     
-    // Set rotation
-    rotation.current.setFromAxisAngle(new Vector3(0, 1, 0), rotY)
-    camera.quaternion.copy(rotation.current)
+    // Set orbit yaw to match teleport rotation so camera ends up behind the player
+    orbitYaw.current = rotY
+    playerFacingY.current = Math.atan2(-Math.sin(rotY), -Math.cos(rotY))
+    
+    // Compute camera position immediately to avoid lerp jump
+    const pitch = orbitPitch.current
+    const lookAt = new Vector3(pos.x, pos.y + CAM_LOOK_HEIGHT, pos.z)
+    const camOffset = new Vector3(
+      Math.sin(rotY) * Math.cos(pitch) * CAM_DIST,
+      Math.sin(pitch) * CAM_DIST,
+      Math.cos(rotY) * Math.cos(pitch) * CAM_DIST,
+    )
+    camera.position.copy(lookAt).add(camOffset)
+    camera.lookAt(lookAt)
     
     // Reset velocity and ground state
     velocity.current.set(0, 0, 0)
@@ -99,22 +116,66 @@ export const useCameraControls = () => {
     requestAnimationFrame(() => { isTeleporting.current = false })
   }, [camera])
 
-  // Initialize rotation and position with spawn values
+  // Initialize position with spawn values
   useEffect(() => {
-    // Set initial rotation from SPAWN_ROT (Y-axis rotation)
-    rotation.current.setFromAxisAngle(new Vector3(0, 1, 0), SPAWN_ROT)
-    
-    // Set initial position
     playerPos.current.set(SPAWN_X, EYE_HEIGHT, SPAWN_Z)
     lastSafePos.current.copy(playerPos.current)
+    orbitYaw.current = SPAWN_ROT
+    playerFacingY.current = initFacing
     
-    // Set camera to spawn position
-    camera.position.copy(playerPos.current)
-    camera.quaternion.copy(rotation.current)
+    // Position camera at orbit location immediately
+    const pitch = orbitPitch.current
+    const lookAt = new Vector3(SPAWN_X, EYE_HEIGHT + CAM_LOOK_HEIGHT, SPAWN_Z)
+    const camOffset = new Vector3(
+      Math.sin(SPAWN_ROT) * Math.cos(pitch) * CAM_DIST,
+      Math.sin(pitch) * CAM_DIST,
+      Math.cos(SPAWN_ROT) * Math.cos(pitch) * CAM_DIST,
+    )
+    camera.position.copy(lookAt).add(camOffset)
+    camera.lookAt(lookAt)
     
     // Register teleport function for checkpoints
     setTeleportFunction(teleport)
   }, [camera, teleport])
+
+  // =============================================
+  // MOUSE ORBIT — pointer lock on click, mousemove updates orbit angles
+  // =============================================
+  useEffect(() => {
+    const canvas = gl.domElement
+    
+    const onMouseMove = (e: MouseEvent) => {
+      // Only orbit when pointer is locked to the canvas
+      if (document.pointerLockElement !== canvas) return
+      if (cinematicMode) return
+      
+      orbitYaw.current -= e.movementX * MOUSE_SENSITIVITY
+      orbitPitch.current = Math.max(
+        CAM_MIN_PITCH,
+        Math.min(CAM_MAX_PITCH, orbitPitch.current - e.movementY * MOUSE_SENSITIVITY)
+      )
+    }
+    
+    const onClick = () => {
+      if (chatActive || lobbyVisible || cinematicMode) return
+      canvas.requestPointerLock()
+    }
+    
+    canvas.addEventListener('click', onClick)
+    document.addEventListener('mousemove', onMouseMove)
+    
+    return () => {
+      canvas.removeEventListener('click', onClick)
+      document.removeEventListener('mousemove', onMouseMove)
+    }
+  }, [gl, cinematicMode, chatActive, lobbyVisible])
+
+  // Release pointer lock when chat or lobby opens
+  useEffect(() => {
+    if ((chatActive || lobbyVisible) && document.pointerLockElement) {
+      document.exitPointerLock()
+    }
+  }, [chatActive, lobbyVisible])
 
   // Load PlayroomKit dynamically
   useEffect(() => {
@@ -240,33 +301,27 @@ export const useCameraControls = () => {
     // Block movement while chat is active
     if (chatActive) return
 
-    // Reset lateral velocity
+    // =============================================
+    // MOVEMENT — WASD relative to camera yaw (standard 3rd person)
+    // W/S = forward/backward in camera direction, A/D = strafe left/right
+    // =============================================
     velocity.current.set(0, 0, 0)
     
-    // Handle rotation (A/D keys)
-    if (isKeyPressed('a')) {
-      rotation.current.multiply(
-        new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), rotateSpeed.current * delta * 1.4)
-      )
-    }
-    if (isKeyPressed('d')) {
-      rotation.current.multiply(
-        new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -rotateSpeed.current * delta * 1.4)
-      )
-    }
+    const yaw = orbitYaw.current
+    // Forward = direction from camera toward player (projected horizontal)
+    const forward = new Vector3(-Math.sin(yaw), 0, -Math.cos(yaw))
+    // Right = perpendicular to forward on XZ plane
+    const right = new Vector3(Math.cos(yaw), 0, -Math.sin(yaw))
     
-    // Calculate forward direction from player rotation
-    direction.current.set(0, 0, -1)
-    direction.current.applyQuaternion(rotation.current)
-    direction.current.y = 0 // Keep movement horizontal
-    direction.current.normalize()
+    const speed = moveSpeed.current * delta * 1.6
+    if (isKeyPressed('w')) velocity.current.add(forward.clone().multiplyScalar(speed))
+    if (isKeyPressed('s')) velocity.current.add(forward.clone().multiplyScalar(-speed))
+    if (isKeyPressed('a')) velocity.current.add(right.clone().multiplyScalar(-speed))
+    if (isKeyPressed('d')) velocity.current.add(right.clone().multiplyScalar(speed))
     
-    // Handle forward/backward movement (W/S keys)
-    if (isKeyPressed('w')) {
-      velocity.current.add(direction.current.clone().multiplyScalar(moveSpeed.current * delta * 1.6))
-    }
-    if (isKeyPressed('s')) {
-      velocity.current.add(direction.current.clone().multiplyScalar(-moveSpeed.current * delta * 1.6))
+    // Update player facing direction when moving (character turns toward movement)
+    if (velocity.current.lengthSq() > 0.001) {
+      playerFacingY.current = Math.atan2(velocity.current.x, velocity.current.z)
     }
     
     // =============================================
@@ -305,10 +360,10 @@ export const useCameraControls = () => {
     if (velocity.current.lengthSq() > 0.001 && collisionMesh) {
       // Check collision in movement direction
       const moveDir = velocity.current.clone().normalize()
-      raycaster.current.set(playerPos.current, moveDir)
-      raycaster.current.far = velocity.current.length() + 0.5 // Check a bit ahead
+      moveRaycaster.current.set(playerPos.current, moveDir)
+      moveRaycaster.current.far = velocity.current.length() + 0.5 // Check a bit ahead
       
-      const intersects = raycaster.current.intersectObject(collisionMesh, false)
+      const intersects = moveRaycaster.current.intersectObject(collisionMesh, false)
       
       if (intersects.length > 0 && intersects[0].distance < velocity.current.length() + 0.3) {
         // Collision detected - slide along wall instead of stopping
@@ -376,20 +431,59 @@ export const useCameraControls = () => {
 
     // Update live ref EVERY frame with full precision — RemotePlayerAvatar reads this
     // to keep the local player character model in sync without quantization wobble
-    const liveRotY = Math.atan2(direction.current.x, direction.current.z)
-    setLocalPlayerLive(playerPos.current.x, playerPos.current.y, playerPos.current.z, liveRotY)
+    setLocalPlayerLive(playerPos.current.x, playerPos.current.y, playerPos.current.z, playerFacingY.current)
 
-    // Third-person camera
-    const camDist = 20
-    const camUp = 6.0
-    cameraTarget.current.copy(playerPos.current)
-    cameraTarget.current.add(direction.current.clone().multiplyScalar(-camDist))
-    cameraTarget.current.y += camUp
-    // Frame-rate independent lerp (equivalent to ~0.12 at 60fps)
-    camera.position.lerp(cameraTarget.current, 1 - Math.exp(-8 * delta))
+    // =============================================
+    // THIRD-PERSON CAMERA — orbit position + collision avoidance
+    // =============================================
+    const pitch = orbitPitch.current
+    
+    // Look-at point (slightly above player feet)
+    const lookAtPoint = new Vector3(
+      playerPos.current.x,
+      playerPos.current.y + CAM_LOOK_HEIGHT,
+      playerPos.current.z
+    )
+    
+    // Desired camera position (spherical coords around look-at point)
+    const camOffset = new Vector3(
+      Math.sin(yaw) * Math.cos(pitch) * CAM_DIST,
+      Math.sin(pitch) * CAM_DIST,
+      Math.cos(yaw) * Math.cos(pitch) * CAM_DIST,
+    )
+    const desiredCamPos = lookAtPoint.clone().add(camOffset)
+    
+    // =============================================
+    // CAMERA COLLISION — raycast from player to desired camera position
+    // If ray hits the collision mesh, pull camera closer to avoid clipping
+    // =============================================
+    let finalCamPos = desiredCamPos
+    
+    if (collisionMesh) {
+      const rayOrigin = lookAtPoint.clone()
+      const toDesired = desiredCamPos.clone().sub(rayOrigin)
+      const rayLength = toDesired.length()
+      
+      if (rayLength > 0.01) {
+        const rayDir = toDesired.clone().normalize()
+        
+        camRaycaster.current.set(rayOrigin, rayDir)
+        camRaycaster.current.far = rayLength
+        camRaycaster.current.near = 0
+        
+        const hits = camRaycaster.current.intersectObject(collisionMesh, false)
+        
+        if (hits.length > 0 && hits[0].distance < rayLength) {
+          // Place camera just before the hit point
+          const safeDist = Math.max(hits[0].distance - CAM_COLLISION_OFFSET, CAM_COLLISION_MIN)
+          finalCamPos = rayOrigin.clone().add(rayDir.clone().multiplyScalar(safeDist))
+        }
+      }
+    }
 
-    lookTarget.current.set(playerPos.current.x, playerPos.current.y + 2.5, playerPos.current.z)
-    camera.lookAt(lookTarget.current)
+    // Smooth camera follow — frame-rate independent lerp
+    camera.position.lerp(finalCamPos, 1 - Math.exp(-8 * delta))
+    camera.lookAt(lookAtPoint)
 
     // =============================================
     // MULTIPLAYER: Sync camera position with throttling (OPTIMIZED)
@@ -402,9 +496,8 @@ export const useCameraControls = () => {
         const pk = playroomRef.current
         const me = pk.myPlayer?.()
         if (me) {
-          // Calculate rotation Y
-          const forward = new Vector3(0, 0, -1).applyQuaternion(rotation.current)
-          const rotY = Math.atan2(forward.x, forward.z)
+          // Player facing direction for multiplayer
+          const rotY = playerFacingY.current
           
           // Check if position or rotation changed significantly
           const dx = Math.abs(playerPos.current.x - lastSentPos.current.x)

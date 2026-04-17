@@ -59,6 +59,7 @@ interface MultiplayerState {
   // Chat
   chatMessages: ChatMessage[]
   addChatMessage: (msg: ChatMessage) => void
+  setChatMessages: (msgs: ChatMessage[]) => void
 
   // Multi-lobby system
   currentLobby: LobbyCode | null
@@ -132,6 +133,7 @@ export const useMultiplayerStore = create<MultiplayerState>((set, get) => ({
     set((s) => ({
       chatMessages: [...s.chatMessages.slice(-49), msg],
     })),
+  setChatMessages: (msgs) => set({ chatMessages: msgs }),
 
   // Multi-lobby
   currentLobby: null,

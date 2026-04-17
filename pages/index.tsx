@@ -88,8 +88,8 @@ function HomePage() {
   return (
     <>
       <Head>
-        <title>$AlonVerse - Multiplayer 3D World</title>
-        <meta name="description" content="Explore a stunning multiplayer 3D world — $AlonVerse" />
+        <title>$AlonHouse - Multiplayer 3D World</title>
+        <meta name="description" content="Explore a stunning multiplayer 3D world — $AlonHouse" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="preload" href="/sky.hdr" as="fetch" crossOrigin="anonymous" />

@@ -1,10 +1,10 @@
 /**
  * Multi-Lobby Configuration
  * Defines lobby settings and utilities for the multi-room system
- * Supports infinite lobbies: ALONVERSE-1, ALONVERSE-2, ... ALONVERSE-N
+ * Supports infinite lobbies: AlonHouse-1, AlonHouse-2, ... AlonHouse-N
  */
 
-export const LOBBY_PREFIX = 'ALONVERSE'
+export const LOBBY_PREFIX = 'AlonHouse'
 export const MAX_PLAYERS_PER_LOBBY = 10
 
 // Dynamic lobby code type (no fixed limit)
@@ -42,10 +42,10 @@ export function getLobbyCodesUpTo(count: number): LobbyCode[] {
 }
 
 /**
- * Check if a lobby code is valid (matches ALONVERSE-N pattern)
+ * Check if a lobby code is valid (matches AlonHouse-N pattern)
  */
 export function isValidLobbyCode(code: string): code is LobbyCode {
-  return /^ALONVERSE-\d+$/.test(code)
+  return /^AlonHouse-\d+$/.test(code)
 }
 
 /**

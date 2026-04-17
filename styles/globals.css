@@ -368,398 +368,552 @@ a {
 }
 
 /* =============================================
-   MULTIPLAYER: Lobby Screen (IO Game Style)
+   MULTIPLAYER: Lobby Screen (Fortnite Style)
    ============================================= */
-.lobby-fullscreen {
+
+.lobby-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
   z-index: 9999;
-  background-color: #0d0d14;
   display: flex;
+  flex-direction: column;
+  font-family: 'Burbank Big Condensed', 'Arial Black', Impact, sans-serif;
+  color: white;
+  text-transform: uppercase;
+}
+
+/* Background image - Clean, no filters */
+.lobby-video-bg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+/* Top Navbar */
+.lobby-top-bar {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
+  padding: 15px 30px;
+  background: rgba(0, 0, 10, 0.4);
+  backdrop-filter: blur(5px);
+  border-bottom: 2px solid rgba(255,255,255,0.1);
+}
+
+.lobby-brand .lobby-title {
+  font-size: 32px;
+  font-weight: 900;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+.lobby-subtitle-concept {
+  font-size: 14px;
+  color: #f1c40f;
+  margin-top: -5px;
+  font-weight: bold;
+}
+
+.lobby-nav-tabs {
+  display: flex;
+  gap: 30px;
+}
+
+.nav-tab {
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: 0.2s;
   font-family: inherit;
 }
 
-.lobby-bg-image {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 0;
-  opacity: 0.45;
+.nav-tab:hover {
+  color: white;
 }
 
-.lobby-content {
-  position: relative;
-  z-index: 1;
+.nav-tab.active {
+  color: black;
+  background: #f1c40f;
+  padding: 2px 15px;
+  clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+}
+
+.lobby-top-right {
   display: flex;
-  width: 100%;
-  height: 100%;
-  max-width: 1400px;
-  justify-content: space-between;
-  align-items: stretch;
-  padding: 40px;
-  box-sizing: border-box;
+  gap: 15px;
+  align-items: center;
 }
 
-.lobby-sidebar {
-  width: 280px;
+.top-stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0,0,0,0.5);
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+/* Main Area Layout */
+.lobby-main {
+  position: relative;
+  z-index: 10;
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  padding: 30px;
+  align-items: stretch;
+}
+
+/* Left Panel */
+.lobby-left-panel {
+  width: 320px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: 15px;
 }
 
-.lobby-sidebar-left {
-  align-items: flex-start;
-}
-.lobby-sidebar-right {
-  align-items: flex-end;
+.info-box {
+  background: rgba(0, 0, 40, 0.7);
+  border-left: 5px solid #5bc0de;
+  padding: 12px 15px;
+  clip-path: polygon(0 0, 100% 0, 96% 100%, 0 100%);
+  backdrop-filter: blur(8px);
 }
 
-.lobby-info-box {
-  background: rgba(15, 15, 25, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-  backdrop-filter: blur(12px);
+.season-header {
   color: white;
-  width: 100%;
+  font-weight: bold;
+  font-size: 16px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
 }
 
-.info-box-title {
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 20px;
-  color: #4a9eff;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  padding-bottom: 12px;
-}
+.blue-diamond { color: #5bc0de; }
 
-.info-box-body p {
-  font-size: 14px;
-  margin: 14px 0;
-  line-height: 1.5;
-  color: rgba(255,255,255,0.7);
+.level-info {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.info-box-body b {
-  color: #fff;
-  background: rgba(255,255,255,0.1);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 12px;
+.level-shield {
+  font-size: 36px;
 }
 
-/* Center Main Area */
-.lobby-main {
+.level-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.lvl-big { font-size: 28px; font-weight: bold; }
+.xp-text { font-size: 12px; color: #ccc; }
+
+.battlepass-box { border-left-color: #d9534f; padding: 0; }
+.daily-box { border-left-color: #9b59b6; padding: 0; }
+.skin-picker-box { border-left-color: #f39c12; }
+
+.box-title { color: white; font-weight: bold; font-size: 18px; padding: 5px 15px; }
+.box-desc { color: #ccc; font-size: 12px; font-weight: bold; padding: 10px 15px; }
+
+.bg-red { background: rgba(255, 15, 123, 0.7); }
+.bg-purple { background: rgba(138, 43, 226, 0.7); }
+.bg-teal { background: rgba(0, 242, 254, 0.4); }
+
+/* Skin Picker Specifics */
+.lobby-colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.lobby-color-btn {
+  width: 32px; height: 32px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  clip-path: polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%);
+}
+
+.lobby-color-btn:hover {
+  transform: scale(1.1);
+  border-color: rgba(255,255,255,0.8);
+}
+
+.lobby-color-btn.selected {
+  border-color: white;
+  transform: scale(1.1);
+  box-shadow: 0 0 10px white;
+}
+
+.text-orange { color: #f39c12 !important; }
+
+/* Center Panel (Nickname) */
+.lobby-center-panel {
   flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: flex-end;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 40px;
+  padding-bottom: 30px;
 }
 
-/* Logo */
-.lobby-logo-area {
-  text-align: center;
-  margin-top: 2vh;
+.nickname-container {
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+  transition: transform 0.2s;
 }
-.lobby-logo-img {
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  margin-bottom: 12px;
-  box-shadow: 0 0 30px rgba(74, 158, 255, 0.3);
-  animation: simpleFade 3s infinite ease-in-out;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
+
+.nickname-container:hover {
+  transform: scale(1.02);
 }
-.lobby-title {
+
+.crown-icon {
+  font-size: 28px;
+  margin-bottom: -15px;
+  z-index: 2;
+  color: #f1c40f;
+  text-shadow: 0 2px 5px rgba(0,0,0,0.8);
+}
+
+.fortnite-input {
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid rgba(255,255,255,0.8);
+  color: white;
+  font-size: 26px;
+  font-weight: 900;
+  text-align: center;
+  text-transform: uppercase;
+  width: 350px;
+  outline: none;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.fortnite-input:focus {
+  border-bottom-color: #f39c12;
+}
+
+.fortnite-input::placeholder { color: rgba(255,255,255,0.5); font-size: 22px; }
+
+.status-text {
+  font-size: 20px;
+  font-weight: bold;
+  margin-top: 5px;
+  text-shadow: 0 2px 2px rgba(0,0,0,1);
+  letter-spacing: 1px;
+}
+
+.status-text.ready { color: #5cb85c; }
+.status-text.not-ready { color: #d9534f; }
+
+.lobby-error {
+  color: #ff6b6b;
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 10px;
+  text-shadow: 1px 1px 2px black;
+  background: rgba(0,0,0,0.6);
+  padding: 5px 15px;
+  border-radius: 4px;
+}
+
+/* Right Panel */
+.lobby-right-panel {
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.play-section {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 10px;
+}
+
+.lobby-chat-preview {
+  width: 100%;
+  height: 250px;
+  background: rgba(0, 0, 20, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 4px solid #f1c40f;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow-y: auto;
+  backdrop-filter: blur(5px);
+  margin-bottom: 10px;
+}
+
+.lobby-chat-title {
+  color: #00f2fe;
+  font-size: 16px;
+  font-weight: bold;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  padding-bottom: 5px;
+  margin-bottom: 5px;
+}
+
+.game-mode {
+  background: rgba(255,255,255,0.9);
+  color: black;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 15px;
+  text-align: right;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 5% 100%);
+  margin-bottom: -5px;
+}
+
+.mode-title { font-size: 14px; font-weight: bold; color: #333; }
+.mode-name { font-size: 24px; font-weight: 900; color: #5bc0de; margin-top: -5px; white-space: nowrap; }
+
+.lobby-play-btn {
+  background: linear-gradient(45deg, #ff0f7b, #f89b29, #ff0f7b);
+  background-size: 200% auto;
+  color: white;
+  border: 2px solid white;
+  border-radius: 8px;
+  padding: 18px;
   font-size: 42px;
   font-weight: 900;
-  margin: 0;
-  color: #fff;
-  letter-spacing: 2px;
-  text-shadow: 0 4px 15px rgba(0,0,0,0.8);
-  background: linear-gradient(135deg, #ff8c4a, #ff4a8c, #4a9eff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Character */
-.lobby-character-area {
-  position: relative;
-  width: 100%;
-  max-width: 460px;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 20px 0;
-}
-
-.character-canvas-container {
-  width: 100%;
-  height: 100%;
-  min-height: 350px;
-  max-height: 550px;
-}
-
-.skin-nav-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(0,0,0,0.4);
-  border: 2px solid rgba(255,255,255,0.2);
-  color: white;
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  font-size: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
-  z-index: 10;
-  backdrop-filter: blur(8px);
-  padding-bottom: 4px; /* optical alignment for arrow */
-}
-.skin-nav-btn:hover {
-  background: rgba(255,255,255,0.2);
-  border-color: #4a9eff;
-  transform: translateY(-50%) scale(1.1);
-  box-shadow: 0 0 20px rgba(74, 158, 255, 0.4);
-}
-.skin-nav-btn.left { left: -30px; }
-.skin-nav-btn.right { right: -30px; }
-
-.skin-name-badge {
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,0.7);
-  padding: 8px 20px;
-  border-radius: 20px;
-  font-size: 15px;
-  font-weight: 800;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  font-family: inherit;
   letter-spacing: 2px;
-  color: white;
-  border: 1px solid rgba(255,255,255,0.15);
-  text-transform: uppercase;
-  backdrop-filter: blur(5px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+  animation: shinePlayButton 3s infinite;
+  box-shadow: 0 0 20px rgba(255, 15, 123, 0.5);
 }
 
-/* Action Area */
-.lobby-action-area {
+@keyframes shinePlayButton {
+  0% { background-position: 0% center; }
+  50% { background-position: 100% center; }
+  100% { background-position: 0% center; }
+}
+
+.lobby-play-btn:hover { 
+  transform: scale(1.05); 
+  box-shadow: 0 0 40px rgba(255, 15, 123, 0.8);
+}
+
+.lobby-play-btn:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+  transform: none;
+  background: linear-gradient(45deg, #555, #333);
+  box-shadow: none;
+  animation: none;
+  border-color: #777;
+}
+
+/* Bottom Bar */
+.lobby-bottom-bar {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+}
+
+.news-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  padding: 8px 20px;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  clip-path: polygon(5% 0, 100% 0, 95% 100%, 0 100%);
+  font-family: inherit;
+  transition: transform 0.2s;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.news-btn:hover { transform: scale(1.05); }
+.news-icon { width: 24px; height: 24px; }
+
+.bottom-social {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.server-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.blink-dot {
+  width: 14px;
+  height: 14px;
+  background-color: #2ecc71;
+  border-radius: 50%;
+  animation: blink 1.5s infinite;
+  box-shadow: 0 0 10px #2ecc71;
+}
+
+.pulse-effect {
+  animation: pulseAnim 2s infinite;
+}
+
+@keyframes pulseAnim {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.settings-ui-panel {
+  background: rgba(0, 0, 20, 0.85);
+  border: 2px solid #5bc0de;
+  border-left: 8px solid #ff0f7b;
   width: 100%;
-  max-width: 380px;
+  max-width: 800px;
+  padding: 30px;
+  clip-path: polygon(0 0, 100% 0, 98% 100%, 0 100%);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 4vh;
+  gap: 20px;
+  animation: fadeIn 0.3s ease-out;
 }
 
-.lobby-name-input {
-  width: 100%;
-  height: 60px;
-  background: rgba(0,0,0,0.6);
-  border: 2px solid rgba(255,255,255,0.15);
-  border-radius: 14px;
-  color: white;
-  font-size: 22px;
-  font-weight: bold;
-  text-align: center;
-  outline: none;
-  transition: all 0.2s;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-}
-.lobby-name-input:focus {
-  border-color: #4a9eff;
-  background: rgba(0,0,0,0.8);
-  box-shadow: 0 0 20px rgba(74, 158, 255, 0.3);
-}
-.lobby-name-input::placeholder {
-  color: rgba(255,255,255,0.3);
-  font-weight: 500;
+.setting-item h3 {
+  color: #fff;
+  margin: 0 0 5px 0;
+  font-size: 24px;
+  letter-spacing: 1px;
 }
 
-.lobby-color-picker {
-  display: flex;
-  gap: 8px;
-  flex-wrap: nowrap;
-  justify-content: center;
-  background: rgba(0,0,0,0.4);
-  padding: 8px 16px;
-  border-radius: 20px;
-  backdrop-filter: blur(5px);
-  border: 1px solid rgba(255,255,255,0.08);
-}
-
-.color-swatch {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 3px solid transparent;
-  cursor: pointer;
-  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.6);
-  outline: none;
-}
-.color-swatch:hover {
-  transform: scale(1.15);
-}
-.color-swatch.active {
-  border-color: white;
-  transform: scale(1.2);
-  box-shadow: 0 0 15px rgba(255,255,255,0.5);
-}
-
-.lobby-play-btn-huge {
-  width: 100%;
-  height: 72px;
-  background: linear-gradient(to bottom, #ffd94a, #ff9c63);
-  color: #111;
-  font-size: 28px;
-  font-weight: 900;
-  letter-spacing: 3px;
-  border: none;
-  border-radius: 18px;
-  cursor: pointer;
-  transition: all 0.15s;
-  box-shadow: 0 8px 0 #cc6600, 0 15px 25px rgba(0,0,0,0.5);
-  text-transform: uppercase;
-  font-family: inherit;
-  margin-top: 4px;
-  text-shadow: 0 1px 2px rgba(255,255,255,0.5);
-}
-.lobby-play-btn-huge:hover {
-  background: linear-gradient(to bottom, #ffe37d, #ffb080);
-  transform: translateY(-2px);
-  box-shadow: 0 10px 0 #cc6600, 0 15px 25px rgba(0,0,0,0.5);
-}
-.lobby-play-btn-huge:active {
-  transform: translateY(8px);
-  box-shadow: 0 0px 0 #cc6600, 0 5px 10px rgba(0,0,0,0.5);
-}
-.lobby-play-btn-huge:disabled {
-  background: #555;
-  color: #888;
-  cursor: not-allowed;
-  transform: translateY(8px);
-  box-shadow: 0 0px 0 #333;
-  text-shadow: none;
-}
-
-.lobby-error-msg {
-  color: #ff6b6b;
-  background: rgba(0,0,0,0.7);
-  padding: 10px 20px;
-  border-radius: 10px;
+.setting-item p {
+  color: #aaa;
+  margin: 0 0 15px 0;
   font-size: 14px;
   font-weight: bold;
-  border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+.fortnite-slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 15px;
+  background: rgba(255,255,255,0.1);
+  outline: none;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.fortnite-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  background: #5bc0de;
+  cursor: pointer;
+  border-radius: 50%;
+  box-shadow: -410px 0 0 400px #ff0f7b;
+}
+
+.control-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255,255,255,0.05);
+  padding: 15px 20px;
+  margin-bottom: 10px;
+  border-left: 4px solid #5bc0de;
+}
+
+.control-row span:first-child {
+  color: #f1c40f;
+  font-weight: 900;
+  font-size: 22px;
+  background: rgba(0,0,0,0.5);
+  padding: 5px 15px;
+  border: 1px solid #5bc0de;
+  border-radius: 5px;
+}
+
+.control-row span:last-child {
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.friends-avatars {
+  display: flex;
+  gap: 10px;
+}
+
+.preview-gif {
+  width: 50px; height: 50px;
+  background: #111;
+  border: 2px solid white;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+/* loading */
+.lobby-loading {
+  animation: simpleFade 1s infinite ease-in-out;
 }
 
 @media (max-width: 950px) {
-  .lobby-sidebar {
+  .lobby-left-panel {
     display: none;
   }
-  .lobby-content {
+  .lobby-right-panel {
+    display: none;
+  }
+  .lobby-nav-tabs {
+    display: none;
+  }
+  .lobby-top-right {
+    display: none;
+  }
+  .lobby-main {
     padding: 20px;
     justify-content: center;
   }
-  .lobby-main {
-    padding: 0;
-    justify-content: flex-start;
-    padding-top: 2vh;
+  .lobby-center-panel {
+    padding-bottom: 10px;
   }
-  .lobby-logo-area {
-    margin-top: 0;
-    margin-bottom: 2vh;
+  .fortnite-input {
+    width: 280px;
+    font-size: 22px;
   }
-  .lobby-logo-img { 
-    width: 60px; 
-    height: 60px; 
-  }
-  .lobby-title { 
-    font-size: 32px; 
-  }
-  .lobby-character-area {
-    margin: 1vh 0;
-    min-height: 280px;
-    max-height: 350px;
-  }
-  .character-canvas-container {
-    min-height: 280px;
-    max-height: 350px;
-  }
-  .lobby-action-area { 
-    gap: 12px; 
-    margin-bottom: 2vh;
-    max-width: 100%;
-    padding: 0 10px;
-  }
-  .lobby-name-input {
-    height: 50px;
-    font-size: 18px;
-  }
-  .lobby-color-picker {
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 10px 14px;
-  }
-  .color-swatch {
-    width: 30px;
-    height: 30px;
-  }
-  .skin-nav-btn { 
-    width: 44px;
-    height: 44px;
-    font-size: 28px;
-  }
-  .skin-nav-btn.left { left: 10px; }
-  .skin-nav-btn.right { right: 10px; }
-  .lobby-play-btn-huge { 
-    height: 48px; 
-    font-size: 20px; 
-    box-shadow: 0 5px 0 #cc6600, 0 8px 15px rgba(0,0,0,0.5);
-    margin-top: 2px;
-  }
-  .lobby-play-btn-huge:active { 
-    transform: translateY(5px); 
-    box-shadow: 0 0px 0 #cc6600; 
-  }
-  .lobby-play-btn-huge:disabled { 
-    transform: translateY(5px); 
-    box-shadow: 0 0px 0 #333; 
-  }
-  .skin-name-badge {
-    font-size: 13px;
-    padding: 6px 16px;
-    bottom: 10px;
+  .info-box.mobile-skin-picker {
+    display: block !important;
   }
 }
 
@@ -935,19 +1089,33 @@ a {
   -webkit-mask-image: linear-gradient(to bottom, transparent, black 20%);
 }
 
-.chat-live-log--open {
-  max-height: 400px;
+/* chat-history-panel — dedicated scroll container when chat is open */
+.chat-history-panel {
+  max-height: 260px;
   overflow-y: auto;
-  pointer-events: auto; /* enable scroll when open */
-  mask-image: none;
-  -webkit-mask-image: none;
+  overflow-x: hidden;
+  pointer-events: auto;
+  background: rgba(15, 15, 15, 0.9);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  margin-bottom: 8px;
+  scroll-behavior: auto;
 }
-.chat-live-log--open::-webkit-scrollbar {
+.chat-history-panel::-webkit-scrollbar {
   width: 4px;
 }
-.chat-live-log--open::-webkit-scrollbar-thumb {
+.chat-history-panel::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.3);
   border-radius: 4px;
+}
+.chat-history-panel::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 /* Individual messages in the live overlay */
@@ -980,18 +1148,7 @@ a {
   color: #fff;
 }
 
-/* FULL HISTORY — shown when Enter is pressed */
-.chat-history {
-  background: rgba(15, 15, 15, 0.9);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-}
+/* .chat-history deprecated — superseded by .chat-history-panel above */
 
 .chat-msg {
   font-size: 14px;

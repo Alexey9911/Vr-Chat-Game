@@ -1,10 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { Send } from 'lucide-react'
 import { useMultiplayerStore } from '../../lib/multiplayerStore'
 import { useKeyboardStore } from '../../lib/useKeyboardStore'
 import EmotePickerNew from './EmotePickerNew'
 import GifBar from './GifBar'
-import { Emote, parseEmoteCodes, getEmoteById, validateEmoteCount } from '../../lib/emotes/emotesConfig'
+import { Emote, parseEmoteCodes, getEmoteById } from '../../lib/emotes/emotesConfig'
+import { getChatHistory, sendChatMessage } from '../../lib/lobbyApi'
 
 // Format timestamp as [HH:MM:SS] in 24h
 function formatTime(ts: number): string {
@@ -47,101 +48,173 @@ function InlineGif({ url }: { url: string }) {
   )
 }
 
+// ─── main component ──────────────────────────────────────────────────────────
+
 export default function ChatInput() {
+  // ── UI state ──────────────────────────────────────────────────────────────
   const [isOpen, setIsOpen] = useState(false)
   const [text, setText] = useState('')
   const [gifUrls, setGifUrls] = useState<string[]>([])
   const [hoveredGifChip, setHoveredGifChip] = useState<number | null>(null)
   const [isPickerOpen, setIsPickerOpen] = useState(false)
+
+  // ── refs ──────────────────────────────────────────────────────────────────
   const inputRef = useRef<HTMLInputElement>(null)
-  const logRef = useRef<HTMLDivElement>(null)
+  // This ref points to the SCROLLABLE history container (only exists when isOpen=true)
+  const historyRef = useRef<HTMLDivElement>(null)
+  // Track whether user scrolled up manually — use ref, NOT state, to avoid render loops
+  const userScrolledUp = useRef(false)
+  // Keep latest isOpen for keydown handler without stale closures
+  const isOpenRef = useRef(false)
+  const isPickerOpenRef = useRef(false)
+  const textRef = useRef('')
+  const gifUrlsRef = useRef<string[]>([])
+
+  // Keep refs in sync
+  isOpenRef.current = isOpen
+  isPickerOpenRef.current = isPickerOpen
+  textRef.current = text
+  gifUrlsRef.current = gifUrls
+
+  // ── store ─────────────────────────────────────────────────────────────────
   const {
     chatMessages,
     isConnected,
     addChatMessage,
+    setChatMessages,
+    currentLobby,
     updateRemotePlayer,
     remotePlayers,
   } = useMultiplayerStore()
   const { setChatActive } = useKeyboardStore()
 
+  // ── playroomkit ──────────────────────────────────────────────────────────
   const playroomRef = useRef<any>(null)
   useEffect(() => {
     // @ts-ignore
     import('playroomkit').then((mod: any) => { playroomRef.current = mod })
   }, [])
 
-  // No pre-cache required for GIPHY URL mode; local emotes are static assets
-
-  // Auto-scroll to bottom when new messages arrive
+  // ── fetch history on connect ─────────────────────────────────────────────
   useEffect(() => {
-    if (logRef.current) {
-      logRef.current.scrollTop = logRef.current.scrollHeight
+    if (isConnected && currentLobby) {
+      getChatHistory(currentLobby).then((history) => {
+        if (history && history.length > 0) {
+          setChatMessages(history)
+        }
+      })
     }
-  }, [chatMessages])
+  }, [isConnected, currentLobby, setChatMessages])
 
-  // Keyboard shortcuts
+  // ── scroll helpers ────────────────────────────────────────────────────────
+
+  /** Instantly snap history to the newest message */
+  const scrollToBottom = useCallback(() => {
+    const el = historyRef.current
+    if (el) el.scrollTop = el.scrollHeight
+  }, [])
+
+  /** Called by the onScroll event on the history div */
+  const handleHistoryScroll = useCallback(() => {
+    const el = historyRef.current
+    if (!el) return
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
+    // If user scrolled more than 40px from bottom, pause auto-scroll
+    userScrolledUp.current = distanceFromBottom > 40
+  }, [])
+
+  /**
+   * When chat opens: reset the "paused" flag and scroll to bottom.
+   * We use a tiny timeout so that React has rendered chat-history before we scroll.
+   */
+  useEffect(() => {
+    if (isOpen) {
+      userScrolledUp.current = false
+      setTimeout(scrollToBottom, 30)
+    }
+  }, [isOpen, scrollToBottom])
+
+  /**
+   * When new messages arrive: auto-scroll ONLY if user hasn't scrolled up.
+   */
+  useEffect(() => {
+    if (isOpen && !userScrolledUp.current) {
+      setTimeout(scrollToBottom, 30)
+    }
+  }, [chatMessages, isOpen, scrollToBottom])
+
+  // ── keyboard handler (stable — uses refs so no stale closures) ────────────
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isConnected) return
-      if (e.key === 'Enter' && !isOpen) {
+
+      const open = isOpenRef.current
+      const pickerOpen = isPickerOpenRef.current
+      const currentText = textRef.current
+      const currentGifs = gifUrlsRef.current
+
+      // ENTER while chat is closed → open it
+      if (e.key === 'Enter' && !open) {
         e.preventDefault()
         e.stopPropagation()
         setIsOpen(true)
         setChatActive(true)
-        setTimeout(() => {
-          inputRef.current?.focus()
-          if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight
-        }, 50)
+        setTimeout(() => inputRef.current?.focus(), 30)
+        return
       }
-      if (e.key === 'Escape' && isOpen) {
-        if (isPickerOpen) {
+
+      // ENTER while chat is open
+      if (e.key === 'Enter' && open && !pickerOpen) {
+        // Empty input → close chat and give movement back
+        if (!currentText.trim() && currentGifs.length === 0) {
+          e.preventDefault()
+          e.stopPropagation()
+          closeChat()
+        }
+        // Non-empty → let the form's onSubmit handle it (browser default)
+        return
+      }
+
+      // ESCAPE → close (or close picker first)
+      if (e.key === 'Escape' && open) {
+        e.preventDefault()
+        if (pickerOpen) {
           setIsPickerOpen(false)
         } else {
-          setIsOpen(false)
-          setText('')
-          setGifUrls([])
-          setChatActive(false)
-          inputRef.current?.blur()
+          closeChat()
         }
+        return
       }
-      if (e.key === 'Tab' && isOpen) {
+
+      // TAB → toggle emote picker
+      if (e.key === 'Tab' && open) {
         e.preventDefault()
-        setIsPickerOpen(!isPickerOpen)
+        setIsPickerOpen((v) => !v)
+        return
       }
+
+      // CTRL/CMD + G → open emote picker
       if ((e.ctrlKey || e.metaKey) && e.key === 'g') {
         e.preventDefault()
         setIsPickerOpen(true)
       }
     }
+
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, isConnected, setChatActive])
+    // Stable — only re-registers when connection or setChatActive changes
+  }, [isConnected, setChatActive]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleEmoteSelect = (emote: Emote) => {
-    if (!isOpen) { setIsOpen(true); setChatActive(true) }
-    const emoteCode = `:${emote.id}:`
-    setText((prev) => (prev + emoteCode).slice(0, 100))
-    setTimeout(() => inputRef.current?.focus(), 50)
-  }
+  // ── helpers ───────────────────────────────────────────────────────────────
 
-  const handleGifUrlSelect = (url: string) => {
-    if (!isOpen) { setIsOpen(true); setChatActive(true) }
-    setGifUrls((prev) => [...prev, url])
-    setTimeout(() => inputRef.current?.focus(), 50)
-  }
-
-  const handleOpenPicker = () => {
-    // Open chat if closed
-    if (!isOpen) {
-      setIsOpen(true)
-      setChatActive(true)
-    }
-    // Open picker
-    setIsPickerOpen(true)
-    // Focus input after a brief delay
-    setTimeout(() => {
-      inputRef.current?.focus()
-    }, 100)
+  const closeChat = () => {
+    setIsOpen(false)
+    setText('')
+    setGifUrls([])
+    setIsPickerOpen(false)
+    setChatActive(false)
+    userScrolledUp.current = false
+    inputRef.current?.blur()
   }
 
   const sendMessage = () => {
@@ -159,55 +232,66 @@ export default function ChatInput() {
       timestamp: Date.now(),
     }
 
-    // Sync to other players via PlayerState
     me.setState('chatMessage', chatData, true)
 
-    // Add locally immediately with player color
-    addChatMessage({
+    const msg = {
       id: chatData.timestamp.toString() + '-' + me.id,
       playerId: me.id,
       playerName: profile?.name || 'Anonymous',
       playerColor: profile?.colors?.primary || profile?.color || '#ffb84d',
       text: chatData.text,
       timestamp: chatData.timestamp,
-    })
+    }
 
-    // Show local player's own chat bubble above their head
+    addChatMessage(msg)
+
+    if (currentLobby) {
+      sendChatMessage(currentLobby, msg)
+    }
+
     updateRemotePlayer(me.id, { chatMessage: chatData.text })
-    setTimeout(() => {
-      updateRemotePlayer(me.id, { chatMessage: null })
-    }, 5000)
+    setTimeout(() => updateRemotePlayer(me.id, { chatMessage: null }), 5000)
 
     setText('')
     setGifUrls([])
     setIsPickerOpen(false)
-    // Keep chat OPEN after sending — fixes scroll jumping to top
-    // User can press Escape to close manually
-    
-    // Force scroll to bottom after sending message
-    setTimeout(() => {
-      if (logRef.current) {
-        logRef.current.scrollTop = logRef.current.scrollHeight
-      }
-      inputRef.current?.focus()
-    }, 50)
+
+    // After sending: always go to latest message
+    userScrolledUp.current = false
+    setTimeout(scrollToBottom, 30)
+
+    // Close chat so player can move immediately
+    closeChat()
   }
 
-  // Render message text with emotes (local and KLIPY)
-  const renderMessageWithEmotes = (text: string) => {
+  const handleEmoteSelect = (emote: Emote) => {
+    if (!isOpenRef.current) { setIsOpen(true); setChatActive(true) }
+    setText((prev) => (prev + `:${emote.id}:`).slice(0, 100))
+    setTimeout(() => inputRef.current?.focus(), 50)
+  }
+
+  const handleGifUrlSelect = (url: string) => {
+    if (!isOpenRef.current) { setIsOpen(true); setChatActive(true) }
+    setGifUrls((prev) => [...prev, url])
+    setTimeout(() => inputRef.current?.focus(), 50)
+  }
+
+  const handleOpenPicker = () => {
+    if (!isOpenRef.current) { setIsOpen(true); setChatActive(true) }
+    setIsPickerOpen(true)
+    setTimeout(() => inputRef.current?.focus(), 100)
+  }
+
+  // ── render helpers ────────────────────────────────────────────────────────
+
+  const renderMessage = (text: string) => {
     const parts = parseEmoteCodes(text)
     return parts.map((part, index) => {
       if (part.type === 'emote') {
         const emote = getEmoteById(part.content)
         if (emote) {
           return (
-            <img
-              key={index}
-              src={emote.url}
-              alt={emote.name}
-              className="chat-emote-inline"
-              title={emote.name}
-            />
+            <img key={index} src={emote.url} alt={emote.name} className="chat-emote-inline" title={emote.name} />
           )
         }
       }
@@ -218,59 +302,67 @@ export default function ChatInput() {
     })
   }
 
+  // ── guard ─────────────────────────────────────────────────────────────────
   if (!isConnected) return null
 
-  // Last 5 messages — always visible (transparent)
   const recentMessages = chatMessages.slice(-5)
 
+  // ── JSX ───────────────────────────────────────────────────────────────────
   return (
     <div className="chat-container">
-      {/* ALWAYS VISIBLE: Recent messages (transparent background) */}
-      <div className={`chat-live-log ${isOpen ? 'chat-live-log--open' : ''}`} ref={logRef}>
-        {!isOpen && recentMessages.map((msg) => {
-          const player = remotePlayers.get(msg.playerId)
-          const isAdmin = player?.isAdmin || false
-          return (
-            <div key={msg.id} className="chat-live-msg">
-              <span className="chat-live-time">{formatTime(msg.timestamp)}</span>{' '}
-              <span 
-                className={`chat-live-name ${isAdmin ? 'admin-nickname' : ''}`}
-                style={!isAdmin ? { color: msg.playerColor || '#ffb84d' } : {}}
-              >
-                {msg.playerName}
-              </span>
-              <span className="chat-live-text">: {renderMessageWithEmotes(msg.text)}</span>
-            </div>
-          )
-        })}
 
-        {/* OPENED: Full history with dark background */}
-        {isOpen && (
-          <div className="chat-history">
-            {chatMessages.length === 0 && (
-              <div className="chat-empty">No messages yet...</div>
-            )}
-            {chatMessages.map((msg) => {
-              const player = remotePlayers.get(msg.playerId)
-              const isAdmin = player?.isAdmin || false
-              return (
-                <div key={msg.id} className="chat-msg">
-                  <span className="chat-msg-time">{formatTime(msg.timestamp)}</span>{' '}
-                  <span 
-                    className={`chat-msg-name ${isAdmin ? 'admin-nickname' : ''}`}
-                    style={!isAdmin ? { color: msg.playerColor || '#ff9d00' } : {}}
-                  >
-                    {msg.playerName}
-                  </span>
-                  <span className="chat-msg-text">: {renderMessageWithEmotes(msg.text)}</span>
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
+      {/* ── CLOSED: transparent live preview (last 5 msgs, no scroll) ── */}
+      {!isOpen && (
+        <div className="chat-live-log">
+          {recentMessages.map((msg) => {
+            const player = remotePlayers.get(msg.playerId)
+            const isAdmin = player?.isAdmin || false
+            return (
+              <div key={msg.id} className="chat-live-msg">
+                <span className="chat-live-time">{formatTime(msg.timestamp)}</span>{' '}
+                <span
+                  className={`chat-live-name ${isAdmin ? 'admin-nickname' : ''}`}
+                  style={!isAdmin ? { color: msg.playerColor || '#ffb84d' } : {}}
+                >
+                  {msg.playerName}
+                </span>
+                <span className="chat-live-text">: {renderMessage(msg.text)}</span>
+              </div>
+            )
+          })}
+        </div>
+      )}
 
-      {/* Input — shown when open */}
+      {/* ── OPEN: full history panel with its OWN scroll container ── */}
+      {isOpen && (
+        <div
+          className="chat-history-panel"
+          ref={historyRef}
+          onScroll={handleHistoryScroll}
+        >
+          {chatMessages.length === 0 && (
+            <div className="chat-empty">No messages yet...</div>
+          )}
+          {chatMessages.map((msg) => {
+            const player = remotePlayers.get(msg.playerId)
+            const isAdmin = player?.isAdmin || false
+            return (
+              <div key={msg.id} className="chat-msg">
+                <span className="chat-msg-time">{formatTime(msg.timestamp)}</span>{' '}
+                <span
+                  className={`chat-msg-name ${isAdmin ? 'admin-nickname' : ''}`}
+                  style={!isAdmin ? { color: msg.playerColor || '#ff9d00' } : {}}
+                >
+                  {msg.playerName}
+                </span>
+                <span className="chat-msg-text">: {renderMessage(msg.text)}</span>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* ── INPUT (only when open) ── */}
       {isOpen && (
         <>
           <form
@@ -280,7 +372,7 @@ export default function ChatInput() {
             <button
               type="button"
               className="chat-emote-button"
-              onClick={() => setIsPickerOpen(!isPickerOpen)}
+              onClick={() => setIsPickerOpen((v) => !v)}
               title="Open emote picker (Tab)"
             >
               😀
@@ -313,7 +405,7 @@ export default function ChatInput() {
                 type="text"
                 value={text}
                 onChange={(e) => setText(e.target.value.slice(0, 100))}
-                placeholder={gifUrls.length > 0 ? '' : 'Type a message...'}
+                placeholder={gifUrls.length > 0 ? '' : 'Type a message... (Esc to close)'}
                 maxLength={100}
                 className="chat-input"
               />
@@ -341,12 +433,12 @@ export default function ChatInput() {
         </>
       )}
 
-      {/* Hint */}
+      {/* ── HINT (only when closed) ── */}
       {!isOpen && (
         <div className="chat-hint">Press <strong>Enter</strong> to chat</div>
       )}
 
-      {/* GIF Bar - Always visible when connected, above chat hint */}
+      {/* ── GIF BAR (always visible) ── */}
       <GifBar
         onGifSelect={handleEmoteSelect}
         onOpenPicker={handleOpenPicker}

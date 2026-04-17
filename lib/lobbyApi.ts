@@ -13,6 +13,15 @@ export interface LobbyResponse {
   max: number
 }
 
+export interface ChatMessage {
+  id: string
+  playerId: string
+  playerName: string
+  playerColor?: string
+  text: string
+  timestamp: number
+}
+
 export interface LobbyStatus {
   lobbies: Array<{ code: string; players: number; max: number }>
 }
@@ -92,6 +101,26 @@ export async function fakeLeave(lobby: string, count: number): Promise<LobbyResp
 /** Reset all lobby data (admin only) */
 export async function resetLobbies(): Promise<void> {
   await fetch(`${LOBBY_API_URL}/reset`, { method: 'POST' })
+}
+
+/** Get the latest 10 chat messages for a specific lobby */
+export async function getChatHistory(lobby: string): Promise<ChatMessage[]> {
+  const res = await fetch(`${LOBBY_API_URL}/chat?lobby=${lobby}`)
+  if (!res.ok) return []
+  return res.json()
+}
+
+/** Push a new chat message to the lobby's history */
+export async function sendChatMessage(lobby: string, message: ChatMessage): Promise<void> {
+  try {
+    await fetch(`${LOBBY_API_URL}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lobby, message }),
+    })
+  } catch (_) {
+    // Fire and forget
+  }
 }
 
 /** Get the API URL (for debugging) */
