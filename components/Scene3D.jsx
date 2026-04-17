@@ -1,5 +1,6 @@
 import RemotePlayerAvatar from "./multiplayer/RemotePlayerAvatar";
 import HouseScene from "./HouseScene";
+import HouseExteriorCollision from "./HouseExteriorCollision";
 import CheckpointEntryHouse from "./checkpoints/CheckpointEntryHouse";
 import CheckpointExitHouse from "./checkpoints/CheckpointExitHouse";
 import Room1 from "./rooms/Room1";
@@ -65,6 +66,11 @@ export default function Scene3D({ containerRef }) {
 
       {/* House scene from Blender (exterior + cars + decoration + dance + floating texts) */}
       <HouseScene />
+
+      {/* Invisible collision meshes for exterior (casa + jardin w/ door hole + street perimeter) */}
+      <Suspense fallback={null}>
+        <HouseExteriorCollision />
+      </Suspense>
 
       {/* Checkpoint + Interior rooms — same Blender scene offset as HouseScene */}
       <group position={[190.12, 1.1857, -88.67]}>

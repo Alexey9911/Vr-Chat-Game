@@ -689,27 +689,62 @@ a {
 .mode-name { font-size: 24px; font-weight: 900; color: #5bc0de; margin-top: -5px; white-space: nowrap; }
 
 .lobby-play-btn {
-  background: linear-gradient(45deg, #ff0f7b, #f89b29, #ff0f7b);
-  background-size: 200% auto;
+  background: linear-gradient(90deg, #ff0f7b, #f89b29, #00f2fe, #ff0f7b);
+  background-size: 300% auto;
   color: white;
-  border: 2px solid white;
-  border-radius: 8px;
-  padding: 18px;
+  border: 3px solid rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  padding: 20px 40px;
   font-size: 42px;
   font-weight: 900;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   font-family: inherit;
-  letter-spacing: 2px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-  animation: shinePlayButton 3s infinite;
-  box-shadow: 0 0 20px rgba(255, 15, 123, 0.5);
+  letter-spacing: 3px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+  animation: dynamicPlayButton 4s ease-in-out infinite;
+  box-shadow: 0 0 30px rgba(255, 15, 123, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
 }
 
-@keyframes shinePlayButton {
-  0% { background-position: 0% center; }
-  50% { background-position: 100% center; }
-  100% { background-position: 0% center; }
+.lobby-play-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes dynamicPlayButton {
+  0% { 
+    background-position: 0% center;
+    box-shadow: 0 0 30px rgba(255, 15, 123, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.1);
+  }
+  25% { 
+    background-position: 33% center;
+    box-shadow: 0 0 40px rgba(248, 155, 41, 0.7), inset 0 0 25px rgba(255, 255, 255, 0.15);
+  }
+  50% { 
+    background-position: 66% center;
+    box-shadow: 0 0 40px rgba(0, 242, 254, 0.7), inset 0 0 25px rgba(255, 255, 255, 0.15);
+  }
+  75% { 
+    background-position: 100% center;
+    box-shadow: 0 0 40px rgba(248, 155, 41, 0.7), inset 0 0 25px rgba(255, 255, 255, 0.15);
+  }
+  100% { 
+    background-position: 0% center;
+    box-shadow: 0 0 30px rgba(255, 15, 123, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.1);
+  }
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
 }
 
 .lobby-play-btn:hover { 

@@ -11,8 +11,8 @@ import { localPlayerLive } from '../../lib/localPlayerRef'
 const OX = 190.12, OY = 1.1857, OZ = -88.67
 
 // Checkpoint position in WORLD space (Blender coords + offset)
-// Blender: (-175.84, 3.15, 86.21)
-const CHECKPOINT_WORLD: [number, number, number] = [-175.84 + OX, 3.15 + OY, 86.21 + OZ]
+// Blender (from checkpoint_entry_house.glb / node checkpoint_door_house_entry): (-186.10, 11.36, 96.25)
+const CHECKPOINT_WORLD: [number, number, number] = [-186.10 + OX, 11.36 + OY, 96.25 + OZ]
 
 // Where to teleport when entering the house (room1 center in world space)
 // Blender room1 center: (-141.60, 341.43, 87.89), offset for floor level

@@ -9,40 +9,47 @@ import * as THREE from 'three'
 const OX = 190.12, OY = 1.1857, OZ = -88.67
 
 // Plane positions (Blender coords) + offset
+// Plane positions extracted from texto_autos_casa.glb (Blender coords) + HouseScene offset.
+// Plane NODE NAME = text displayed.
 const FLOATING_TEXTS = [
-  { label: '$AlonHouse', position: [-197.08+OX, 42.63+OY, 87.67+OZ], style: 'alonverse', fontSize: 4 },
-  { label: 'Bananamobile', position: [-247.82+OX, 23.02+OY, 71.73+OZ], style: 'cybertruck', fontSize: 2.5 },
-  { label: 'Cybertruck', position: [-243.83+OX, 23.02+OY, 102.84+OZ], style: 'cybertruck', fontSize: 2.5 },
-  { label: 'Lamborghini', position: [-231.83+OX, 23.02+OY, 136.31+OZ], style: 'cybertruck', fontSize: 2.5 },
+  { label: '$AlonHouse',       position: [-231.09 + OX, 54.26 + OY,  96.19 + OZ], style: 'alonverse',  fontSize: 8 },
+  { label: 'Lamborghini Urus', position: [-268.09 + OX, 23.02 + OY, 107.37 + OZ], style: 'cybertruck', fontSize: 2.5 },
+  { label: 'BMW M4',           position: [-273.81 + OX, 23.02 + OY,  51.14 + OZ], style: 'cybertruck', fontSize: 2.5 },
+  { label: 'Bananamobile',     position: [-274.41 + OX, 23.02 + OY,  75.29 + OZ], style: 'cybertruck', fontSize: 2.5 },
+  { label: 'Corvette C8',      position: [-271.96 + OX, 23.02 + OY, 137.87 + OZ], style: 'cybertruck', fontSize: 2.5 },
 ]
 
 function FloatingTextItem({ label, position, style, fontSize }) {
   const ref = useRef()
   const baseY = position[1]
+  const isAlonverse = style === 'alonverse'
+
+  // Bob params: alonverse (AlonHouse) is bigger & faster, cars are subtle
+  const bobSpeed = isAlonverse ? 3.2 : 1.2
+  const bobAmp = isAlonverse ? 2.2 : 0.8
 
   useFrame((state) => {
     if (!ref.current) return
-    ref.current.position.y = baseY + Math.sin(state.clock.elapsedTime * 1.2) * 0.8
+    ref.current.position.y = baseY + Math.sin(state.clock.elapsedTime * bobSpeed) * bobAmp
   })
 
-  const isAlonverse = style === 'alonverse'
   const color = isAlonverse ? '#FFD700' : '#C0C0C0'
   const outlineColor = isAlonverse ? '#B8860B' : '#606060'
 
-  // For alonverse style, use true 3D text with extrude (physical depth)
+  // For alonverse style, use true 3D text with extrude (physical depth, no camera-follow)
   // For cybertruck style, use billboard (always faces camera)
   if (isAlonverse) {
     return (
-      <group ref={ref} position={position} rotation={[0, Math.PI, 0]}>
+      <group ref={ref} position={position} rotation={[0, Math.PI / 2, 0]}>
         <Center>
           <Text3D
             font="/font1.json"
             size={fontSize}
-            height={0.5}
+            height={fontSize * 0.15}
             curveSegments={12}
             bevelEnabled
-            bevelThickness={0.1}
-            bevelSize={0.05}
+            bevelThickness={fontSize * 0.03}
+            bevelSize={fontSize * 0.02}
             bevelOffset={0}
             bevelSegments={5}
           >
@@ -53,6 +60,7 @@ function FloatingTextItem({ label, position, style, fontSize }) {
               emissiveIntensity={0.8}
               metalness={0.7}
               roughness={0.3}
+              side={THREE.DoubleSide}
               toneMapped={false}
             />
           </Text3D>
@@ -86,21 +94,16 @@ function FloatingTextItem({ label, position, style, fontSize }) {
   )
 }
 
-function HouseDancer({ gltf }) {
+function HouseDancer() {
+  // Separate GLB: only the dancer (char1 + Armature + Boom_Dance + other clips)
+  const gltf = useGLTF('/alon_house/alon_skin_house-v1.glb')
   const groupRef = useRef()
   const { actions } = useAnimations(gltf.animations, groupRef)
 
-  // Clone the skinned mesh properly using SkeletonUtils (like AlonAvatar does)
   const clone = useMemo(() => {
     const clonedScene = SkeletonUtils.clone(gltf.scene)
     clonedScene.traverse((child) => {
-      // Hide everything except the dancing character in this clone
-      if (child.isMesh && child.name !== 'char1') {
-        child.visible = false
-      }
-      // Enable shadows and ensure visibility for the character
-      if (child.isMesh && child.name === 'char1') {
-        child.visible = true
+      if (child.isMesh) {
         child.castShadow = true
         child.receiveShadow = true
       }
@@ -132,18 +135,11 @@ export default function HouseScene() {
   useEffect(() => {
     if (!gltf.scene) return
     gltf.scene.traverse((child) => {
-      // Store collision geometry mesh for raycasting (keep invisible)
-      if (child.name === 'colisiones') {
-        child.visible = false
-        import('../lib/collisionRef').then(({ setHouseCollisionMesh }) => {
-          setHouseCollisionMesh(child)
-        })
-      }
       // Hide the original char1/Armature — the animated clone in HouseDancer replaces it
       if (child.name === 'char1' || child.name === 'Armature') {
         child.visible = false
       }
-      if (child.isMesh && child.name !== 'colisiones' && child.name !== 'char1') {
+      if (child.isMesh && child.name !== 'char1') {
         child.castShadow = true
         child.receiveShadow = true
       }
@@ -157,8 +153,8 @@ export default function HouseScene() {
         {/* House scene GLB (static geometry, char1 hidden) */}
         <primitive ref={sceneRef} object={gltf.scene} />
 
-        {/* Dancing alon skin decoration — cloned with own animation mixer */}
-        <HouseDancer gltf={gltf} />
+        {/* Dancing alon skin decoration — loaded from separate alon_skin_house-v1.glb */}
+        <HouseDancer />
       </group>
 
       {/* Floating 3D texts (positions already include offset) */}
@@ -176,5 +172,8 @@ export default function HouseScene() {
 }
 
 if (typeof window !== 'undefined') {
-  setTimeout(() => useGLTF.preload('/alon_house/house_scene-v1.glb'), 100)
+  setTimeout(() => {
+    useGLTF.preload('/alon_house/house_scene-v1.glb')
+    useGLTF.preload('/alon_house/alon_skin_house-v1.glb')
+  }, 100)
 }

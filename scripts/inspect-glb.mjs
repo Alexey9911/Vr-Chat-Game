@@ -175,6 +175,34 @@ for (const name of ['char1', 'floor_main', 'Cube']) {
   )
 }
 
+// Per-node AABB (world space from translation+scale) — useful for collisions, planes, waypoints
+console.log('\n=== PER-NODE AABB (world = accessor min/max * scale + translation) ===')
+for (const node of nodes) {
+  if (node.mesh === undefined) continue
+  const mesh = meshes[node.mesh]
+  if (!mesh || !mesh.primitives) continue
+  const t = node.translation || [0, 0, 0]
+  const s = node.scale || [1, 1, 1]
+  let mn = { x: Infinity, y: Infinity, z: Infinity }
+  let mx = { x: -Infinity, y: -Infinity, z: -Infinity }
+  for (const prim of mesh.primitives) {
+    const acc = accessors[prim.attributes?.POSITION]
+    if (!acc || !acc.min || !acc.max) continue
+    for (let i = 0; i < 3; i++) {
+      const lo = acc.min[i] * s[i] + t[i]
+      const hi = acc.max[i] * s[i] + t[i]
+      const a = Math.min(lo, hi), b = Math.max(lo, hi)
+      const k = ['x', 'y', 'z'][i]
+      mn[k] = Math.min(mn[k], a)
+      mx[k] = Math.max(mx[k], b)
+    }
+  }
+  if (mn.x === Infinity) continue
+  const cx = (mn.x + mx.x) / 2, cy = (mn.y + mx.y) / 2, cz = (mn.z + mx.z) / 2
+  const sx = mx.x - mn.x, sy = mx.y - mn.y, sz = mx.z - mn.z
+  console.log(`  ${node.name || '(unnamed)'} | center:(${cx.toFixed(2)}, ${cy.toFixed(2)}, ${cz.toFixed(2)}) size:(${sx.toFixed(2)} x ${sy.toFixed(2)} x ${sz.toFixed(2)}) min:(${mn.x.toFixed(2)}, ${mn.y.toFixed(2)}, ${mn.z.toFixed(2)}) max:(${mx.x.toFixed(2)}, ${mx.y.toFixed(2)}, ${mx.z.toFixed(2)})`)
+}
+
 // Calculate bounding box for all meshes combined (useful for collision boundaries)
 console.log('\n=== BOUNDING BOX (all meshes) ===')
 let globalMin = { x: Infinity, y: Infinity, z: Infinity }

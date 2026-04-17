@@ -8,7 +8,7 @@ import { useViewStore } from '../lib/camera/viewStore'
 import { useSkinStore } from '../lib/skins/skinStore'
 import { compressPosition, compressRotation } from './usePositionSync'
 import { setLocalPlayerLive } from '../lib/localPlayerRef'
-import { getHouseCollisionMesh } from '../lib/collisionRef'
+import { getHouseCollisionMesh, getCollisionMeshes } from '../lib/collisionRef'
 import { setTeleportFunction } from '../lib/teleportController'
 import { useZoneStore } from '../lib/zoneStore'
 
@@ -38,11 +38,11 @@ export const useCameraControls = () => {
   const moveSpeed = useRef(12.5)
   
   // Camera state - Initial spawn position
-  const SPAWN_X = -59.95
-  const SPAWN_Z = -87.86
+  const SPAWN_X = -200.58
+  const SPAWN_Z = -139.71
   // SPAWN_ROT_DISPLAY is what shows in PositionDebug HUD
   // Internal quaternion angle = display angle + 180° (offset from atan2 convention)
-  const SPAWN_ROT_DISPLAY = 74.61 // degrees shown in HUD
+  const SPAWN_ROT_DISPLAY = 50.65 // degrees shown in HUD
   const SPAWN_ROT = (SPAWN_ROT_DISPLAY + 180) * (Math.PI / 180)
   
   const playerPos = useRef(new Vector3(SPAWN_X, EYE_HEIGHT, SPAWN_Z))
@@ -51,8 +51,12 @@ export const useCameraControls = () => {
 
   // Mouse orbit state — yaw controls where the camera orbits, pitch controls height
   // orbitYaw = angle where camera sits relative to player (same convention as old SPAWN_ROT)
+  // targetYaw/Pitch receive mouse input directly; orbitYaw/Pitch smoothly follow them
+  // to prevent fast flicks from sweeping the collision raycast through walls.
   const orbitYaw = useRef(SPAWN_ROT)
   const orbitPitch = useRef(CAM_INITIAL_PITCH)
+  const targetYaw = useRef(SPAWN_ROT)
+  const targetPitch = useRef(CAM_INITIAL_PITCH)
   // playerFacingY = direction the character model faces (matches old liveRotY convention)
   const initFacing = Math.atan2(-Math.sin(SPAWN_ROT), -Math.cos(SPAWN_ROT))
   const playerFacingY = useRef(initFacing)
@@ -78,6 +82,9 @@ export const useCameraControls = () => {
   // Collision detection — separate raycasters for movement and camera
   const moveRaycaster = useRef(new Raycaster())
   const camRaycaster = useRef(new Raycaster())
+  // Smoothed radial distance — snap inward to prevent wall clipping,
+  // lerp outward so transient collision hits (fast orbit) don't cause zoom flicker.
+  const smoothedCamDist = useRef(CAM_DIST)
 
   // Cinematic mode is now managed by useViewStore (toggled via F9)
   // The free-fly camera is handled by CinematicCamera.tsx component
@@ -94,6 +101,8 @@ export const useCameraControls = () => {
     
     // Set orbit yaw to match teleport rotation so camera ends up behind the player
     orbitYaw.current = rotY
+    targetYaw.current = rotY
+    targetPitch.current = orbitPitch.current
     playerFacingY.current = Math.atan2(-Math.sin(rotY), -Math.cos(rotY))
     
     // Compute camera position immediately to avoid lerp jump
@@ -121,6 +130,8 @@ export const useCameraControls = () => {
     playerPos.current.set(SPAWN_X, EYE_HEIGHT, SPAWN_Z)
     lastSafePos.current.copy(playerPos.current)
     orbitYaw.current = SPAWN_ROT
+    targetYaw.current = SPAWN_ROT
+    targetPitch.current = CAM_INITIAL_PITCH
     playerFacingY.current = initFacing
     
     // Position camera at orbit location immediately
@@ -149,10 +160,18 @@ export const useCameraControls = () => {
       if (document.pointerLockElement !== canvas) return
       if (cinematicMode) return
       
-      orbitYaw.current -= e.movementX * MOUSE_SENSITIVITY
-      orbitPitch.current = Math.max(
+      // Clamp movement deltas — browsers/pointer-lock can emit huge values
+      // on fast flicks (mouse acceleration).
+      const MAX_DELTA = 120 // pixels per event
+      const dx = Math.max(-MAX_DELTA, Math.min(MAX_DELTA, e.movementX))
+      const dy = Math.max(-MAX_DELTA, Math.min(MAX_DELTA, e.movementY))
+      
+      // Write to target; orbit values lerp toward these in useFrame so the
+      // collision raycast never sweeps through walls in a single step.
+      targetYaw.current -= dx * MOUSE_SENSITIVITY
+      targetPitch.current = Math.max(
         CAM_MIN_PITCH,
-        Math.min(CAM_MAX_PITCH, orbitPitch.current - e.movementY * MOUSE_SENSITIVITY)
+        Math.min(CAM_MAX_PITCH, targetPitch.current + dy * MOUSE_SENSITIVITY)
       )
     }
     
@@ -302,6 +321,23 @@ export const useCameraControls = () => {
     if (chatActive) return
 
     // =============================================
+    // SMOOTH ORBIT — lerp current yaw/pitch toward targets set by mouse input.
+    // This caps angular velocity so the camera collision raycast can't sweep
+    // through walls on a single fast flick, preventing the "zoom to center" bug.
+    // =============================================
+    {
+      let yawDiff = targetYaw.current - orbitYaw.current
+      while (yawDiff > Math.PI) yawDiff -= Math.PI * 2
+      while (yawDiff < -Math.PI) yawDiff += Math.PI * 2
+      const pitchDiff = targetPitch.current - orbitPitch.current
+      // Exponential smoothing — very responsive but caps single-frame angular jump.
+      // Higher factor = snappier (less smoothing). 25 feels near-instant at normal speeds.
+      const k = 1 - Math.exp(-25 * delta)
+      orbitYaw.current += yawDiff * k
+      orbitPitch.current += pitchDiff * k
+    }
+
+    // =============================================
     // MOVEMENT — WASD relative to camera yaw (standard 3rd person)
     // W/S = forward/backward in camera direction, A/D = strafe left/right
     // =============================================
@@ -319,9 +355,21 @@ export const useCameraControls = () => {
     if (isKeyPressed('a')) velocity.current.add(right.clone().multiplyScalar(-speed))
     if (isKeyPressed('d')) velocity.current.add(right.clone().multiplyScalar(speed))
     
-    // Update player facing direction when moving (character turns toward movement)
+    // Update player facing direction when moving (character turns smoothly toward movement)
     if (velocity.current.lengthSq() > 0.001) {
-      playerFacingY.current = Math.atan2(velocity.current.x, velocity.current.z)
+      const targetFacing = Math.atan2(velocity.current.x, velocity.current.z)
+      // Compute shortest angular difference (handles -PI/+PI wrap)
+      let diff = targetFacing - playerFacingY.current
+      while (diff > Math.PI) diff -= Math.PI * 2
+      while (diff < -Math.PI) diff += Math.PI * 2
+      // Smooth rotation: ~12 rad/s max turn speed, frame-rate independent
+      const turnSpeed = 12
+      const maxStep = turnSpeed * delta
+      const step = Math.max(-maxStep, Math.min(maxStep, diff))
+      playerFacingY.current += step
+      // Wrap to [-PI, PI]
+      if (playerFacingY.current > Math.PI) playerFacingY.current -= Math.PI * 2
+      if (playerFacingY.current < -Math.PI) playerFacingY.current += Math.PI * 2
     }
     
     // =============================================
@@ -355,23 +403,20 @@ export const useCameraControls = () => {
       isOnGround.current = true
     }
 
-    // Apply lateral movement with collision detection
-    const collisionMesh = getHouseCollisionMesh()
-    if (velocity.current.lengthSq() > 0.001 && collisionMesh) {
-      // Check collision in movement direction
+    // Apply lateral movement with collision detection (array of meshes — casa, jardin, calle, rooms, etc.)
+    const collisionMeshes = getCollisionMeshes()
+    if (velocity.current.lengthSq() > 0.001 && collisionMeshes.length > 0) {
       const moveDir = velocity.current.clone().normalize()
       moveRaycaster.current.set(playerPos.current, moveDir)
-      moveRaycaster.current.far = velocity.current.length() + 0.5 // Check a bit ahead
-      
-      const intersects = moveRaycaster.current.intersectObject(collisionMesh, false)
-      
+      moveRaycaster.current.far = velocity.current.length() + 0.5
+
+      const intersects = moveRaycaster.current.intersectObjects(collisionMeshes, false)
+
       if (intersects.length > 0 && intersects[0].distance < velocity.current.length() + 0.3) {
-        // Collision detected - slide along wall instead of stopping
-        const normal = intersects[0].face?.normal
-        if (normal) {
-          // Transform normal to world space
-          const worldNormal = normal.clone().transformDirection(collisionMesh.matrixWorld)
-          // Project velocity onto wall plane (slide)
+        const hit = intersects[0]
+        const normal = hit.face?.normal
+        if (normal && hit.object) {
+          const worldNormal = normal.clone().transformDirection((hit.object as any).matrixWorld)
           const slideVel = velocity.current.clone().sub(
             worldNormal.clone().multiplyScalar(velocity.current.dot(worldNormal))
           )
@@ -398,12 +443,8 @@ export const useCameraControls = () => {
     }
 
     // World boundaries (invisible wall) — zone-aware
-    if (currentZone === 'exterior') {
-      // Exterior: based on collision house externo.glb
-      const xMin = -79, xMax = 169, zMin = -112, zMax = 117
-      playerPos.current.x = Math.max(xMin, Math.min(xMax, playerPos.current.x))
-      playerPos.current.z = Math.max(zMin, Math.min(zMax, playerPos.current.z))
-    } else if (currentZone === 'interior') {
+    // Exterior has NO clamp — collisions are enforced by the exterior_calle_collision mesh (raycast above).
+    if (currentZone === 'interior') {
       // Interior: room1 Blender bounds + HouseScene offset (OX=190.12, OZ=-88.67)
       const xMin = -197 + 190.12, xMax = -87 + 190.12, zMin = 13 + (-88.67), zMax = 163 + (-88.67)
       playerPos.current.x = Math.max(xMin, Math.min(xMax, playerPos.current.x))
@@ -445,44 +486,44 @@ export const useCameraControls = () => {
       playerPos.current.z
     )
     
-    // Desired camera position (spherical coords around look-at point)
-    const camOffset = new Vector3(
-      Math.sin(yaw) * Math.cos(pitch) * CAM_DIST,
-      Math.sin(pitch) * CAM_DIST,
-      Math.cos(yaw) * Math.cos(pitch) * CAM_DIST,
+    // Desired camera direction (unit vector from look-at to ideal camera position)
+    const camDir = new Vector3(
+      Math.sin(yaw) * Math.cos(pitch),
+      Math.sin(pitch),
+      Math.cos(yaw) * Math.cos(pitch),
     )
-    const desiredCamPos = lookAtPoint.clone().add(camOffset)
-    
+
     // =============================================
-    // CAMERA COLLISION — raycast from player to desired camera position
-    // If ray hits the collision mesh, pull camera closer to avoid clipping
+    // CAMERA COLLISION — raycast along orbit direction.
+    // We smooth the RADIAL DISTANCE (not full 3D position) so that:
+    //   - Inward snap is instant → camera never clips walls
+    //   - Outward recovery is smooth → transient ray misses during fast
+    //     horizontal flicks don't cause the "zoom to center" flicker
     // =============================================
-    let finalCamPos = desiredCamPos
-    
-    if (collisionMesh) {
+    let targetDist = CAM_DIST
+
+    if (collisionMeshes.length > 0) {
       const rayOrigin = lookAtPoint.clone()
-      const toDesired = desiredCamPos.clone().sub(rayOrigin)
-      const rayLength = toDesired.length()
-      
-      if (rayLength > 0.01) {
-        const rayDir = toDesired.clone().normalize()
-        
-        camRaycaster.current.set(rayOrigin, rayDir)
-        camRaycaster.current.far = rayLength
-        camRaycaster.current.near = 0
-        
-        const hits = camRaycaster.current.intersectObject(collisionMesh, false)
-        
-        if (hits.length > 0 && hits[0].distance < rayLength) {
-          // Place camera just before the hit point
-          const safeDist = Math.max(hits[0].distance - CAM_COLLISION_OFFSET, CAM_COLLISION_MIN)
-          finalCamPos = rayOrigin.clone().add(rayDir.clone().multiplyScalar(safeDist))
-        }
+      camRaycaster.current.set(rayOrigin, camDir)
+      camRaycaster.current.far = CAM_DIST
+      camRaycaster.current.near = 0
+
+      const hits = camRaycaster.current.intersectObjects(collisionMeshes, false)
+      if (hits.length > 0 && hits[0].distance < CAM_DIST) {
+        targetDist = Math.max(hits[0].distance - CAM_COLLISION_OFFSET, CAM_COLLISION_MIN)
       }
     }
 
-    // Smooth camera follow — frame-rate independent lerp
-    camera.position.lerp(finalCamPos, 1 - Math.exp(-8 * delta))
+    // Smooth radial distance: snap inward (instant) / lerp outward (smooth)
+    if (targetDist < smoothedCamDist.current) {
+      smoothedCamDist.current = targetDist
+    } else {
+      const k = 1 - Math.exp(-8 * delta)
+      smoothedCamDist.current += (targetDist - smoothedCamDist.current) * k
+    }
+
+    const finalCamPos = lookAtPoint.clone().add(camDir.multiplyScalar(smoothedCamDist.current))
+    camera.position.copy(finalCamPos)
     camera.lookAt(lookAtPoint)
 
     // =============================================

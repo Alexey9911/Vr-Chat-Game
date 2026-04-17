@@ -69,7 +69,7 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
     // LOCAL PLAYER: use keyboard state (fixes stuttering in third-person)
     // REMOTE PLAYERS: use position delta
     if (isLocal) {
-      isMoving.current = isKeyPressed('w') || isKeyPressed('s')
+      isMoving.current = isKeyPressed('w') || isKeyPressed('s') || isKeyPressed('a') || isKeyPressed('d')
     } else {
       const dx = smoothPos.current.x - prevPosXZ.current.x
       const dz = smoothPos.current.z - prevPosXZ.current.y

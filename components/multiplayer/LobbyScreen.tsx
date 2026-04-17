@@ -637,7 +637,7 @@ export default function LobbyScreen() {
       {/* Top Navbar */}
       <div className="lobby-top-bar">
         <div className="lobby-brand">
-          <h1 className="lobby-title">$AlonVerse</h1>
+          <h1 className="lobby-title">$AlonHouse</h1>
           <p className="lobby-subtitle-concept">3D SOCIAL WORLD</p>
         </div>
         <div className="lobby-nav-tabs">
@@ -665,7 +665,7 @@ export default function LobbyScreen() {
                  <div className="level-info">
                    <div className="level-shield">🌐</div>
                    <div className="level-text">
-                     <span className="lvl-big">ALONVERSE</span>
+                     <span className="lvl-big">ALONHOUSE</span>
                      <span className="xp-text">LOBBY 1</span>
                    </div>
                  </div>
@@ -712,7 +712,7 @@ export default function LobbyScreen() {
                <img 
                   src="/avatar.png" 
                   alt="AlonHouse Avatar" 
-                  style={{ width: '300px', height: '300px', objectFit: 'contain', marginBottom: '20px', filter: 'drop-shadow(0 0 15px rgba(241,196,15,0.6))' }} 
+                  style={{ width: '450px', height: '450px', objectFit: 'contain', marginBottom: '20px', filter: 'drop-shadow(0 0 15px rgba(241,196,15,0.6))' }} 
                 />
 
                {/* Mobile-only skin picker */}
@@ -794,7 +794,7 @@ export default function LobbyScreen() {
                <div className="play-section">
                   <div className="game-mode">
                     <span className="mode-title">PLAYING IN</span>
-                    <span className="mode-name">ALONVERSE</span>
+                    <span className="mode-name">ALONHOUSE</span>
                   </div>
                   <button 
                     className="lobby-play-btn" 
