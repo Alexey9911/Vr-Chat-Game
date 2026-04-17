@@ -1,7 +1,10 @@
 import { useRef, useEffect, useState } from 'react'
-import { useGLTF } from '@react-three/drei'
+import { useGLTF, Text, Billboard } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+
+// Height of the floating "Orangie" label above the NPC (local units, pre-scale)
+const LABEL_Y_OFFSET = 16
 
 // NPC (Mesh_0.001, wheelchair guy) extracted from house_scene-v1.glb and animated
 // along 4 waypoints that form a square around the house.
@@ -107,6 +110,28 @@ export default function OrangiePathNPC() {
   return (
     <group ref={groupRef}>
       <primitive object={npcMesh} />
+      {/* Floating "Orangie" label — follows NPC position, faces camera */}
+      <Billboard position={[0, LABEL_Y_OFFSET, 0]} follow>
+        <Text
+          fontSize={2.5}
+          color='#FF8C1A'
+          anchorX='center'
+          anchorY='middle'
+          font='/font1.ttf'
+          outlineWidth={0.12}
+          outlineColor='#7A2F00'
+        >
+          Orangie
+          <meshStandardMaterial
+            color='#FF8C1A'
+            emissive='#FF5500'
+            emissiveIntensity={0.7}
+            metalness={0.4}
+            roughness={0.3}
+            toneMapped={false}
+          />
+        </Text>
+      </Billboard>
     </group>
   )
 }

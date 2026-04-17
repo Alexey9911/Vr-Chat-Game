@@ -4,6 +4,7 @@ import { Environment, PerspectiveCamera, useProgress } from '@react-three/drei'
 import Scene3D from './Scene3D'
 import CinematicCamera from './CinematicCamera'
 import CameraDebugHUD from './CameraDebugHUD'
+import DebugCameraFar from './DebugCameraFar'
 import { useCameraControls } from '../hooks/useCameraControls'
 import { EYE_HEIGHT } from '../lib/camera/cameraConstants'
 import { useSettingsStore } from '../lib/settings/settingsStore'
@@ -143,6 +144,7 @@ const Canvas3D: React.FC<{ loadingOverlayEnabled?: boolean; forceHidden?: boolea
           <CameraController />
           <CinematicCamera />
           <CameraDebugHUD />
+          <DebugCameraFar />
          
           {/* Perspective Camera Setup */}
           <PerspectiveCamera

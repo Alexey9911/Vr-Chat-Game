@@ -2,6 +2,7 @@ import RemotePlayerAvatar from "./multiplayer/RemotePlayerAvatar";
 import HouseScene from "./HouseScene";
 import HouseExteriorCollision from "./HouseExteriorCollision";
 import OrangiePathNPC from "./OrangiePathNPC";
+import HouseAirdrops from "./HouseAirdrops";
 import CheckpointEntryHouse from "./checkpoints/CheckpointEntryHouse";
 import CheckpointExitHouse from "./checkpoints/CheckpointExitHouse";
 import Room1 from "./rooms/Room1";
@@ -84,6 +85,9 @@ export default function Scene3D({ containerRef }) {
         </Suspense>
         <Suspense fallback={null}>
           <OrangiePathNPC />
+        </Suspense>
+        <Suspense fallback={null}>
+          <HouseAirdrops />
         </Suspense>
       </group>
 
