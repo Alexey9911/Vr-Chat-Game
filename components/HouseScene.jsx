@@ -40,7 +40,7 @@ function FloatingTextItem({ label, position, style, fontSize }) {
   // For cybertruck style, use billboard (always faces camera)
   if (isAlonverse) {
     return (
-      <group ref={ref} position={position} rotation={[0, Math.PI / 2, 0]}>
+      <group ref={ref} position={position} rotation={[0, -Math.PI / 2, 0]}>
         <Center>
           <Text3D
             font="/font1.json"
