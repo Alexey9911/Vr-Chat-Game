@@ -4,21 +4,25 @@ const btnBase: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  width: 60,
-  height: 60,
-  borderRadius: '50%',
-  backgroundColor: 'rgba(255,255,255,0.1)',
-  border: '2px solid rgba(255,255,255,0.3)',
+  width: 72,
+  height: 56,
+  backgroundColor: 'rgba(255, 255, 255, 0.85)',
+  border: '1px solid rgba(255, 255, 255, 0.5)',
+  borderLeft: '5px solid #00d4ff',
+  transform: 'skewX(-12deg)',
   cursor: 'pointer',
   overflow: 'hidden',
-  transition: 'transform 0.25s ease, background-color 0.25s ease',
+  transition: 'transform 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease',
   textDecoration: 'none',
   flexShrink: 0,
+  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
 };
 
 const btnHover: React.CSSProperties = {
-  transform: 'scale(1.18)',
-  backgroundColor: 'rgba(255,255,255,0.22)',
+  transform: 'scale(1.1) skewX(-12deg)',
+  backgroundColor: 'rgba(255, 255, 255, 1)',
+  border: '1px solid #fff',
+  boxShadow: '0 6px 16px rgba(0,0,0,0.3)',
 };
 
 function IconLink({ href, src, alt, noBorder }: { href: string; src: string; alt: string; noBorder?: boolean }) {
@@ -54,9 +58,10 @@ function IconLink({ href, src, alt, noBorder }: { href: string; src: string; alt
         src={src} 
         alt={alt} 
         style={{ 
-          width: noBorder ? 52 : 44, 
-          height: noBorder ? 52 : 44, 
+          width: noBorder ? 56 : 50, 
+          height: noBorder ? 56 : 50, 
           objectFit: 'contain',
+          transform: noBorder ? 'none' : 'skewX(12deg)',
           ...(noBorder && {
             border: '0.5px solid rgba(255,255,255,0.3)',
             borderRadius: '8px',

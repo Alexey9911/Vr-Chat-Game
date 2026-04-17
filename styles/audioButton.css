@@ -12,28 +12,30 @@
   grid-template-columns: repeat(2, 60px);
   gap: 8px;
   padding: 12px;
-  background: rgba(0, 0, 0, 0.78);
-  border-radius: 12px;
+  background: rgba(15, 15, 20, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 4px solid #00d4ff;
   backdrop-filter: blur(10px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 4% 100%);
+  font-family: 'Burbank Big Condensed', 'Arial Black', Impact, sans-serif;
 }
 
-/* Base button — all black */
+/* Base button — Fortnite styled */
 .hud-btn {
   width: 60px;
   height: 60px;
-  background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255, 255, 255, 0.15);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  transition: all 0.15s ease;
   color: #ffffff;
   padding: 0;
   flex-shrink: 0;
+  clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
 }
 
 .hud-btn:hover:not(:disabled) {
@@ -72,32 +74,32 @@
   font-size: 21px;
 }
 
-/* Music button and Skin button — eye-catching gradient */
+/* Music button and Skin button — Subdued elegant gradient */
 .hud-btn--music:not(:disabled):not(.cooldown),
 .hud-btn--skin {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-color: rgba(102, 126, 234, 0.5);
-  box-shadow: 0 0 12px rgba(102, 126, 234, 0.4);
-  animation: pulse-music 2s ease-in-out infinite;
+  background: linear-gradient(135deg, rgba(88, 101, 242, 0.4) 0%, rgba(138, 43, 226, 0.2) 100%);
+  border-color: rgba(88, 101, 242, 0.4);
+  box-shadow: 0 0 10px rgba(88, 101, 242, 0.2);
+  animation: pulse-music 3s ease-in-out infinite;
 }
 
 .hud-btn--music:not(:disabled):not(.cooldown):hover,
 .hud-btn--skin:hover {
-  background: linear-gradient(135deg, #7c8ff0 0%, #8a5bb8 100%);
-  box-shadow: 0 0 16px rgba(102, 126, 234, 0.6);
+  background: linear-gradient(135deg, rgba(88, 101, 242, 0.6) 0%, rgba(138, 43, 226, 0.4) 100%);
+  box-shadow: 0 0 15px rgba(88, 101, 242, 0.4);
   transform: scale(1.08);
 }
 
 .hud-btn--music.is-playing {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  border-color: rgba(240, 147, 251, 0.5);
-  box-shadow: 0 0 12px rgba(240, 147, 251, 0.5);
-  animation: pulse-playing 1.5s ease-in-out infinite;
+  background: linear-gradient(135deg, rgba(255, 87, 116, 0.4) 0%, rgba(255, 143, 102, 0.2) 100%);
+  border-color: rgba(255, 87, 116, 0.5);
+  box-shadow: 0 0 12px rgba(255, 87, 116, 0.3);
+  animation: pulse-playing 2s ease-in-out infinite;
 }
 
 .hud-btn--music.is-playing:hover {
-  background: linear-gradient(135deg, #f5a3ff 0%, #ff6b7f 100%);
-  box-shadow: 0 0 16px rgba(240, 147, 251, 0.7);
+  background: linear-gradient(135deg, rgba(255, 87, 116, 0.6) 0%, rgba(255, 143, 102, 0.4) 100%);
+  box-shadow: 0 0 16px rgba(255, 87, 116, 0.5);
 }
 
 .hud-btn--music.cooldown {
@@ -108,19 +110,19 @@
 
 @keyframes pulse-music {
   0%, 100% {
-    box-shadow: 0 0 12px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 0 8px rgba(88, 101, 242, 0.2);
   }
   50% {
-    box-shadow: 0 0 20px rgba(102, 126, 234, 0.7);
+    box-shadow: 0 0 16px rgba(88, 101, 242, 0.4);
   }
 }
 
 @keyframes pulse-playing {
   0%, 100% {
-    box-shadow: 0 0 12px rgba(240, 147, 251, 0.5);
+    box-shadow: 0 0 8px rgba(255, 87, 116, 0.2);
   }
   50% {
-    box-shadow: 0 0 20px rgba(240, 147, 251, 0.8);
+    box-shadow: 0 0 18px rgba(255, 87, 116, 0.5);
   }
 }
 
@@ -130,55 +132,55 @@
 
 /* YouTube button — dark like other buttons, red glow when playing */
 .hud-btn--youtube {
-  background: #1a1a1a;
+  background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
   border-color: rgba(255, 255, 255, 0.12);
 }
 
 .hud-btn--youtube:hover {
-  background: #2a2a2a;
-  border-color: rgba(255, 255, 255, 0.22);
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+  border-color: rgba(255, 255, 255, 0.25);
   transform: scale(1.06);
 }
 
 .hud-btn--youtube.is-playing {
-  border-color: rgba(255, 0, 0, 0.5);
-  box-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
-  animation: pulse-youtube 1.5s ease-in-out infinite;
+  border-color: rgba(255, 40, 40, 0.5);
+  box-shadow: 0 0 10px rgba(255, 40, 40, 0.3);
+  animation: pulse-youtube 2s ease-in-out infinite;
 }
 
 .hud-btn--youtube.is-playing:hover {
-  box-shadow: 0 0 14px rgba(255, 0, 0, 0.6);
+  box-shadow: 0 0 14px rgba(255, 40, 40, 0.5);
 }
 
 @keyframes pulse-youtube {
   0%, 100% {
-    box-shadow: 0 0 8px rgba(255, 0, 0, 0.3);
+    box-shadow: 0 0 6px rgba(255, 40, 40, 0.2);
   }
   50% {
-    box-shadow: 0 0 18px rgba(255, 0, 0, 0.7);
+    box-shadow: 0 0 15px rgba(255, 40, 40, 0.5);
   }
 }
 
-/* MIC PUSH-TO-TALK button — green glow when active */
+/* MIC PUSH-TO-TALK button — softer green glow when active */
 .hud-btn--mic {
   position: relative;
   flex-direction: column;
   gap: 2px;
-  background: #1a1a1a;
+  background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
   border-color: rgba(255, 255, 255, 0.12);
 }
 
 .hud-btn--mic:hover {
-  background: #2a2a2a;
-  border-color: rgba(255, 255, 255, 0.22);
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+  border-color: rgba(255, 255, 255, 0.25);
   transform: scale(1.06);
 }
 
 .hud-btn--mic.is-active {
-  background: linear-gradient(135deg, #00c853, #00bfa5);
+  background: linear-gradient(135deg, rgba(0, 200, 83, 0.4), rgba(0, 191, 165, 0.2));
   border-color: rgba(0, 255, 136, 0.5);
-  box-shadow: 0 0 14px rgba(0, 255, 136, 0.5), 0 0 28px rgba(0, 255, 136, 0.2);
-  animation: mic-hud-pulse 0.7s ease-in-out infinite;
+  box-shadow: 0 0 12px rgba(0, 255, 136, 0.3);
+  animation: mic-hud-pulse 1s ease-in-out infinite;
 }
 
 .hud-btn-sublabel {
@@ -195,7 +197,7 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
-/* MIC ACTIVE indicator — spans full row, green glow */
+/* MIC ACTIVE indicator — spans full row, soft green glow */
 .hud-mic-active {
   grid-column: 1 / -1;
   display: flex;
@@ -203,17 +205,17 @@
   justify-content: center;
   gap: 6px;
   padding: 8px 0;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #00c853, #00bfa5);
-  border: 1px solid rgba(0, 255, 136, 0.5);
+  border-radius: 6px;
+  background: linear-gradient(135deg, rgba(0, 200, 83, 0.5), rgba(0, 191, 165, 0.3));
+  border: 1px solid rgba(0, 255, 136, 0.4);
   color: #fff;
   font-size: 12px;
   font-weight: 700;
   font-family: 'Inter', Arial, sans-serif;
   letter-spacing: 1px;
   text-transform: uppercase;
-  animation: mic-hud-pulse 0.7s ease-in-out infinite;
-  box-shadow: 0 0 14px rgba(0, 255, 136, 0.5), 0 0 28px rgba(0, 255, 136, 0.2);
+  animation: mic-hud-pulse 1.2s ease-in-out infinite;
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
   user-select: none;
 }
 
@@ -225,12 +227,12 @@
 
 @keyframes mic-hud-pulse {
   0%, 100% {
-    box-shadow: 0 0 10px rgba(0, 255, 136, 0.4), 0 0 20px rgba(0, 255, 136, 0.15);
+    box-shadow: 0 0 8px rgba(0, 255, 136, 0.2);
     transform: scale(1);
   }
   50% {
-    box-shadow: 0 0 18px rgba(0, 255, 136, 0.7), 0 0 36px rgba(0, 255, 136, 0.3);
-    transform: scale(1.03);
+    box-shadow: 0 0 12px rgba(0, 255, 136, 0.4);
+    transform: scale(1.02);
   }
 }
 
@@ -245,42 +247,44 @@
   display: flex;
   gap: 10px;
   padding: 12px 16px;
-  background: rgba(10, 10, 26, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  background: rgba(15, 15, 20, 0.55);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 4px solid #f1c40f;
+  clip-path: polygon(0 0, 100% 0, 96% 100%, 0 100%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   z-index: 500;
+  font-family: 'Burbank Big Condensed', 'Arial Black', Impact, sans-serif;
 }
 
 .skin-bar-item {
   padding: 10px 18px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 13px;
-  font-weight: 600;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 16px;
+  font-weight: 900;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
   letter-spacing: 0.5px;
   text-transform: uppercase;
+  clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
 }
 
 .skin-bar-item:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(74, 158, 255, 0.4);
-  color: rgba(255, 255, 255, 0.95);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(74, 158, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #fff;
+  color: #fff;
+  transform: scale(1.1);
 }
 
 .skin-bar-item.active {
-  background: linear-gradient(135deg, #4a9eff, #6c5ce7);
-  border-color: rgba(255, 255, 255, 0.3);
-  color: white;
-  box-shadow: 0 4px 16px rgba(74, 158, 255, 0.4);
+  background: #f1c40f;
+  border-color: #fff;
+  color: #000;
+  box-shadow: 0 0 15px rgba(241, 196, 15, 0.6);
+  transform: scale(1.05);
 }
 
 .skin-bar-label {
@@ -298,12 +302,14 @@
   display: flex;
   gap: 8px;
   padding: 8px 12px;
-  background: rgba(10, 10, 26, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
+  background: rgba(0, 0, 40, 0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 5px solid #9b59b6;
+  clip-path: polygon(0 0, 100% 0, 96% 100%, 0 100%);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   z-index: 500;
+  font-family: 'Burbank Big Condensed', 'Arial Black', Impact, sans-serif;
 }
 
 .emote-bar-item {
@@ -312,20 +318,20 @@
   align-items: center;
   gap: 4px;
   padding: 6px 10px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  color: rgba(255, 255, 255, 0.7);
+  background: rgba(0, 0, 20, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 900;
   cursor: pointer;
   transition: all 0.2s ease;
+  clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
 }
 
 .emote-bar-item:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(74, 158, 255, 0.4);
-  color: rgba(255, 255, 255, 0.95);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(74, 158, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #fff;
+  color: #fff;
+  transform: scale(1.1);
 }
 
 .emote-bar-icon {
@@ -336,12 +342,12 @@
 }
 
 .emote-bar-label {
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
   white-space: nowrap;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .emote-bar-icon svg {

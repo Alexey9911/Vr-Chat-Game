@@ -52,27 +52,28 @@ a {
   }
 }
 
-/* Keyboard Controls Styles */
 .controls-hud {
   position: fixed;
   bottom: 30px;
-  right: 30px;   /* moved to RIGHT to avoid chat overlay */
+  right: 30px;
   z-index: 1000;
-  background: rgba(0, 0, 0, 0.8);
-  border-radius: 16px;
+  background: rgba(15, 15, 20, 0.55);
   padding: 20px;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border-left: 4px solid #00d4ff;
+  clip-path: polygon(0 0, 100% 0, 96% 100%, 0 100%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  font-family: 'Burbank Big Condensed', 'Arial Black', Impact, sans-serif;
+  text-transform: uppercase;
 }
 
 .controls-title {
   color: #ffffff;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 900;
   margin-bottom: 15px;
   text-align: center;
-  opacity: 0.9;
+  letter-spacing: 1px;
 }
 
 .controls-grid {
@@ -85,46 +86,39 @@ a {
 .key-button {
   width: 48px;
   height: 48px;
-  background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
-  border: 2px solid #333;
-  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255, 255, 255, 0.15);
   color: #ffffff;
-  font-size: 16px;
-  font-weight: bold;
+  font-size: 20px;
+  font-weight: 900;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
-  box-shadow: 
-    0 4px 8px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
 }
 
 .key-button:hover {
-  background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
-  border-color: #444;
-  transform: translateY(-1px);
-  box-shadow: 
-    0 6px 12px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #fff;
+  transform: scale(1.1);
 }
 
 .key-button.pressed {
-  background: linear-gradient(145deg, #4a9eff, #3a8eef);
-  border-color: #5aa7ff;
-  transform: translateY(1px);
-  box-shadow: 
-    0 2px 4px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 0 15px rgba(74, 158, 255, 0.4);
+  background: #f1c40f;
+  border-color: #fff;
+  color: #000;
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(241, 196, 15, 0.6);
 }
 
 .key-button.empty {
   background: transparent;
   border: none;
   box-shadow: none;
+  clip-path: none;
 }
 
 .instructions {
