@@ -235,6 +235,52 @@ Los nombres nunca tienen relación con la animación visible (por eso HUD dice "
 
 ---
 
+### 3.2 Compresión GLB + Loading Screen (abril 2026)
+
+**Objetivo**: reducir stutter/lag de GPU al entrar. Estrategia = texturas GPU-nativas (KTX2 UASTC, suben a VRAM sin descompresión CPU) + meshopt en geometría + gate de LoadingScreen al 65% para que el resto baje mientras el usuario escribe username.
+
+**Pipeline** — `scripts/compress-glb.mjs` (re-corribe cuando reemplaces un GLB): `decode draco + webp→png` (sharp) → `uastc` (KTX2 UASTC, alta calidad sin distorsión) → `meshopt --level medium` (geometría + animaciones).
+
+**Targets** (y solo estos — el resto queda GLB normal):
+- `public/alon_house/house_scene-v1.glb` — escena grande.
+- `public/alonskin-v1.glb`, `elonmuskchibi-v1.glb`, `trumpskin-v1.glb` — skins raíz.
+- `public/alon_house/skins/{chillhouse,tobaku,unc,pinguin}-v1.glb` — skins nuevas.
+
+**Doc completa**: `glb_compression_and_loading.md` en raíz (tabla de tamaños, troubleshooting, opciones de rollback).
+
+**Archivos modificados**:
+- `hooks/useGLTFKtx2.ts` — añadido `MeshoptDecoder` (obligatorio cuando el GLB trae `EXT_meshopt_compression`).
+- `lib/skins/skinsConfig.ts` + 7 avatars + `HouseScene.jsx` + `OrangiePathNPC.jsx` + `HouseAirdrops.jsx` + `House_scene-v1.tsx` → paths `_ktx2.glb` y loader `useGLTFKtx2`.
+- Preloads via `useGLTF.preload` removidos en los `_ktx2.glb` (no setean KTX2/Meshopt loaders → corromperían caché).
+- `components/Canvas3D.tsx` — reemplazado stub de LoadingScreen por `components/LoadingScreen/LoadingScreen.jsx` (Nolvi-style con fases + gates), threshold **65%**.
+
+**⚠ Bug crítico fix — meshopt + geometry extraction**:
+`KHR_mesh_quantization` (que inyecta meshopt con `--quantize-position 14` default) guarda la **decode-scale** de las posiciones en la **matriz local del nodo**, NO en la geometría. Código que hacía:
+```js
+src.parent.remove(src)
+src.position.set(0, 0, 0)      // ❌ borra la decode-scale
+src.quaternion.identity()
+```
+→ mesh colapsaba al origen (Orangie + Mesh_0.003 traspasaban el suelo). **Fix aplicado** en `OrangiePathNPC.jsx` + `HouseAirdrops.jsx`:
+```js
+src.updateMatrix()
+src.geometry.applyMatrix4(src.matrix)   // bake decode-scale dentro de la geometría
+src.userData.__matrixBaked = true
+// luego sí podés resetear transform
+```
+Regla: **cualquier consumidor que extraiga `.geometry` o reparente un mesh de un GLB con meshopt debe bakear la matriz primero**.
+
+**Trade-off de tamaño**: `house_scene` creció 4× (4.6 MB → 18 MB). Es caro en bandwidth pero barato en runtime (texturas suben directo a VRAM). Si molesta → ver opción 3 (hybrid UASTC skins + ETC1S scene) en `glb_compression_and_loading.md`.
+
+**Qué faltó en el skill de loading-screen-performance** (documentado aparte en `loading-screen-performance/LESSONS_LEARNED.md`):
+- No explicaba CÓMO producir los `_ktx2.glb` (solo los usaba).
+- No distinguía UASTC vs ETC1S (uno distorsiona, el otro no).
+- No avisaba del bug de meshopt + extracción de geometría.
+- No mencionaba el paso webp → png programático con sharp (el comando `gltf-transform png` lo saltea en silencio).
+- No tenía pipeline para GLBs Draco-comprimidos (la mayoría de exports modernos).
+
+---
+
 ## Log de Progreso
 
 | Fecha | Paso | Estado | Notas |
@@ -250,6 +296,13 @@ Los nombres nunca tienen relación con la animación visible (por eso HUD dice "
 | 2026-04-17 | Leva install + DebugCameraFar | ✅ | Panel de tuning `near/far` en tiempo real. Valor 350 validado para exterior. |
 | 2026-04-17 | camera.far strategy decidido | ✅ | 350 exterior, 200 rooms. Y=500+ en Blender. Sin LOD, sin occlusion culling. |
 | 2026-04-17 | 4 skins nuevas integradas | ✅ | chillhouse, tobaku, unc, pinguin con idle/walk + emotes 1..N + Sprint preparado (no activo). Preview + EmoteBar + música placeholder. |
+| 2026-04-17 | Compresión KTX2 UASTC + meshopt en 8 GLBs | ✅ | Pipeline `scripts/compress-glb.mjs`. Texturas → KTX2 UASTC (GPU-friendly), geometría → meshopt medium. `useGLTFKtx2` actualizado con MeshoptDecoder. Plan: `glb_compression_and_loading.md`. |
+| 2026-04-17 | LoadingScreen real conectado al Canvas | ✅ | `Canvas3D.tsx` usa el `LoadingScreen.jsx` con fases + gates (sceneProgress + isSceneLoaded). Threshold bajado a **65%** para cerrar loading mientras skins siguen bajando en background durante el lobby. |
+| 2026-04-17 | Bug: Orangie + Mesh_0.003 traspasan suelo post-meshopt | ✅ | Causa: `KHR_mesh_quantization` de meshopt guarda la decode-scale en la MATRIZ LOCAL del nodo. Detach + `position.set(0,0,0)` la borraba. Fix: bake `mesh.matrix` en la geometría ANTES de resetear transform (`OrangiePathNPC.jsx`, `HouseAirdrops.jsx`). |
+| 2026-04-17 | Bug: `gsap` missing | ✅ | `npm i gsap` — requerido por `LoadingScreen.jsx`. |
+| 2026-04-17 | house_scene pasado a ETC1S (baja calidad) | ✅ | 4.5 MB → 7.93 MB (en vez de 18 MB con UASTC). Lejos no se nota la distorsión. Skins siguen en UASTC. Script `compress-glb.mjs` acepta `mode: 'etc1s' \| 'uastc'` por target. |
+| 2026-04-17 | Bug: nickname input bloqueado post-loading | ✅ | `useKtx2Loader` creaba N loaders (uno por componente) → WASM transcoder Basis se compilaba 10+ veces bloqueando main thread. Fix: singleton por `gl` con WeakMap en `hooks/useKtx2Loader.ts`. |
+| 2026-04-17 | Rollback house_scene a Draco (commit 76bde55) | ✅ | KTX2 en house_scene traía muchos bugs (clip por meshopt quantization, peso inflado, más compile time WASM) sin beneficio perceptual. Con el singleton fix, el loading screen ya va fluido → no hace falta comprimir la escena. `HouseScene.jsx` + `OrangiePathNPC.jsx` + `HouseAirdrops.jsx` + `House_scene-v1.tsx` vuelven a `useGLTF` / `.glb`. Skins siguen en KTX2 UASTC. |
 
 ---
 

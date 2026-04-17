@@ -5,9 +5,14 @@ import Scene3D from './Scene3D'
 import CinematicCamera from './CinematicCamera'
 import CameraDebugHUD from './CameraDebugHUD'
 import DebugCameraFar from './DebugCameraFar'
+import FullLoadingScreen from './LoadingScreen/LoadingScreen'
 import { useCameraControls } from '../hooks/useCameraControls'
 import { EYE_HEIGHT } from '../lib/camera/cameraConstants'
 import { useSettingsStore } from '../lib/settings/settingsStore'
+
+// Threshold (percent) at which we consider the heavy scene "ready enough" to dismiss
+// the loading screen. Skins + rest trickle in while the user interacts with the lobby.
+const LOADING_READY_THRESHOLD = 65
 
 // Camera controller component
 const CameraController: React.FC = () => {
@@ -15,92 +20,35 @@ const CameraController: React.FC = () => {
   return null
 }
 
-// Enhanced loading screen component
-const LoadingScreen: React.FC = () => {
-  const { progress } = useProgress()
-
-  return (
-    <div className="loading">
-      <img
-        src="/elonkiss.png"
-        alt="ElonKiss"
-        style={simplePulseImgStyle}
-      />
-      <div style={loadingTextStyle}>
-        loading
-        <div style={{ 
-          fontSize: '18px', 
-          opacity: 0.8, 
-          marginTop: '12px', 
-          letterSpacing: '1px',
-          fontWeight: 400 
-        }}>
-          {Math.round(progress)}%
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ==== Styles ====
-
-// Ya no usamos loaderOverlay ni loaderContent, se usan estilos .loading desde el CSS global para mantener el gradient original
-
-const simplePulseImgStyle: React.CSSProperties = {
-  width: '224px',
-  height: '224px',
-  objectFit: 'contain',
-  marginBottom: 24,
-  animation: 'simpleFade 1.5s infinite ease-in-out',
-}
-
-const loadingTextStyle: React.CSSProperties = {
-  color: '#fff',
-  fontWeight: 500,
-  fontSize: 32,
-  letterSpacing: 2,
-  textAlign: 'center',
-  fontFamily: 'inherit',
-}
-
-// CSS keyframes for pulse effect
-if (typeof window !== 'undefined') {
-  const simplePulseAnim = `@keyframes simpleFade { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }`;
-  if (!document.getElementById('simple-pulse-style')) {
-    const style = document.createElement('style')
-    style.id = 'simple-pulse-style'
-    style.appendChild(document.createTextNode(simplePulseAnim))
-    document.head.appendChild(style)
-  }
-}
-
 // Main canvas component with integrated loading logic
 const Canvas3D: React.FC<{ loadingOverlayEnabled?: boolean; forceHidden?: boolean }> = ({ loadingOverlayEnabled = true, forceHidden = false }) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const environment = useSettingsStore((s) => s.environment)
   // Usar useProgress para trackear la carga global de R3F
-  const { progress, active } = useProgress()
+  const { progress } = useProgress()
   const [dismissed, setDismissed] = React.useState(false)
-  React.useEffect(() => {
-    if (progress >= 100) setDismissed(true)
-  }, [progress])
+  const isSceneLoaded = progress >= LOADING_READY_THRESHOLD
 
-  const isLoading = loadingOverlayEnabled && !dismissed && (active || progress < 100)
+  const isLoading = loadingOverlayEnabled && !dismissed
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      {/* Loading screen overlay */}
+      {/* Loading screen overlay (Nolvi-style with phases + gates) */}
       {isLoading && (
         <div style={{
-          position: 'absolute',
+          position: 'fixed',
           top: 0,
           left: 0,
           width: '100%',
           height: '100%',
           zIndex: 1000,
-          backgroundColor: 'inherit'
         }}>
-          <LoadingScreen />
+          <FullLoadingScreen
+            sceneProgress={progress}
+            isSceneLoaded={isSceneLoaded}
+            onComplete={() => setDismissed(true)}
+            onIntroStart={() => { /* reserved for future GPU warmup trigger */ }}
+          />
         </div>
       )}
       {/* Canvas container oculta por loading */}

@@ -70,11 +70,31 @@
   letter-spacing: 0.4px;
 }
 
-.hud-btn--emote .hud-btn-label {
-  font-size: 21px;
+/* Cursor/ESC Button — Dedicated vibrant beautiful gradient */
+.hud-btn--cursor.is-free {
+  background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+  border-color: #00d2ff;
+  color: #fff;
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+  animation: pulse-cursor 2s ease-in-out infinite;
 }
 
-/* Music button and Skin button — Subdued elegant gradient */
+.hud-btn--cursor.is-free:hover {
+  background: linear-gradient(135deg, #33e0ff 0%, #5a9cf0 100%);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.7);
+  transform: scale(1.08);
+}
+
+@keyframes pulse-cursor {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.6);
+  }
+}
+
+/* Music Button, and Skin Button — Elegant Gradient when active */
 .hud-btn--music:not(:disabled):not(.cooldown),
 .hud-btn--skin {
   background: linear-gradient(135deg, rgba(88, 101, 242, 0.4) 0%, rgba(138, 43, 226, 0.2) 100%);

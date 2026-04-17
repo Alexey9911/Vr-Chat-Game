@@ -3,9 +3,10 @@ import * as THREE from 'three'
 import { useAnimations, useGLTF } from '@react-three/drei'
 import { SkeletonUtils } from 'three-stdlib'
 import { validateModelUrl } from '../../lib/skins/validateModelUrl'
+import { useGLTFKtx2 } from '../../hooks/useGLTFKtx2'
 
 export default function TrumpSkinAvatar({ animation }: { animation?: string | null }) {
-  const gltf = useGLTF('/trumpskin-v1.glb') as any
+  const gltf = useGLTFKtx2('/trumpskin-v1_ktx2.glb') as any
   const group = useRef<THREE.Group>(null)
   const { actions, names } = useAnimations(gltf.animations ?? [], group)
 
@@ -43,7 +44,7 @@ export default function TrumpSkinAvatar({ animation }: { animation?: string | nu
 
   useEffect(() => {
     if (process.env.NODE_ENV === 'production') return
-    validateModelUrl('/trumpskin-v1.glb')
+    validateModelUrl('/trumpskin-v1_ktx2.glb')
       .then((res) => {
         if (!res.ok) {
           // console.warn('[Trump Skin Avatar] Model validation failed:', res.reason)
@@ -72,5 +73,5 @@ export default function TrumpSkinAvatar({ animation }: { animation?: string | nu
 }
 
 if (typeof window !== 'undefined') {
-  setTimeout(() => useGLTF.preload('/trumpskin-v1.glb'), 100)
+  // Preload skipped: useGLTF.preload would not set KTX2/Meshopt loaders
 }

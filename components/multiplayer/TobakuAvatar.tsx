@@ -2,8 +2,9 @@ import React, { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useAnimations, useGLTF } from '@react-three/drei'
 import { SkeletonUtils } from 'three-stdlib'
+import { useGLTFKtx2 } from '../../hooks/useGLTFKtx2'
 
-const MODEL_URL = '/alon_house/skins/tobaku-v1.glb'
+const MODEL_URL = '/alon_house/skins/tobaku-v1_ktx2.glb'
 
 // Real GLB clips: Breakdance_1990, Burpee_Exercise, Fall1, Hip_Hop_Dance_3,
 // Idle_6, Running, Walking, ymca_dance
@@ -21,7 +22,7 @@ export const TOBAKU_ANIMS = {
 }
 
 export default function TobakuAvatar({ animation }: { animation?: string | null }) {
-  const gltf = useGLTF(MODEL_URL) as any
+  const gltf = useGLTFKtx2(MODEL_URL) as any
   const group = useRef<THREE.Group>(null)
   const { actions, names } = useAnimations(gltf.animations ?? [], group)
   const clone = useMemo(() => SkeletonUtils.clone(gltf.scene as THREE.Object3D), [gltf.scene])
@@ -64,6 +65,4 @@ export default function TobakuAvatar({ animation }: { animation?: string | null 
   )
 }
 
-if (typeof window !== 'undefined') {
-  setTimeout(() => useGLTF.preload(MODEL_URL), 100)
-}
+// Preload skipped: useGLTF.preload would not set KTX2/Meshopt loaders

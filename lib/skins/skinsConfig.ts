@@ -44,7 +44,7 @@ export const SKINS: SkinConfig[] = [
     },
     previewScale: 1,
     assets: {
-      modelUrl: '/alonskin-v1.glb',
+      modelUrl: '/alonskin-v1_ktx2.glb',
     },
     cacheKey: 'v1',
   },
@@ -59,7 +59,7 @@ export const SKINS: SkinConfig[] = [
     },
     previewScale: 1,
     assets: {
-      modelUrl: '/elonmuskchibi-v1.glb',
+      modelUrl: '/elonmuskchibi-v1_ktx2.glb',
     },
     cacheKey: 'v1',
   },
@@ -104,7 +104,7 @@ export const SKINS: SkinConfig[] = [
     },
     previewScale: 1,
     assets: {
-      modelUrl: '/alon_house/skins/chillhouse-v1.glb',
+      modelUrl: '/alon_house/skins/chillhouse-v1_ktx2.glb',
     },
     cacheKey: 'v1',
   },
@@ -119,7 +119,7 @@ export const SKINS: SkinConfig[] = [
     },
     previewScale: 1,
     assets: {
-      modelUrl: '/alon_house/skins/tobaku-v1.glb',
+      modelUrl: '/alon_house/skins/tobaku-v1_ktx2.glb',
     },
     cacheKey: 'v1',
   },
@@ -134,7 +134,7 @@ export const SKINS: SkinConfig[] = [
     },
     previewScale: 1,
     assets: {
-      modelUrl: '/alon_house/skins/unc-v1.glb',
+      modelUrl: '/alon_house/skins/unc-v1_ktx2.glb',
     },
     cacheKey: 'v1',
   },
@@ -149,7 +149,7 @@ export const SKINS: SkinConfig[] = [
     },
     previewScale: 1,
     assets: {
-      modelUrl: '/alon_house/skins/pinguin-v1.glb',
+      modelUrl: '/alon_house/skins/pinguin-v1_ktx2.glb',
     },
     cacheKey: 'v1',
   },
@@ -164,7 +164,7 @@ export const SKINS: SkinConfig[] = [
     },
     previewScale: 1,
     assets: {
-      modelUrl: '/trumpskin-v1.glb',
+      modelUrl: '/trumpskin-v1_ktx2.glb',
     },
     cacheKey: 'v1',
   },

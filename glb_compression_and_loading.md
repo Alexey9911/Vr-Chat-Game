@@ -187,17 +187,105 @@ return (
 
 ---
 
-## 8. Métricas a anotar tras la conversión
+## 8. Estado final (post-rollback de house_scene)
 
-| Archivo | Antes (MB) | Después (MB) | Δ |
-|---------|-----------|--------------|---|
-| house_scene-v1 |  |  |  |
-| alonskin-v1 |  |  |  |
-| elonmuskchibi-v1 |  |  |  |
-| trumpskin-v1 |  |  |  |
-| chillhouse-v1 |  |  |  |
-| tobaku-v1 |  |  |  |
-| unc-v1 |  |  |  |
-| pinguin-v1 |  |  |  |
+Decisión: **`house_scene-v1.glb` se quedó como Draco** (el original del commit `76bde55`). Se probaron UASTC (18 MB, muy pesado) y ETC1S (7.9 MB, aceptable) pero ambos traían bugs colaterales (clip por meshopt, más WASM compile time). Con el fix del singleton de `useKtx2Loader`, el loading screen ya va fluido sin necesidad de comprimir la escena. Solo los **skins de personaje** usan KTX2.
 
-Si el total sube más de 2× → considerar convertir solo el `house_scene` y dejar las skins en GLB normal.
+| Archivo | Formato actual | Tamaño |
+|---------|----------------|--------|
+| `house_scene-v1` | **Draco (original)** | 4.5 MB |
+| `alonskin-v1` | KTX2 UASTC + meshopt | 1.39 MB |
+| `elonmuskchibi-v1` | KTX2 UASTC + meshopt | 1.60 MB |
+| `trumpskin-v1` | KTX2 UASTC + meshopt | 1.52 MB |
+| `chillhouse-v1` | KTX2 UASTC + meshopt | 1.54 MB |
+| `tobaku-v1` | KTX2 UASTC + meshopt | 653 KB |
+| `unc-v1` | KTX2 UASTC + meshopt | 1.37 MB |
+| `pinguin-v1` | KTX2 UASTC + meshopt | 1.56 MB |
+| **TOTAL** | — | **13.1 MB** |
+
+### Cómo restaurar el GLB Draco si se pierde
+
+```powershell
+git checkout 76bde55c022d917452a25d922f6e82882c77e869 -- public/alon_house/house_scene-v1.glb
+```
+
+### Criterio por asset (para futuras conversiones)
+
+- **Escenario grande / baked / lejano** → quedarse en **Draco** si ya existe. KTX2 infla mucho y no hay beneficio perceptual.
+- **Skins de personaje** → KTX2 **UASTC** (se ven de cerca).
+- **Props chicos** → no vale la pena tocarlos.
+
+### Consumers de `house_scene-v1.glb`
+
+Volvieron a usar `useGLTF` (Drei's decoder Draco ya está integrado):
+
+- `components/HouseScene.jsx`
+- `components/OrangiePathNPC.jsx`
+- `components/HouseAirdrops.jsx`
+- `House_scene-v1.tsx`
+
+---
+
+## 9. ⚠ Bug discovered & fixed: meshopt decode-scale en node matrix
+
+**Síntoma**: tras regenerar `house_scene-v1_ktx2.glb` con meshopt, `OrangiePathNPC` y `HouseAirdrops` (específicamente Mesh_0.003) se hundieron por debajo del suelo. Mesh_0.002 funcionaba porque su decode-scale era ~1.
+
+**Causa raíz**: `gltf-transform meshopt` aplica la extensión `KHR_mesh_quantization`, que codifica las posiciones como `int14` en `[-1, 1]`. La **decode transform** (translate + scale que restaura las coords originales) queda guardada en la **matriz local del nodo del mesh**, no en la geometría.
+
+Código problemático (antes):
+```js
+// OrangiePathNPC.jsx
+if (src.parent) src.parent.remove(src)
+src.position.set(0, 0, 0)        // ❌ BORRA DECODE-SCALE
+src.quaternion.identity()
+// src.geometry ahora renderiza en [-1,1] en vez de world units
+
+// HouseAirdrops.jsx
+<instancedMesh args={[src003.geometry, ...]} />  // ❌ InstancedMesh ignora src003.matrix
+```
+
+**Fix**: bakear la matriz local en la geometría ANTES de resetear el transform. Aplicado en ambos archivos:
+
+```js
+src.updateMatrix()
+if (src.geometry && !src.userData.__matrixBaked) {
+  src.geometry.applyMatrix4(src.matrix)
+  src.userData.__matrixBaked = true
+}
+// ahora sí es seguro resetear transform y reparentar
+src.position.set(0, 0, 0)
+src.quaternion.identity()
+src.scale.set(1, 1, 1)
+```
+
+**Regla general**: cualquier consumer que haga `mesh.parent.remove(mesh)` + reset transform, o que use `mesh.geometry` directo en un `InstancedMesh`, **tiene que bakear la matriz primero** si el GLB pasó por meshopt.
+
+**Alternativa**: si no podés tocar el consumer, saltear meshopt para ese GLB (en el pipeline: `{ src: '...', skipMeshopt: true }`). El archivo queda más grande pero el código existente no se rompe.
+
+---
+
+## 10. Bug secundario: `gsap` no instalado
+
+El `LoadingScreen.jsx` importa `gsap` pero el package no estaba en `package.json`. Fix: `npm i gsap`. Añadido a deps.
+
+---
+
+## 10b. Bug: input del nickname bloqueado varios segundos al aparecer el Lobby
+
+**Síntoma**: después de que cierra `EntryLoadingOverlay` (threshold 70%) y aparece el `LobbyScreen`, el input de nickname no acepta tecleo durante ~2–5 segundos. Luego "se desbloquea" solo.
+
+**Causa**: `useKtx2Loader` instanciaba un `KTX2Loader` **NUEVO por cada componente que lo llamaba** (7 avatars + HouseScene + OrangiePathNPC + HouseAirdrops + SkinPreviewCanvas por skin ≈ 10–15 instancias). Cada instancia descarga + compila el WASM del Basis transcoder independientemente → main thread bloqueado en compilación WASM justo cuando aparece el input.
+
+**Fix** en `hooks/useKtx2Loader.ts`: cache de singleton por (renderer `gl`, transcoderPath), con `WeakMap`. Una sola compilación de WASM, reusada por todos los componentes. También se removió el `dispose()` on unmount porque el loader es compartido.
+
+---
+
+## 11. Implementación completada (abril 2026)
+
+- ✅ Pipeline `scripts/compress-glb.mjs` (decode draco+webp → PNG → UASTC → meshopt medium). Re-ejecutable: `node scripts/compress-glb.mjs`.
+- ✅ Deps añadidas: `@gltf-transform/cli`, `@gltf-transform/core`, `@gltf-transform/extensions` (ya estaba), `draco3dgltf`, `gltfpack` (no usado al final — el pipeline usa gltf-transform porque maneja Draco nativo).
+- ✅ `hooks/useGLTFKtx2.ts` ahora setea `MeshoptDecoder` además de `KTX2Loader`.
+- ✅ Paths actualizados en: `skinsConfig.ts`, `HouseScene.jsx`, `OrangiePathNPC.jsx`, `HouseAirdrops.jsx`, `House_scene-v1.tsx`, 7 avatars (`AlonAvatar`, `ElonMuskChibiAvatar`, `TrumpSkinAvatar`, `ChillHouseAvatar`, `TobakuAvatar`, `UncAvatar`, `PinguinAvatar`).
+- ✅ Preloads via `useGLTF.preload` removidos para los `_ktx2.glb` (no setean KTX2/Meshopt loaders y corromperían la caché).
+- ✅ `components/Canvas3D.tsx` — reemplazado stub de LoadingScreen por el componente real `components/LoadingScreen/LoadingScreen.jsx` con props `sceneProgress` + `isSceneLoaded`, threshold = **65%**.
+

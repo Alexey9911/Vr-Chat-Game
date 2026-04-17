@@ -47,7 +47,7 @@ type GLTFResult = GLTF & {
 
 export function Model(props: JSX.IntrinsicElements['group']) {
   const group = React.useRef<THREE.Group>()
-  const { scene, animations } = useGLTF('/house_scene-v1.glb')
+  const { scene, animations } = useGLTF('/alon_house/house_scene-v1.glb')
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene])
   const { nodes, materials } = useGraph(clone) as GLTFResult
   const { actions } = useAnimations(animations, group)
@@ -77,4 +77,4 @@ export function Model(props: JSX.IntrinsicElements['group']) {
   )
 }
 
-useGLTF.preload('/house_scene-v1.glb')
+// Preload skipped: file is KTX2+meshopt compressed (needs useGLTFKtx2)

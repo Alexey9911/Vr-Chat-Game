@@ -3,9 +3,10 @@ import * as THREE from 'three'
 import { useAnimations, useGLTF } from '@react-three/drei'
 import { SkeletonUtils } from 'three-stdlib'
 import { validateModelUrl } from '../../lib/skins/validateModelUrl'
+import { useGLTFKtx2 } from '../../hooks/useGLTFKtx2'
 
 export default function ElonMuskChibiAvatar({ animation }: { animation?: string | null }) {
-  const gltf = useGLTF('/elonmuskchibi-v1.glb') as any
+  const gltf = useGLTFKtx2('/elonmuskchibi-v1_ktx2.glb') as any
   const group = useRef<THREE.Group>(null)
   const { actions, names } = useAnimations(gltf.animations ?? [], group)
 
@@ -43,7 +44,7 @@ export default function ElonMuskChibiAvatar({ animation }: { animation?: string 
 
   useEffect(() => {
     if (process.env.NODE_ENV === 'production') return
-    validateModelUrl('/elonmuskchibi-v1.glb')
+    validateModelUrl('/elonmuskchibi-v1_ktx2.glb')
       .then((res) => {
         if (!res.ok) {
           // console.warn('[Elon Musk Chibi Avatar] Model validation failed:', res.reason)

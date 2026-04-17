@@ -3,12 +3,13 @@ import * as THREE from 'three'
 import { useAnimations, useGLTF } from '@react-three/drei'
 import { SkeletonUtils } from 'three-stdlib'
 import { validateModelUrl } from '../../lib/skins/validateModelUrl'
+import { useGLTFKtx2 } from '../../hooks/useGLTFKtx2'
 
 const ALON_GLTF_SCALE_FIX = 5.6
 const ALON_FEET_Y_OFFSET = 1.5
 
 export default function AlonAvatar({ animation }: { animation?: string | null }) {
-  const gltf = useGLTF('/alonskin-v1.glb') as any
+  const gltf = useGLTFKtx2('/alonskin-v1_ktx2.glb') as any
   const group = useRef<THREE.Group>(null)
   const { actions, names } = useAnimations(gltf.animations ?? [], group)
 
@@ -42,7 +43,7 @@ export default function AlonAvatar({ animation }: { animation?: string | null })
 
   useEffect(() => {
     if (process.env.NODE_ENV === 'production') return
-    validateModelUrl('/alonskin-v1.glb')
+    validateModelUrl('/alonskin-v1_ktx2.glb')
       .then((res) => {
         if (!res.ok) {
           // console.warn('[Alon Avatar] Model validation failed:', res.reason)
@@ -73,5 +74,5 @@ export default function AlonAvatar({ animation }: { animation?: string | null })
 
 // Defer preload to avoid Turbopack serving HTML instead of binary during startup
 if (typeof window !== 'undefined') {
-  setTimeout(() => useGLTF.preload('/alonskin-v1.glb'), 100)
+  // Preload skipped: useGLTF.preload would not set KTX2/Meshopt loaders
 }

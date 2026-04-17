@@ -2,8 +2,9 @@ import React, { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useAnimations, useGLTF } from '@react-three/drei'
 import { SkeletonUtils } from 'three-stdlib'
+import { useGLTFKtx2 } from '../../hooks/useGLTFKtx2'
 
-const MODEL_URL = '/alon_house/skins/chillhouse-v1.glb'
+const MODEL_URL = '/alon_house/skins/chillhouse-v1_ktx2.glb'
 
 // Animation mapping for ChillHouse skin
 // Real GLB clips: All_Night_Dance, Boom_Dance, Breakdance_1990, Confident_Strut,
@@ -24,7 +25,7 @@ export const CHILLHOUSE_ANIMS = {
 }
 
 export default function ChillHouseAvatar({ animation }: { animation?: string | null }) {
-  const gltf = useGLTF(MODEL_URL) as any
+  const gltf = useGLTFKtx2(MODEL_URL) as any
   const group = useRef<THREE.Group>(null)
   const { actions, names } = useAnimations(gltf.animations ?? [], group)
   const clone = useMemo(() => SkeletonUtils.clone(gltf.scene as THREE.Object3D), [gltf.scene])
@@ -67,6 +68,4 @@ export default function ChillHouseAvatar({ animation }: { animation?: string | n
   )
 }
 
-if (typeof window !== 'undefined') {
-  setTimeout(() => useGLTF.preload(MODEL_URL), 100)
-}
+// Preload skipped: useGLTF.preload would not set KTX2/Meshopt loaders

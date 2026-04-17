@@ -1,0 +1,94 @@
+
+=== house_scene-v1.glb (4628.3 KB) ===
+[1/3] decode draco + webp -> png
+[2/3] uastc (KTX2 high quality)
+warn: Decoded KHR_draco_mesh_compression. Further compression will be lossy.
+info: house_scene-v1.__step1.glb (19.76 MB) ÔåÆ house_scene-v1.__step2.glb (38.37 MB)
+[3/3] meshopt (level=medium)
+info: prune: Removed types... Accessor (102)
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+info: prune: Removed types... Accessor (73)
+info: house_scene-v1.__step2.glb (38.37 MB) ÔåÆ house_scene-v1_ktx2.glb (18.6 MB)
+-> house_scene-v1_ktx2.glb (18165.0 KB, 392% of original)
+
+=== alonskin-v1.glb (669.2 KB) ===
+[1/3] decode draco + webp -> png
+[2/3] uastc (KTX2 high quality)
+warn: Decoded KHR_draco_mesh_compression. Further compression will be lossy.
+info: alonskin-v1.__step1.glb (1.86 MB) ÔåÆ alonskin-v1.__step2.glb (1.84 MB)
+[3/3] meshopt (level=medium)
+info: prune: Removed types... Accessor (6)
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+info: prune: Removed types... Skin (1), Accessor (4)
+info: alonskin-v1.__step2.glb (1.84 MB) ÔåÆ alonskin-v1_ktx2.glb (1.42 MB)
+-> alonskin-v1_ktx2.glb (1390.3 KB, 208% of original)
+
+=== elonmuskchibi-v1.glb (1575.7 KB) ===
+[1/3] decode draco + webp -> png
+[2/3] uastc (KTX2 high quality)
+warn: Decoded KHR_draco_mesh_compression. Further compression will be lossy.
+info: elonmuskchibi-v1.__step1.glb (2.02 MB) ÔåÆ elonmuskchibi-v1.__step2.glb (2.1 MB)
+[3/3] meshopt (level=medium)
+info: prune: Removed types... Accessor (6)
+info: prune: Removed types... Skin (1), Accessor (5)
+info: elonmuskchibi-v1.__step2.glb (2.1 MB) ÔåÆ elonmuskchibi-v1_ktx2.glb (1.64 MB)
+-> elonmuskchibi-v1_ktx2.glb (1604.6 KB, 102% of original)
+
+=== trumpskin-v1.glb (1574.7 KB) ===
+[1/3] decode draco + webp -> png
+[2/3] uastc (KTX2 high quality)
+warn: Decoded KHR_draco_mesh_compression. Further compression will be lossy.
+info: trumpskin-v1.__step1.glb (2.07 MB) ÔåÆ trumpskin-v1.__step2.glb (1.86 MB)
+[3/3] meshopt (level=medium)
+info: prune: Removed types... Accessor (6)
+info: prune: Removed types... Skin (1), Accessor (5)
+info: trumpskin-v1.__step2.glb (1.86 MB) ÔåÆ trumpskin-v1_ktx2.glb (1.55 MB)
+-> trumpskin-v1_ktx2.glb (1516.0 KB, 96% of original)
+
+=== chillhouse-v1.glb (982.2 KB) ===
+[1/3] decode draco + webp -> png
+[2/3] uastc (KTX2 high quality)
+warn: Decoded KHR_draco_mesh_compression. Further compression will be lossy.
+info: chillhouse-v1.__step1.glb (2.04 MB) ÔåÆ chillhouse-v1.__step2.glb (2.08 MB)
+[3/3] meshopt (level=medium)
+info: prune: Removed types... Accessor (6)
+info: prune: Removed types... Skin (1), Accessor (5)
+info: chillhouse-v1.__step2.glb (2.08 MB) ÔåÆ chillhouse-v1_ktx2.glb (1.57 MB)
+-> chillhouse-v1_ktx2.glb (1536.7 KB, 156% of original)
+
+=== tobaku-v1.glb (520.7 KB) ===
+[1/3] decode draco + webp -> png
+[2/3] uastc (KTX2 high quality)
+warn: Decoded KHR_draco_mesh_compression. Further compression will be lossy.
+info: tobaku-v1.__step1.glb (617.11 KB) ÔåÆ tobaku-v1.__step2.glb (1.3 MB)
+[3/3] meshopt (level=medium)
+info: prune: Removed types... Accessor (6)
+info: prune: Removed types... Skin (1), Accessor (5)
+info: tobaku-v1.__step2.glb (1.3 MB) ÔåÆ tobaku-v1_ktx2.glb (668.61 KB)
+-> tobaku-v1_ktx2.glb (652.9 KB, 125% of original)
+
+=== unc-v1.glb (843.0 KB) ===
+[1/3] decode draco + webp -> png
+[2/3] uastc (KTX2 high quality)
+warn: Decoded KHR_draco_mesh_compression. Further compression will be lossy.
+info: unc-v1.__step1.glb (1.75 MB) ÔåÆ unc-v1.__step2.glb (2.09 MB)
+[3/3] meshopt (level=medium)
+info: prune: Removed types... Accessor (6)
+info: prune: Removed types... Skin (1), Accessor (5)
+info: unc-v1.__step2.glb (2.09 MB) ÔåÆ unc-v1_ktx2.glb (1.4 MB)
+-> unc-v1_ktx2.glb (1367.7 KB, 162% of original)
+
+=== pinguin-v1.glb (835.5 KB) ===
+[1/3] decode draco + webp -> png
+[2/3] uastc (KTX2 high quality)
+warn: Decoded KHR_draco_mesh_compression. Further compression will be lossy.
+info: pinguin-v1.__step1.glb (2.16 MB) ÔåÆ pinguin-v1.__step2.glb (2.02 MB)
+[3/3] meshopt (level=medium)
+info: prune: Removed types... Accessor (6)
+info: prune: Removed types... Skin (1), Accessor (5)
+info: pinguin-v1.__step2.glb (2.02 MB) ÔåÆ pinguin-v1_ktx2.glb (1.6 MB)
+-> pinguin-v1_ktx2.glb (1558.1 KB, 187% of original)

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Volume2, VolumeX, Square, Palette, Settings, Mic, Smile, Heart, ThumbsUp, Zap } from 'lucide-react'
+import { Volume2, VolumeX, Square, Palette, Settings, Mic, Smile, Heart, ThumbsUp, Zap, MousePointer2 } from 'lucide-react'
 import { useMultiplayerStore } from '../../lib/multiplayerStore'
 import { useKeyboardStore } from '../../lib/useKeyboardStore'
 import { hasSkinAudio, setGlobalVolumeMultiplier } from '../../lib/audio/musicSystem'
@@ -62,6 +62,34 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
   const settingsLocalMicGain = useSettingsStore((s) => s.localMicGain)
 
   const [isYouTubePlaying, setIsYouTubePlaying] = useState(false)
+  const [isCursorFree, setIsCursorFree] = useState(false)
+
+  // Track if mouse is locked (ESC inactive) or free (ESC active)
+  useEffect(() => {
+    const handlePointerLockChange = () => {
+      setIsCursorFree(!document.pointerLockElement)
+    }
+
+    const handleEscToggle = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        // If it's already free, pressing ESC again will lock it back.
+        // Natively, if it is locked, the browser automatically unlocks it on ESC.
+        if (!document.pointerLockElement) {
+          e.preventDefault()
+          document.body.requestPointerLock?.()
+        }
+      }
+    }
+
+    document.addEventListener('pointerlockchange', handlePointerLockChange)
+    document.addEventListener('keydown', handleEscToggle)
+    setIsCursorFree(!document.pointerLockElement)
+    
+    return () => {
+      document.removeEventListener('pointerlockchange', handlePointerLockChange)
+      document.removeEventListener('keydown', handleEscToggle)
+    }
+  }, [])
 
   // Sync settings → audio systems on mount and on change
   useEffect(() => {
@@ -154,6 +182,21 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
   return (
     <>
     <div className="hud-panel">
+      {/* CURSOR / ESC STATE */}
+      <button
+        className={`hud-btn hud-btn--cursor ${isCursorFree ? 'is-free' : ''}`}
+        onClick={() => {
+          if (isCursorFree) {
+            // Because pointerlock must be requested upon user gesture, and the canvas usually owns it, we might try locking body:
+            document.body.requestPointerLock?.()
+          } else {
+            document.exitPointerLock?.()
+          }
+        }}
+        title={isCursorFree ? "Cursor Free (Click here to lock / ESC to lock again)" : "Cursor Locked (Press ESC to click UI)"}
+      >
+        <span style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '1px' }}>ESC</span>
+      </button>
 
       {/* MUSIC (skin) */}
       <button
