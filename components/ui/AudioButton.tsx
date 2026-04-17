@@ -18,6 +18,10 @@ interface AudioButtonProps {
 // Emote keys per skin — flexible map
 const SKIN_EMOTE_KEYS: Record<string, number[]> = {
   'ai16z': [3, 4, 5],
+  chillhouse: [2, 3, 4, 5, 6, 7, 8],
+  tobaku: [2, 3, 4, 5, 6],
+  unc: [2, 3, 4, 5, 6],
+  pinguin: [2, 3, 4, 5, 6],
 }
 const DEFAULT_EMOTE_KEYS = [2, 3, 4, 5]
 

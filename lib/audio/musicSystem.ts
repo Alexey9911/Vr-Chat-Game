@@ -19,6 +19,11 @@ export const SKIN_AUDIO_MAP: Record<string, string> = {
   'ai16z': '/sounds/ai16z.mp3',                 // 🎵 AI16Z skin song
   'trumpskin': '/sounds/trumpsong.mp3',      // 🎵 Trump skin exclusive song
   'alon': '/alonsong.mp3',                    // 🎵 Alon skin song
+  // New skins — reusing placeholder songs until dedicated audio provided
+  'chillhouse': '/alonsong.mp3',
+  'tobaku': '/alonsong.mp3',
+  'unc': '/alonsong.mp3',
+  'pinguin': '/alonsong.mp3',
   // 'soldier' (default) - no audio
 }
 

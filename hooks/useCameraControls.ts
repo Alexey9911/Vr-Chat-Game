@@ -219,7 +219,7 @@ export const useCameraControls = () => {
       toggleCinematicMode()
       return
     }
-    if (['w', 'a', 's', 'd', 'e', 'q', '1', '2', '3', '4', '5', '6'].includes(key)) {
+    if (['w', 'a', 's', 'd', 'e', 'q', '1', '2', '3', '4', '5', '6', '7', '8'].includes(key)) {
       if (['w', 'a', 's', 'd', 'e', 'q'].includes(key)) {
         event.preventDefault()
       }
@@ -235,26 +235,35 @@ export const useCameraControls = () => {
       addPressedKey(' ')
     }
 
-    // EMOTES (Number keys) - Dynamic based on active skin
-    // alon/elonmuskchibi/trumpskin: 4 emotes (keys 2-5)
-    // TEMPORARILY DISABLED: elon (0 emotes), ai16z (3 emotes)
+    // EMOTES (Number keys) - Dynamic based on active skin.
+    // New skins (chillhouse, tobaku, unc, pinguin) map key -> raw GLB clip name directly.
+    // Legacy skins (alon/elonmuskchibi/trumpskin) still map to Punch/Yes/Wave/Death.
+    const SKIN_EMOTE_CLIPS: Record<string, string[]> = {
+      chillhouse: [
+        'Running', 'Boom_Dance', 'Breakdance_1990', 'Fall1',
+        'Idle_3', 'All_Night_Dance', 'Wake_Up_and_Look_Up',
+      ],
+      tobaku: ['Hip_Hop_Dance_3', 'Idle_6', 'Running', 'Walking', 'ymca_dance'],
+      unc: ['Breakdance_1990', 'Climb_Attempt_and_Fall_1', 'Idle_4', 'Running', 'Walking'],
+      pinguin: ['Fall4', 'FunnyDancing_02', 'Hip_Hop_Dance_2', 'Idle_03', 'Running'],
+    }
+
     let animMap: Record<string, string> = {
       '2': 'Punch',
       '3': 'Yes',
       '4': 'Wave',
       '5': 'Death',
     }
-    
+
     if (activeSkinId === 'elon') {
-      // Elon only has Idle + Run, no emotes available
       animMap = {}
     } else if (activeSkinId === 'ai16z') {
-      // ai16z: 3 emotes (keys 2-4)
-      animMap = {
-        '2': 'Yes',
-        '3': 'Wave',
-        '4': 'Death',
-      }
+      animMap = { '2': 'Yes', '3': 'Wave', '4': 'Death' }
+    } else if (activeSkinId && SKIN_EMOTE_CLIPS[activeSkinId]) {
+      animMap = {}
+      SKIN_EMOTE_CLIPS[activeSkinId].forEach((clip, i) => {
+        animMap[String(i + 2)] = clip // keys start at '2' (emote 1)
+      })
     }
     
     if (animMap[key] && playroomRef.current?.myPlayer?.()) {
@@ -277,7 +286,7 @@ export const useCameraControls = () => {
     if (typing || chatActive) return
 
     const key = event.key.toLowerCase()
-    if (['w', 'a', 's', 'd', 'e', 'q', '1', '2', '3', '4', '5', '6'].includes(key)) {
+    if (['w', 'a', 's', 'd', 'e', 'q', '1', '2', '3', '4', '5', '6', '7', '8'].includes(key)) {
       if (['w', 'a', 's', 'd', 'e', 'q'].includes(key)) {
         event.preventDefault()
       }

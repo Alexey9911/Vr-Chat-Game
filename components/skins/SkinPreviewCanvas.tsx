@@ -148,7 +148,15 @@ function PreviewModel({ skin, colors }: { skin: SkinConfig; colors: SkinColors |
   // - trumpskin: force play 'Idle_11' clip
   // - alon: force play 'Breakdance_1990' clip (idle pose)
   // - others: remain in bind/T-pose (no autoplay)
-  const forceClip = skin.id === 'trumpskin' ? 'Idle_11' : skin.id === 'alon' ? 'Breakdance_1990' : undefined
+  const IDLE_CLIPS: Record<string, string> = {
+    trumpskin: 'Idle_11',
+    alon: 'Breakdance_1990',
+    chillhouse: 'Confident_Strut',
+    tobaku: 'Breakdance_1990',
+    unc: 'Denim_Pop_Dance',
+    pinguin: 'Walking',
+  }
+  const forceClip = IDLE_CLIPS[skin.id]
   
   if (process.env.NODE_ENV !== 'production' && (skin.id === 'ai16z' || skin.id === 'trumpskin')) {
   }

@@ -7,6 +7,10 @@ const SKIN_EMOTE_KEYS: Record<string, number[]> = {
   // TEMPORARILY DISABLED
   // 'elon': [],          // Only Idle + Run, no emotes
   // 'ai16z': [2, 3, 4], // 3 emotes (keys 2-4)
+  chillhouse: [2, 3, 4, 5, 6, 7, 8], // 7 emotes
+  tobaku: [2, 3, 4, 5, 6],           // 5 emotes
+  unc: [2, 3, 4, 5, 6],              // 5 emotes
+  pinguin: [2, 3, 4, 5, 6],          // 5 emotes
 }
 const DEFAULT_EMOTE_KEYS = [2, 3, 4, 5] // alon, elonmuskchibi, trumpskin
 

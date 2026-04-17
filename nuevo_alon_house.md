@@ -201,6 +201,38 @@ Se evalúo combinar `camera.far` con `<Detailed>` LOD, pero se descartó por sim
 
 **Nota ⚠ puntos en nombres** aplica igual aquí: si algún clip se llama `Emote.001` o similar, usar regex al buscar el `AnimationClip` por nombre.
 
+### 3.1.1 Skins integradas (abril 2026)
+
+Ubicadas en `public/alon_house/skins/` (subcarpeta, no en `public/` raíz). Todas comparten rig `char1` tiny (24 joints), mismo scale que trumpskin/elonmuskchibi (internal 1.5× en avatar × external 5.0× en `RemotePlayerAvatar`).
+
+Componentes creados en `components/multiplayer/`: `ChillHouseAvatar.tsx`, `TobakuAvatar.tsx`, `UncAvatar.tsx`, `PinguinAvatar.tsx`. Registrados en `lib/skins/skinsConfig.ts` y ruteo en `RemotePlayerAvatar.jsx`. Idle preview en `SkinPreviewCanvas.tsx` (`IDLE_CLIPS` map).
+
+Emote keys se envían como clip-name crudo desde `useCameraControls.ts` (`SKIN_EMOTE_CLIPS`) y el avatar las pasa por su `animationMap` (sólo mapea `Idle`/`Run`/`Sprint`). Barra visual en `components/ui/EmoteBar.tsx` + `AudioButton.tsx` (`SKIN_EMOTE_KEYS`).
+
+**Sprint (SHIFT)**: cada avatar ya registra `Sprint → <run clip>` en su `animationMap`, pero `useCameraControls` aún NO envía `'Sprint'` al sostener SHIFT. Activar cuando el usuario lo pida: cuando `isMoving && shiftPressed`, enviar `'Sprint'` en vez de `'Run'`.
+
+**Música**: `SKIN_AUDIO_MAP` apunta a `/alonsong.mp3` como placeholder para las 4 nuevas. Reemplazar con pistas dedicadas cuando el usuario las entregue.
+
+**Mapeos de animaciones** (verificados con `node scripts/inspect-glb.mjs <path>`):
+
+| Skin | Idle (descanso) | Walk (mover) | Run/Sprint (prep.) | Emotes (key 2..N) |
+|------|-----------------|--------------|--------------------|-------------------|
+| `chillhouse` | `Confident_Strut` | `Walking` | `Shake_It_Off_Dance` | 1.`Running`, 2.`Boom_Dance`, 3.`Breakdance_1990`, 4.`Fall1`, 5.`Idle_3`, 6.`All_Night_Dance`, 7.`Wake_Up_and_Look_Up` |
+| `tobaku` | `Breakdance_1990` | `Fall1` | `Burpee_Exercise` | 1.`Hip_Hop_Dance_3`, 2.`Idle_6`, 3.`Running`, 4.`Walking`, 5.`ymca_dance` |
+| `unc` | `Denim_Pop_Dance` | `FunnyDancing_01` | `Fall1` | 1.`Breakdance_1990`, 2.`Climb_Attempt_and_Fall_1`, 3.`Idle_4`, 4.`Running`, 5.`Walking` |
+| `pinguin` | `Walking` | `Breakdance_1990` | `All_Night_Dance` | 1.`Fall4`, 2.`FunnyDancing_02`, 3.`Hip_Hop_Dance_2`, 4.`Idle_03`, 5.`Running` |
+
+**⚠ Nombres bugeados por la tool** (usuario vs GLB real):
+- `Shake_it_Off_Dance` → **`Shake_It_Off_Dance`** (I mayúscula)
+- `Burpee_Excercise` → **`Burpee_Exercise`** (una sola c)
+- `Hip_Ho_dance_3` → **`Hip_Hop_Dance_3`**
+- `Climb_Attemp_and_etc` → **`Climb_Attempt_and_Fall_1`**
+- `Idle_03` (pinguin) vs `Idle_3` (chillhouse) — ojo, no son el mismo nombre entre skins.
+
+Los nombres nunca tienen relación con la animación visible (por eso HUD dice "Emote 1/2/3…" genérico).
+
+**Keys de teclado**: expandidas `2..8` (antes `2..6`) en `useCameraControls.ts` para soportar chillhouse con 7 emotes.
+
 ---
 
 ## Log de Progreso
@@ -217,6 +249,7 @@ Se evalúo combinar `camera.far` con `<Detailed>` LOD, pero se descartó por sim
 | 2026-04-17 | Orangie label styling | ✅ | Bajado Y=16, color naranja `#FF8C1A` |
 | 2026-04-17 | Leva install + DebugCameraFar | ✅ | Panel de tuning `near/far` en tiempo real. Valor 350 validado para exterior. |
 | 2026-04-17 | camera.far strategy decidido | ✅ | 350 exterior, 200 rooms. Y=500+ en Blender. Sin LOD, sin occlusion culling. |
+| 2026-04-17 | 4 skins nuevas integradas | ✅ | chillhouse, tobaku, unc, pinguin con idle/walk + emotes 1..N + Sprint preparado (no activo). Preview + EmoteBar + música placeholder. |
 
 ---
 

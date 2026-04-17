@@ -7,6 +7,10 @@ import ElonMuskChibiAvatar from './ElonMuskChibiAvatar'
 import Ai16zAvatar from './Ai16zAvatar'
 import TrumpSkinAvatar from './TrumpSkinAvatar'
 import AlonAvatar from './AlonAvatar'
+import ChillHouseAvatar from './ChillHouseAvatar'
+import TobakuAvatar from './TobakuAvatar'
+import UncAvatar from './UncAvatar'
+import PinguinAvatar from './PinguinAvatar'
 import * as THREE from 'three'
 import { EYE_HEIGHT } from '../../lib/camera/cameraConstants'
 import { useViewStore } from '../../lib/camera/viewStore'
@@ -99,23 +103,26 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
   // Scale for all skins to match new map size
   const isAlonSkin = player.skinId === 'alon'
   const isAdmin = player.isAdmin || false
-  
+  // Skins using the same "char1" tiny-scale rig as trumpskin/elonmuskchibi
+  const SMALL_RIG_SKINS = ['trumpskin', 'elonmuskchibi', 'chillhouse', 'tobaku', 'unc', 'pinguin']
+  const isSmallRig = SMALL_RIG_SKINS.includes(player.skinId)
+
   // All skins scaled up to match the larger map
   // Alon: internal 5.6x (AlonAvatar) * external 1.25 = 7x total
-  // Trump/Elon: internal 1.5x (their avatar) * external 5.0 = 7.5x total
+  // Small-rig skins: internal 1.5x * external 5.0 = 7.5x total
   let skinScale = 1
   if (isAlonSkin) {
     skinScale = isAdmin ? 1.4 : 1.25
-  } else if (player.skinId === 'trumpskin' || player.skinId === 'elonmuskchibi') {
+  } else if (isSmallRig) {
     skinScale = 5.0
   }
-  
+
   // Y offset to raise skins above floor (Alon has built-in offset in AlonAvatar.tsx)
-  const skinYOffset = isAlonSkin ? 0 : (player.skinId === 'trumpskin' || player.skinId === 'elonmuskchibi') ? 0.8 : 0
+  const skinYOffset = isAlonSkin ? 0 : isSmallRig ? 0.8 : 0
 
   // Nickname/chat vertical offsets — proportional to total rendered height
   // Characters are ~2 units tall at scale 1, so ~14 units at 7x scale
-  const nameBillboardY = isAlonSkin ? 15.5 : (player.skinId === 'trumpskin' || player.skinId === 'elonmuskchibi') ? 16.5 : 2.5
+  const nameBillboardY = isAlonSkin ? 15.5 : isSmallRig ? 16.5 : 2.5
   const chatBillboardY = nameBillboardY + 1.8
   const ytBillboardY = nameBillboardY + 1.8
 
@@ -134,6 +141,14 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
           <ElonMuskChibiAvatar animation={animation} />
         ) : player.skinId === 'trumpskin' ? (
           <TrumpSkinAvatar animation={animation} />
+        ) : player.skinId === 'chillhouse' ? (
+          <ChillHouseAvatar animation={animation} />
+        ) : player.skinId === 'tobaku' ? (
+          <TobakuAvatar animation={animation} />
+        ) : player.skinId === 'unc' ? (
+          <UncAvatar animation={animation} />
+        ) : player.skinId === 'pinguin' ? (
+          <PinguinAvatar animation={animation} />
         ) : (
           <AlonAvatar animation={animation} />
         )}

@@ -94,6 +94,66 @@ export const SKINS: SkinConfig[] = [
   //   cacheKey: 'v1',
   // },
   {
+    id: 'chillhouse',
+    label: 'ChillHouse',
+    paletteSupport: 'fixed',
+    previewCamera: {
+      position: [0, 1.55, 3.0],
+      target: [0, 1.05, 0],
+      fov: 35,
+    },
+    previewScale: 1,
+    assets: {
+      modelUrl: '/alon_house/skins/chillhouse-v1.glb',
+    },
+    cacheKey: 'v1',
+  },
+  {
+    id: 'tobaku',
+    label: 'Tobaku',
+    paletteSupport: 'fixed',
+    previewCamera: {
+      position: [0, 1.55, 3.0],
+      target: [0, 1.05, 0],
+      fov: 35,
+    },
+    previewScale: 1,
+    assets: {
+      modelUrl: '/alon_house/skins/tobaku-v1.glb',
+    },
+    cacheKey: 'v1',
+  },
+  {
+    id: 'unc',
+    label: 'Unc',
+    paletteSupport: 'fixed',
+    previewCamera: {
+      position: [0, 1.55, 3.0],
+      target: [0, 1.05, 0],
+      fov: 35,
+    },
+    previewScale: 1,
+    assets: {
+      modelUrl: '/alon_house/skins/unc-v1.glb',
+    },
+    cacheKey: 'v1',
+  },
+  {
+    id: 'pinguin',
+    label: 'Pinguin',
+    paletteSupport: 'fixed',
+    previewCamera: {
+      position: [0, 1.55, 3.0],
+      target: [0, 1.05, 0],
+      fov: 35,
+    },
+    previewScale: 1,
+    assets: {
+      modelUrl: '/alon_house/skins/pinguin-v1.glb',
+    },
+    cacheKey: 'v1',
+  },
+  {
     id: 'trumpskin',
     label: 'Trump',
     paletteSupport: 'fixed',
