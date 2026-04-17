@@ -1,6 +1,7 @@
 import RemotePlayerAvatar from "./multiplayer/RemotePlayerAvatar";
 import HouseScene from "./HouseScene";
 import HouseExteriorCollision from "./HouseExteriorCollision";
+import OrangiePathNPC from "./OrangiePathNPC";
 import CheckpointEntryHouse from "./checkpoints/CheckpointEntryHouse";
 import CheckpointExitHouse from "./checkpoints/CheckpointExitHouse";
 import Room1 from "./rooms/Room1";
@@ -72,7 +73,7 @@ export default function Scene3D({ containerRef }) {
         <HouseExteriorCollision />
       </Suspense>
 
-      {/* Checkpoint + Interior rooms — same Blender scene offset as HouseScene */}
+      {/* Checkpoint + Interior rooms + NPCs — same Blender scene offset as HouseScene */}
       <group position={[190.12, 1.1857, -88.67]}>
         <Suspense fallback={null}>
           <CheckpointEntryHouse />
@@ -80,6 +81,9 @@ export default function Scene3D({ containerRef }) {
         </Suspense>
         <Suspense fallback={null}>
           <Room1 />
+        </Suspense>
+        <Suspense fallback={null}>
+          <OrangiePathNPC />
         </Suspense>
       </group>
 

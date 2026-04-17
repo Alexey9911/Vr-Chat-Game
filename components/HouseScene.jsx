@@ -135,11 +135,12 @@ export default function HouseScene() {
   useEffect(() => {
     if (!gltf.scene) return
     gltf.scene.traverse((child) => {
-      // Hide the original char1/Armature — the animated clone in HouseDancer replaces it
-      if (child.name === 'char1' || child.name === 'Armature') {
+      // Hide the original char1/Armature — the animated clone in HouseDancer replaces it.
+      // Also hide Mesh_0.001 (wheelchair NPC) — OrangiePathNPC clones & animates it on a path.
+      if (child.name === 'char1' || child.name === 'Armature' || child.name === 'Mesh_0.001') {
         child.visible = false
       }
-      if (child.isMesh && child.name !== 'char1') {
+      if (child.isMesh && child.name !== 'char1' && child.name !== 'Mesh_0.001') {
         child.castShadow = true
         child.receiveShadow = true
       }
