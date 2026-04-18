@@ -64,30 +64,17 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
   const [isYouTubePlaying, setIsYouTubePlaying] = useState(false)
   const [isCursorFree, setIsCursorFree] = useState(false)
 
-  // Track if mouse is locked (ESC inactive) or free (ESC active)
+  // Track cursor lock state only. ESC no longer re-locks — ESC opens lobby
+  // (handled in LobbyScreen). Cursor free/lock is toggled via the HUD button
+  // or by clicking the canvas (pointer-lock happens in useCameraControls).
   useEffect(() => {
     const handlePointerLockChange = () => {
       setIsCursorFree(!document.pointerLockElement)
     }
-
-    const handleEscToggle = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        // If it's already free, pressing ESC again will lock it back.
-        // Natively, if it is locked, the browser automatically unlocks it on ESC.
-        if (!document.pointerLockElement) {
-          e.preventDefault()
-          document.body.requestPointerLock?.()
-        }
-      }
-    }
-
     document.addEventListener('pointerlockchange', handlePointerLockChange)
-    document.addEventListener('keydown', handleEscToggle)
     setIsCursorFree(!document.pointerLockElement)
-    
     return () => {
       document.removeEventListener('pointerlockchange', handlePointerLockChange)
-      document.removeEventListener('keydown', handleEscToggle)
     }
   }, [])
 
@@ -193,7 +180,7 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
             document.exitPointerLock?.()
           }
         }}
-        title={isCursorFree ? "Cursor Free (Click here to lock / ESC to lock again)" : "Cursor Locked (Press ESC to click UI)"}
+        title={isCursorFree ? "Cursor Free (click canvas to lock)" : "Cursor Locked (click to free)"}
       >
         <span style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '1px' }}>ESC</span>
       </button>

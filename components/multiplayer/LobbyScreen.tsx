@@ -7,6 +7,35 @@ import { findLobby, joinLobby, leaveLobby } from '../../lib/lobbyApi'
 import { useKeyboardStore } from '../../lib/useKeyboardStore'
 import AdminPasswordModal from './AdminPasswordModal'
 import { parseEmoteCodes, getEmoteById } from '../../lib/emotes/emotesConfig'
+import { useSettingsStore, type EnvironmentPreset } from '../../lib/settings/settingsStore'
+import { setGlobalVolumeMultiplier, stopMusicForPlayer } from '../../lib/audio/musicSystem'
+import { setMicVolumeMultiplier, setLocalMicGain as setLocalMicGainAudio } from '../../lib/audio/voiceChatSystem'
+import { SKINS } from '../../lib/skins/skinsConfig'
+import { useSkinStore } from '../../lib/skins/skinStore'
+import type { SkinColors } from '../../lib/skins/skinTypes'
+import SkinPreviewCanvas from '../skins/SkinPreviewCanvas'
+import { playYouTubeAudio, stopYouTubeAudio, isYouTubeAudioPlaying, getCurrentVideoTitle, setYouTubeVolume } from '../../lib/audio/youtubePlayer'
+
+const ENVIRONMENT_OPTIONS: { value: EnvironmentPreset; label: string; description: string }[] = [
+  { value: 'sunset', label: 'Sunset', description: 'Warm golden hour lighting' },
+  { value: 'night', label: 'Night', description: 'Dark starry sky' },
+  { value: 'warehouse', label: 'Warehouse', description: 'Indoor studio lighting' },
+]
+
+const PALETTE_COLORS = [
+  { label: 'Electric Blue', hex: '#4a9eff' },
+  { label: 'Crimson', hex: '#ff3b3b' },
+  { label: 'Neon Green', hex: '#39ff14' },
+  { label: 'Gold', hex: '#ffd700' },
+  { label: 'Purple', hex: '#a855f7' },
+  { label: 'Hot Pink', hex: '#ff6ec7' },
+  { label: 'Cyan', hex: '#00e5ff' },
+  { label: 'Orange', hex: '#ff6b00' },
+  { label: 'White', hex: '#ffffff' },
+  { label: 'Shadow', hex: '#1a1a2e' },
+  { label: 'Lime', hex: '#7fff00' },
+  { label: 'Magenta', hex: '#ff00ff' },
+]
 
 // Lobby / Skin selection screen — shown before entering the 3D world
 // Player chooses nickname and color (skin), then clicks Play
@@ -79,8 +108,32 @@ export default function LobbyScreen() {
     chatMessages,
     setChatMessages,
     remotePlayers,
+    isConnected,
   } = useMultiplayerStore()
+
+  // Settings store (real wired state)
+  const settingsVolume = useSettingsStore((s) => s.volume)
+  const settingsMicVolume = useSettingsStore((s) => s.micVolume)
+  const settingsLocalMicGain = useSettingsStore((s) => s.localMicGain)
+  const environment = useSettingsStore((s) => s.environment)
+  const setVolume = useSettingsStore((s) => s.setVolume)
+  const setMicVolume = useSettingsStore((s) => s.setMicVolume)
+  const setLocalMicGainStore = useSettingsStore((s) => s.setLocalMicGain)
+  const setEnvironment = useSettingsStore((s) => s.setEnvironment)
+
+  // Skin store (live 3D preview)
+  const selectedSkinIndex = useSkinStore((s) => s.selectedSkinIndex)
+  const colorsBySkinId = useSkinStore((s) => s.colorsBySkinId)
+  const setSelectedSkinIndex = useSkinStore((s) => s.setSelectedSkinIndex)
+  const setSkinColors = useSkinStore((s) => s.setSkinColors)
+  const setActiveSkinId = useSkinStore((s) => s.setActiveSkinId)
+  const setSkinLoaded = useSkinStore((s) => s.setSkinLoaded)
   const [activeTab, setActiveTab] = useState('LOBBY')
+  const [ytUrl, setYtUrl] = useState('')
+  const [ytPlaying, setYtPlaying] = useState(false)
+  const [ytTitle, setYtTitle] = useState('')
+  const [ytLoading, setYtLoading] = useState(false)
+  const [ytError, setYtError] = useState('')
   const [nickname, setNickname] = useState('')
   const [audioContextInitialized, setAudioContextInitialized] = useState(false)
   const [selectedColor, setSelectedColor] = useState(SKIN_COLORS[0].hex)
@@ -158,6 +211,35 @@ export default function LobbyScreen() {
     }
   }, [])
 
+  // ESC → reopen lobby when connected (no reconnect). Ignored while typing.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      const el = document.activeElement as any
+      const typing = !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
+      if (typing) return
+      if (!isConnected) return
+      if (lobbyVisible) return
+      e.preventDefault()
+      setLobbyVisible(true)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [isConnected, lobbyVisible, setLobbyVisible])
+
+  // Poll YouTube playback state while on the CUSTOMIZATION tab
+  useEffect(() => {
+    if (activeTab !== 'CUSTOMIZATION') return
+    const t = setInterval(() => {
+      setYtPlaying(isYouTubeAudioPlaying())
+      setYtTitle(getCurrentVideoTitle())
+    }, 500)
+    return () => clearInterval(t)
+  }, [activeTab])
+
+  // Keep YouTube volume in sync with music slider
+  useEffect(() => { setYouTubeVolume(settingsVolume / 100) }, [settingsVolume])
+
   // Initialize audio context on first user interaction
   const initAudioOnInteraction = () => {
     if (!audioContextInitialized) {
@@ -171,6 +253,12 @@ export default function LobbyScreen() {
   // Finalize player profile and enter the game 
   const handlePlayClick = () => {
     initAudioOnInteraction()
+    // If already in-game (lobby was reopened via ESC), just close the overlay
+    if (isConnected) {
+      setError('')
+      setLobbyVisible(false)
+      return
+    }
     if (!nickname.trim()) {
       setError('Please enter a nickname!')
       return
@@ -641,7 +729,7 @@ export default function LobbyScreen() {
           <p className="lobby-subtitle-concept">3D SOCIAL WORLD</p>
         </div>
         <div className="lobby-nav-tabs">
-          {['LOBBY', 'AUDIO SETTINGS', 'VIDEO SETTINGS', 'CONTROLS'].map(tab => (
+          {['LOBBY', 'CUSTOMIZATION', 'AUDIO SETTINGS', 'VIDEO SETTINGS', 'CONTROLS'].map(tab => (
             <button key={tab} className={`nav-tab ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>
               {tab}
             </button>
@@ -812,35 +900,81 @@ export default function LobbyScreen() {
           </>
         ) : (
           <div className="lobby-settings-container" style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+            {activeTab === 'CUSTOMIZATION' && (
+              <CustomizationTab
+                isConnected={isConnected}
+                ytUrl={ytUrl} setYtUrl={setYtUrl}
+                ytPlaying={ytPlaying} ytTitle={ytTitle}
+                ytLoading={ytLoading} setYtLoading={setYtLoading}
+                ytError={ytError} setYtError={setYtError}
+                setYtPlaying={setYtPlaying} setYtTitle={setYtTitle}
+                playroomRef={playroomRef}
+                selectedSkinIndex={selectedSkinIndex}
+                colorsBySkinId={colorsBySkinId}
+                setSelectedSkinIndex={setSelectedSkinIndex}
+                setSkinColors={setSkinColors}
+                setActiveSkinId={setActiveSkinId}
+                setSkinLoaded={setSkinLoaded}
+              />
+            )}
+
             {activeTab === 'AUDIO SETTINGS' && (
               <div className="settings-ui-panel">
                 <div className="setting-item">
-                  <h3>YouTube</h3>
-                  <p>Everyone in the lobby will hear the music • Volume follows Music slider</p>
-                </div>
-                <div className="setting-item">
                   <h3>Music Volume</h3>
-                  <p>Volume of skin music in the game</p>
+                  <p>Volume of skin music and YouTube in the game</p>
                   <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
-                     <input type="range" min="0" max="100" defaultValue="50" className="fortnite-slider" />
-                     <span style={{color: 'white', fontWeight: 'bold', width: '50px'}}>50%</span>
+                     <input
+                       type="range" min="0" max="100"
+                       value={settingsVolume}
+                       onChange={(e) => {
+                         const v = Number(e.target.value)
+                         setVolume(v)
+                         setGlobalVolumeMultiplier(v / 100)
+                         setYouTubeVolume(v / 100)
+                       }}
+                       className="fortnite-slider"
+                     />
+                     <span style={{color: 'white', fontWeight: 'bold', width: '50px'}}>{settingsVolume}%</span>
                   </div>
                 </div>
                 <div className="setting-item">
                   <h3>Other Players Mic</h3>
                   <p>How loud you hear other players' microphones</p>
                   <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
-                     <input type="range" min="0" max="100" defaultValue="100" className="fortnite-slider" />
-                     <span style={{color: 'white', fontWeight: 'bold', width: '50px'}}>100%</span>
+                     <input
+                       type="range" min="0" max="100"
+                       value={settingsMicVolume}
+                       onChange={(e) => {
+                         const v = Number(e.target.value)
+                         setMicVolume(v)
+                         setMicVolumeMultiplier(v / 100)
+                       }}
+                       className="fortnite-slider"
+                     />
+                     <span style={{color: 'white', fontWeight: 'bold', width: '50px'}}>{settingsMicVolume}%</span>
                   </div>
                 </div>
                 <div className="setting-item">
                   <h3>Your Microphone</h3>
                   <p>How loud other players hear you</p>
                   <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
-                     <input type="range" min="0" max="100" defaultValue="100" className="fortnite-slider" />
-                     <span style={{color: 'white', fontWeight: 'bold', width: '50px'}}>100%</span>
+                     <input
+                       type="range" min="0" max="100"
+                       value={settingsLocalMicGain}
+                       onChange={(e) => {
+                         const v = Number(e.target.value)
+                         setLocalMicGainStore(v)
+                         setLocalMicGainAudio(v / 100)
+                       }}
+                       className="fortnite-slider"
+                     />
+                     <span style={{color: 'white', fontWeight: 'bold', width: '50px'}}>{settingsLocalMicGain}%</span>
                   </div>
+                </div>
+                <div className="setting-item">
+                  <h3>YouTube Music</h3>
+                  <p>Paste a YouTube URL in the CUSTOMIZATION tab to share music with everyone in the lobby.</p>
                 </div>
               </div>
             )}
@@ -851,9 +985,28 @@ export default function LobbyScreen() {
                   <h3>Environment</h3>
                   <p>Change the lighting and atmosphere</p>
                   <div style={{display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap'}}>
-                     <button className="lobby-play-btn" style={{fontSize: '20px', padding: '15px 30px', animation: 'none', background: 'linear-gradient(45deg, #1DA1F2, #00f2fe)'}}>DAY</button>
-                     <button className="lobby-play-btn" style={{fontSize: '20px', padding: '15px 30px', animation: 'none', filter: 'grayscale(1)', background: 'linear-gradient(45deg, #111, #333)'}}>NIGHT</button>
-                     <button className="lobby-play-btn" style={{fontSize: '20px', padding: '15px 30px', animation: 'none', filter: 'grayscale(0.6)', background: 'linear-gradient(45deg, #f89b29, #ff0f7b)'}}>SUNSET</button>
+                    {ENVIRONMENT_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        className="lobby-play-btn"
+                        onClick={() => setEnvironment(opt.value)}
+                        style={{
+                          fontSize: '18px',
+                          padding: '15px 24px',
+                          animation: 'none',
+                          background: opt.value === 'night'
+                            ? 'linear-gradient(45deg, #111, #333)'
+                            : opt.value === 'warehouse'
+                            ? 'linear-gradient(45deg, #1DA1F2, #00f2fe)'
+                            : 'linear-gradient(45deg, #f89b29, #ff0f7b)',
+                          outline: environment === opt.value ? '3px solid #f1c40f' : 'none',
+                          opacity: environment === opt.value ? 1 : 0.75,
+                        }}
+                        title={opt.description}
+                      >
+                        {opt.label.toUpperCase()}
+                      </button>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -865,11 +1018,14 @@ export default function LobbyScreen() {
                   <h3>KEYBOARD BINDINGS</h3>
                   <p>Quick reference for in-game actions</p>
                 </div>
+                <div className="control-row"><span>ESC</span> <span>Open this Lobby (pause)</span></div>
+                <div className="control-row"><span>Click</span> <span>Lock mouse to camera</span></div>
                 <div className="control-row"><span>C</span> <span>Change Skins Panel</span></div>
                 <div className="control-row"><span>V</span> <span>Hold to Voice Chat</span></div>
                 <div className="control-row"><span>W A S D</span> <span>Move Character</span></div>
                 <div className="control-row"><span>SPACE</span> <span>Jump</span></div>
                 <div className="control-row"><span>1 2 3 4</span> <span>Play Emotes</span></div>
+                <div className="control-row"><span>M</span> <span>Toggle Music</span></div>
               </div>
             )}
           </div>
@@ -943,6 +1099,284 @@ export default function LobbyScreen() {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// ───────────────────────────────────────────────────────────────────
+// CUSTOMIZATION TAB — embedded skin picker (transparent canvas) + YouTube
+// ───────────────────────────────────────────────────────────────────
+type CustomizationProps = {
+  isConnected: boolean
+  ytUrl: string; setYtUrl: (s: string) => void
+  ytPlaying: boolean; ytTitle: string
+  ytLoading: boolean; setYtLoading: (b: boolean) => void
+  ytError: string; setYtError: (s: string) => void
+  setYtPlaying: (b: boolean) => void; setYtTitle: (s: string) => void
+  playroomRef: React.MutableRefObject<any>
+  selectedSkinIndex: number
+  colorsBySkinId: Record<string, SkinColors | undefined>
+  setSelectedSkinIndex: (i: number) => void
+  setSkinColors: (id: string, c: SkinColors) => void
+  setActiveSkinId: (id: string) => void
+  setSkinLoaded: (id: string, loaded: boolean) => void
+}
+
+function CustomizationTab(props: CustomizationProps) {
+  const {
+    isConnected, ytUrl, setYtUrl, ytPlaying, ytTitle,
+    ytLoading, setYtLoading, ytError, setYtError,
+    setYtPlaying, setYtTitle, playroomRef,
+    selectedSkinIndex, colorsBySkinId,
+    setSelectedSkinIndex, setSkinColors, setActiveSkinId, setSkinLoaded,
+  } = props
+
+  const skin = SKINS[selectedSkinIndex] ?? SKINS[0]
+  const colors = colorsBySkinId[skin.id]
+  const showPalette = skin.paletteSupport === 'customizable'
+  const neighborUrls = React.useMemo(() => {
+    const n = SKINS.length
+    if (n <= 1) return [] as string[]
+    const prev = SKINS[(selectedSkinIndex - 1 + n) % n]
+    const next = SKINS[(selectedSkinIndex + 1) % n]
+    const urls = [prev.assets.modelUrl, next.assets.modelUrl]
+    prev.assets.lodModelUrls?.forEach((u) => urls.push(u))
+    next.assets.lodModelUrls?.forEach((u) => urls.push(u))
+    return Array.from(new Set(urls))
+  }, [selectedSkinIndex])
+
+  async function applyProfile(nextIndex: number, nextColors: SkinColors | undefined) {
+    const pk = playroomRef.current
+    const me = pk?.myPlayer?.()
+    if (!me) return
+    const prev = me.getState('pdata') || {}
+    const nextSkin = SKINS[nextIndex] ?? SKINS[0]
+    const color = nextColors?.primary ?? prev.color ?? '#4a9eff'
+    me.setState('pdata', { ...prev, skinId: nextSkin.id, colors: nextColors ?? prev.colors, color }, true)
+    setActiveSkinId(nextSkin.id)
+    const { localPlayerId, updateRemotePlayer } = useMultiplayerStore.getState()
+    if (localPlayerId) {
+      updateRemotePlayer(localPlayerId, { skinId: nextSkin.id, colors: nextColors ?? prev.colors, color })
+    }
+  }
+
+  function changeIndex(nextIndex: number) {
+    setSelectedSkinIndex(nextIndex)
+    void applyProfile(nextIndex, colorsBySkinId[SKINS[nextIndex]?.id ?? ''])
+  }
+
+  function onPrev() {
+    const n = SKINS.length
+    if (n <= 1) return
+    changeIndex((selectedSkinIndex - 1 + n) % n)
+  }
+  function onNext() {
+    const n = SKINS.length
+    if (n <= 1) return
+    changeIndex((selectedSkinIndex + 1) % n)
+  }
+  function updateColors(patch: SkinColors) {
+    setSkinColors(skin.id, patch)
+    void applyProfile(selectedSkinIndex, { ...(colorsBySkinId[skin.id] ?? {}), ...patch })
+  }
+
+  const handlePlayYt = async () => {
+    setYtError('')
+    if (!ytUrl.trim()) return
+    setYtLoading(true)
+    try {
+      // Stop any skin music
+      try {
+        const pk = playroomRef.current
+        const me = pk?.myPlayer?.()
+        if (me?.id && me.getState('isMusicPlaying')) {
+          stopMusicForPlayer(me.id)
+          me.setState('isMusicPlaying', false)
+          me.setState('musicData', null)
+          RPC.call('stopMusic', { playerId: me.id }, RPC.Mode.ALL)
+        }
+      } catch {}
+
+      const info = await playYouTubeAudio(ytUrl)
+      setYtTitle(info.title)
+      setYtPlaying(true)
+      try {
+        const pk = playroomRef.current
+        const me = pk?.myPlayer?.()
+        if (me?.id) {
+          me.setState('isYouTubePlaying', true)
+          me.setState('youtubeData', { videoId: info.videoId, startTime: Date.now() })
+        }
+      } catch {}
+    } catch (err: any) {
+      setYtError(err?.message || 'Failed to play YouTube audio')
+    } finally {
+      setYtLoading(false)
+    }
+  }
+
+  const handleStopYt = () => {
+    stopYouTubeAudio()
+    setYtPlaying(false)
+    setYtTitle('')
+    setYtError('')
+    try {
+      const pk = playroomRef.current
+      const me = pk?.myPlayer?.()
+      if (me?.id) {
+        me.setState('isYouTubePlaying', false)
+        me.setState('youtubeData', null)
+      }
+    } catch {}
+  }
+
+  return (
+    <div className="settings-ui-panel" style={{ width: '100%', maxWidth: 1100, display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 24 }}>
+      {/* LEFT: 3D SKIN PREVIEW (transparent canvas) */}
+      <div style={{
+        position: 'relative',
+        borderRadius: 12,
+        overflow: 'hidden',
+        minHeight: 420,
+        background: 'transparent',
+      }}>
+        <div style={{ position: 'absolute', inset: 0 }}>
+          <SkinPreviewCanvas
+            skin={skin}
+            colors={colors}
+            neighborUrls={neighborUrls}
+            transparent
+            onLoaded={() => setSkinLoaded(skin.id, true)}
+          />
+        </div>
+        {/* Nav arrows */}
+        <button
+          type="button"
+          onClick={onPrev}
+          disabled={SKINS.length <= 1}
+          aria-label="Previous skin"
+          style={{
+            position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
+            background: 'rgba(0,0,0,0.45)', color: '#fff',
+            border: '1px solid rgba(255,255,255,0.25)', borderRadius: '50%',
+            width: 44, height: 44, fontSize: 22, cursor: 'pointer', zIndex: 2,
+          }}
+        >‹</button>
+        <button
+          type="button"
+          onClick={onNext}
+          disabled={SKINS.length <= 1}
+          aria-label="Next skin"
+          style={{
+            position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+            background: 'rgba(0,0,0,0.45)', color: '#fff',
+            border: '1px solid rgba(255,255,255,0.25)', borderRadius: '50%',
+            width: 44, height: 44, fontSize: 22, cursor: 'pointer', zIndex: 2,
+          }}
+        >›</button>
+        {/* Label */}
+        <div style={{
+          position: 'absolute', left: 0, right: 0, bottom: 10, textAlign: 'center',
+          color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.8)', zIndex: 2,
+        }}>
+          <div style={{ fontSize: 11, letterSpacing: 2, opacity: 0.7 }}>
+            {selectedSkinIndex + 1} / {SKINS.length}
+          </div>
+          <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: 1 }}>{skin.label}</div>
+        </div>
+      </div>
+
+      {/* RIGHT: options */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="setting-item">
+          <h3>Your Skin</h3>
+          <p>Use ‹ / › to switch between skins. Changes are saved to your profile instantly.</p>
+        </div>
+
+        {showPalette && (
+          <div className="setting-item">
+            <h3>Colors</h3>
+            <p>Personalize your skin with a color</p>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
+              {PALETTE_COLORS.map(({ label, hex }) => (
+                <button
+                  key={hex}
+                  onClick={() => updateColors({ primary: hex })}
+                  title={label}
+                  style={{
+                    width: 34, height: 34, borderRadius: '50%',
+                    border: colors?.primary === hex ? '3px solid #f1c40f' : '2px solid rgba(255,255,255,0.3)',
+                    background: hex, cursor: 'pointer', padding: 0,
+                    boxShadow: colors?.primary === hex ? '0 0 12px rgba(241,196,15,0.6)' : 'none',
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* YouTube Music */}
+        <div className="setting-item">
+          <h3>🎵 YouTube Music</h3>
+          <p>Paste a YouTube URL — everyone in the lobby will hear it. Volume follows Music slider.</p>
+          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+            <input
+              type="text"
+              value={ytUrl}
+              onChange={(e) => setYtUrl(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !ytPlaying) handlePlayYt() }}
+              placeholder="https://youtube.com/watch?v=..."
+              disabled={!isConnected || ytLoading || ytPlaying}
+              style={{
+                flex: 1,
+                background: 'rgba(255,255,255,0.08)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                borderRadius: 8, padding: '10px 12px',
+                color: '#fff', fontSize: 13, outline: 'none',
+              }}
+            />
+            {ytPlaying ? (
+              <button
+                onClick={handleStopYt}
+                style={{
+                  background: 'rgba(255,0,0,0.2)', border: '1px solid rgba(255,0,0,0.5)',
+                  borderRadius: 8, padding: '10px 16px', color: '#ff6b6b',
+                  fontWeight: 700, cursor: 'pointer',
+                }}
+              >Stop</button>
+            ) : (
+              <button
+                onClick={handlePlayYt}
+                disabled={!isConnected || ytLoading || !ytUrl.trim()}
+                style={{
+                  background: 'rgba(255,0,0,0.25)', border: '1px solid rgba(255,0,0,0.5)',
+                  borderRadius: 8, padding: '10px 16px', color: ytLoading ? '#888' : '#ff6b6b',
+                  fontWeight: 700, cursor: ytLoading ? 'wait' : 'pointer',
+                  opacity: !isConnected || ytLoading || !ytUrl.trim() ? 0.5 : 1,
+                }}
+              >{ytLoading ? 'Loading…' : 'Play'}</button>
+            )}
+          </div>
+          {!isConnected && (
+            <div style={{ fontSize: 12, color: '#ffb84d', marginTop: 6 }}>
+              Join the lobby first to share music.
+            </div>
+          )}
+          {ytError && (
+            <div style={{ fontSize: 12, color: '#ff6b6b', marginTop: 6 }}>{ytError}</div>
+          )}
+          {ytPlaying && ytTitle && (
+            <div style={{
+              marginTop: 10, padding: '8px 12px',
+              background: 'rgba(255,0,0,0.1)', border: '1px solid rgba(255,0,0,0.3)',
+              borderRadius: 8, color: '#ffaaaa', fontSize: 13,
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}>
+              ▶ {ytTitle}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

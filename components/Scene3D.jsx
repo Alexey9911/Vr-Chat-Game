@@ -1,6 +1,7 @@
 import RemotePlayerAvatar from "./multiplayer/RemotePlayerAvatar";
 import HouseScene from "./HouseScene";
 import HouseExteriorCollision from "./HouseExteriorCollision";
+import CarsCollision from "./CarsCollision";
 import OrangiePathNPC from "./OrangiePathNPC";
 import HouseAirdrops from "./HouseAirdrops";
 import CheckpointEntryHouse from "./checkpoints/CheckpointEntryHouse";
@@ -73,6 +74,9 @@ export default function Scene3D({ containerRef }) {
       <Suspense fallback={null}>
         <HouseExteriorCollision />
       </Suspense>
+
+      {/* Invisible collision boxes for 4 parked cars (hardcoded AABBs, 0 draw calls) */}
+      <CarsCollision />
 
       {/* Checkpoint + Interior rooms + NPCs — same Blender scene offset as HouseScene */}
       <group position={[190.12, 1.1857, -88.67]}>
