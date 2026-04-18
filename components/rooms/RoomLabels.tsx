@@ -27,12 +27,12 @@ type LabelEntry = {
 //   Only Staff → smaller + black
 //   PISS... → split into two lines via `\n`
 const ROOM_LABELS: LabelEntry[] = [
-  { label: 'PumpFun Support',  position: [-40.81, 336.58, 117.70], color: '#10b981', outlineColor: '#065f46' },
-  { label: 'Jewish Room',      position: [-77.39, 336.58,  67.68], color: '#1d4ed8', outlineColor: '#0b1e66' },
-  { label: 'PISS ON ME\nI AM A TOILET', position: [-104.50, 338.18, 108.94] },
-  { label: 'Only Staff',       position: [-84.69, 338.18, 131.60], fontSize: 2, color: '#000000', outlineColor: '#ffffff' },
-  { label: 'Woof Woof',        position: [ 69.60, 357.47,  34.80], color: '#ff6ec7', outlineColor: '#8a2a5b' },
-  { label: 'HELP!!',           position: [ 82.32, 323.52, 117.73] },
+  { label: 'PumpFun Support',  position: [ -54.58, 340.86, 130.25], color: '#10b981', outlineColor: '#065f46' },
+  { label: 'Jewish Room',      position: [ -83.46, 337.74,  53.37], color: '#1d4ed8', outlineColor: '#0b1e66' },
+  { label: 'PISS ON ME\nI AM A TOILET', position: [-104.50, 338.18, 108.94], fontSize: 1.8 },
+  { label: 'Only Staff',       position: [ -95.03, 338.18, 131.60], fontSize: 2, color: '#000000', outlineColor: '#ffffff' },
+  { label: 'Woof Woof',        position: [  69.60, 357.47,  34.80], color: '#ff6ec7', outlineColor: '#8a2a5b' },
+  { label: 'HELP!!',           position: [  95.07, 332.37,  40.82] },
 ]
 
 function RoomLabel({ label, position, fontSize = 3, color = '#C0C0C0', outlineColor = '#606060' }: LabelEntry) {
@@ -43,7 +43,7 @@ function RoomLabel({ label, position, fontSize = 3, color = '#C0C0C0', outlineCo
         fontSize={fontSize}
         color={color}
         anchorX="center"
-        anchorY="middle".
+        anchorY="middle"
         outlineWidth={fontSize * 0.05}
         outlineColor={outlineColor}
         textAlign="center"
@@ -58,7 +58,7 @@ export default function RoomLabels() {
   return (
     <group>
       {ROOM_LABELS.map((l) => (
-        <RoomLabel key={l.label} label={l.label} position={l.position} fontSize={l.fontSize} />
+        <RoomLabel key={l.label} {...l} />
       ))}
     </group>
   )
