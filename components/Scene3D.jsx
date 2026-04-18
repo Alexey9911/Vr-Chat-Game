@@ -7,6 +7,8 @@ import HouseAirdrops from "./HouseAirdrops";
 import CheckpointEntryHouse from "./checkpoints/CheckpointEntryHouse";
 import CheckpointExitHouse from "./checkpoints/CheckpointExitHouse";
 import Room1 from "./rooms/Room1";
+import RoomLabels from "./rooms/RoomLabels";
+import RoomMusic from "./rooms/RoomMusic";
 
 import React, { Suspense } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
@@ -88,6 +90,12 @@ export default function Scene3D({ containerRef }) {
         </Suspense>
         <Suspense fallback={null}>
           <Room1 />
+        </Suspense>
+        <Suspense fallback={null}>
+          <RoomLabels />
+        </Suspense>
+        <Suspense fallback={null}>
+          <RoomMusic />
         </Suspense>
         <Suspense fallback={null}>
           <OrangiePathNPC />

@@ -3,7 +3,7 @@
 // Purpose: push the whole interior well above the exterior camera's
 // far plane (350) so the rooms get frustum-culled for free when the
 // player is outside.
-export const ROOM_Y_OFFSET = 183
+export const ROOM_Y_OFFSET = 176
 
 // Native Blender Y of the reference plane in position_Y_rooms.glb.
 // That plane sits at the character's EYE height when standing on the

@@ -17,6 +17,11 @@ import { ROOM_Y_OFFSET, ROOM_FLOOR_BLENDER_Y } from '../lib/roomsConfig'
 // Physics constants
 const GRAVITY = -35
 const JUMP_FORCE = 16
+// Max vertical obstacle the player will auto-climb (stair treads, curbs).
+// Anything taller registers as a wall and blocks movement normally.
+const STEP_HEIGHT = 2.5
+// Reused down vector for the ground / step-up probes.
+const DOWN_VEC = new Vector3(0, -1, 0)
 
 // Camera orbit constants
 const CAM_DIST = 20                // distance from player to camera
@@ -81,8 +86,9 @@ export const useCameraControls = () => {
   // Custom animation state override
   const currentEmote = useRef<string | null>(null)
   
-  // Collision detection — separate raycasters for movement and camera
+  // Collision detection — separate raycasters for movement, ground, and camera
   const moveRaycaster = useRef(new Raycaster())
+  const groundRaycaster = useRef(new Raycaster())
   const camRaycaster = useRef(new Raycaster())
   // Smoothed radial distance — snap inward to prevent wall clipping,
   // lerp outward so transient collision hits (fast orbit) don't cause zoom flicker.
@@ -495,22 +501,45 @@ export const useCameraControls = () => {
     playerPos.current.y += velocityY.current * delta
 
     // Ground check — zone-aware floor height.
-    // Interior floor derived from position_Y_rooms.glb (reference plane
-    // authored at the Blender floor Y). World Y = plane Blender Y +
-    // HouseScene OY (1.1857) + ROOM_Y_OFFSET + EYE_HEIGHT (same formula
-    // as exterior: floor + eye). Single source of truth, no magic.
+    // Interior: downward raycast onto the physics meshes so ramps and
+    //           stairs "just work" (the floor under the player tells us
+    //           where to clamp, not a hardcoded Y). Falls back to the
+    //           reference-plane Y if the probe misses (safety net so
+    //           the player never falls into the void).
+    // Exterior: simple EYE_HEIGHT clamp (flat ground handled by the
+    //           terrain collision mesh separately).
     const currentZone = useZoneStore.getState().currentZone
-    const floorY = currentZone === 'interior'
+    const collisionMeshes = getCollisionMeshes()
+    const fallbackFloorY = currentZone === 'interior'
       ? ROOM_FLOOR_BLENDER_Y + 1.1857 + ROOM_Y_OFFSET + EYE_HEIGHT
       : EYE_HEIGHT
+
+    let floorY = fallbackFloorY
+    if (currentZone === 'interior' && collisionMeshes.length > 0) {
+      // Cast from ~STEP_HEIGHT above the player's eyes straight down.
+      // Starting above the eye guarantees we hit floor geometry even
+      // when the player is standing right on it.
+      const origin = playerPos.current.clone()
+      origin.y += 3
+      groundRaycaster.current.set(origin, DOWN_VEC)
+      groundRaycaster.current.far = 30
+      const gHits = groundRaycaster.current.intersectObjects(collisionMeshes, false)
+      if (gHits.length > 0) {
+        floorY = gHits[0].point.y + EYE_HEIGHT
+      }
+    }
+
     if (playerPos.current.y <= floorY) {
       playerPos.current.y = floorY
       velocityY.current = 0
       isOnGround.current = true
     }
 
-    // Apply lateral movement with collision detection (array of meshes — casa, jardin, calle, rooms, etc.)
-    const collisionMeshes = getCollisionMeshes()
+    // Apply lateral movement with collision detection.
+    // Step-up logic: before sliding off a wall we probe downward just
+    // ahead of the hit. If there's standable ground within STEP_HEIGHT
+    // above the player's feet (i.e. a stair tread), we let movement
+    // through and snap the player up instead of blocking.
     if (velocity.current.lengthSq() > 0.001 && collisionMeshes.length > 0) {
       const moveDir = velocity.current.clone().normalize()
       moveRaycaster.current.set(playerPos.current, moveDir)
@@ -520,13 +549,34 @@ export const useCameraControls = () => {
 
       if (intersects.length > 0 && intersects[0].distance < velocity.current.length() + 0.3) {
         const hit = intersects[0]
-        const normal = hit.face?.normal
-        if (normal && hit.object) {
-          const worldNormal = normal.clone().transformDirection((hit.object as any).matrixWorld)
-          const slideVel = velocity.current.clone().sub(
-            worldNormal.clone().multiplyScalar(velocity.current.dot(worldNormal))
-          )
-          velocity.current.copy(slideVel.multiplyScalar(0.9))
+
+        // Step-up probe: look for ground just past the wall, at feet + STEP_HEIGHT.
+        const probeOrigin = playerPos.current.clone()
+          .add(moveDir.clone().multiplyScalar(hit.distance + 0.5))
+        probeOrigin.y += STEP_HEIGHT // start above the potential step top
+        groundRaycaster.current.set(probeOrigin, DOWN_VEC)
+        groundRaycaster.current.far = STEP_HEIGHT * 2
+        const stepHits = groundRaycaster.current.intersectObjects(collisionMeshes, false)
+
+        const feetY = playerPos.current.y - EYE_HEIGHT
+        const stepTopY = stepHits.length > 0 ? stepHits[0].point.y : -Infinity
+        const stepHeight = stepTopY - feetY
+
+        if (stepHits.length > 0 && stepHeight > 0 && stepHeight <= STEP_HEIGHT) {
+          // Short obstacle — step over it instead of blocking.
+          playerPos.current.y = stepTopY + EYE_HEIGHT
+          velocityY.current = 0
+          isOnGround.current = true
+        } else {
+          // Regular wall — slide along its normal.
+          const normal = hit.face?.normal
+          if (normal && hit.object) {
+            const worldNormal = normal.clone().transformDirection((hit.object as any).matrixWorld)
+            const slideVel = velocity.current.clone().sub(
+              worldNormal.clone().multiplyScalar(velocity.current.dot(worldNormal))
+            )
+            velocity.current.copy(slideVel.multiplyScalar(0.9))
+          }
         }
       }
     }

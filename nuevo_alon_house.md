@@ -468,3 +468,59 @@ Tres bugs acumulados que se solapaban y confundían el diagnóstico:
 - **Paredes de colisión siempre con Solidify** (o body cerrado). No confiar en DoubleSide para compensar geometría abierta.
 - **Coordenadas críticas como constantes derivadas de GLBs de referencia**, no magic numbers. Un plano invisible en Blender es la forma más confiable de sincronizar artista ↔ código para una sola coordenada.
 - **Cuando el "piso funciona pero las paredes no"**: casi siempre es que el piso viene de un clamp hardcoded, no del mesh físico. Verificar con un log del AABB mundo antes de tocar materiales.
+
+
+---
+
+## Rooms: labels flotantes + música espacial (abril 2026 · post escaleras)
+
+### Labels flotantes por cuarto
+
+- **GLB fuente**: `public/alon_house/text_rooms.glb` — 1 plane invisible por cuarto, el **nombre del nodo = texto** del label (mismo convention que los antiguos labels de autos en `HouseScene.jsx`).
+- **Extracción offline**: los transforms se leen del JSON chunk del GLB con un one-liner de node (Draco no comprime los nodes, solo los mesh buffers) → se hardcodean en `components/rooms/RoomLabels.tsx`. No hace falta cargar el GLB en runtime ni loader extra.
+- **Render**: `<Billboard>` + `<Text>` de drei (2D flat que siempre mira a la cámara, no `Text3D`) — más liviano y legible a distancia.
+- **Altura**: montado dentro del mismo `<group position={[OX, OY, OZ]}>` que `Room1`, así OX/OZ se heredan gratis. Solo sumo `ROOM_Y_OFFSET` al Y de cada label. Misma fórmula unificada que todo lo demás del interior.
+- **6 labels actuales**: `PumpFun Support`, `Jewish Room`, `PISS ON ME I AM A TOILET`, `Only Staff`, `Woof Woof`, `HELP!!`.
+
+### Música 3D del interior (`indianmusic.mp3`)
+
+- **GLB fuente**: `public/alon_house/indian_music_plane.glb` — un único plane `indianmusic` que cubre el cuarto donde debe sonar. Centro y half-extents se leen offline y se hardcodean en `components/rooms/RoomMusic.tsx`.
+- **Audio**: `<PositionalAudio>` de drei con `distanceModel="linear"`, `refDistance=5` (full volume en el centro), `maxDistance=95` (silencio cerca del borde del plane). `loop` infinito.
+- **Volumen**: `AUDIO_VOLUME (0.5) * globalVolumeMultiplier` — el mismo nivel que la música por jugador (skins), por pedido explícito.
+- **Gate de zona**: se suscribe a `useZoneStore`. Cuando `currentZone === 'interior'` → `play()`. Cuando cambia a exterior → `pause()` (no stop, así reanuda en el mismo punto si volvés a entrar; cambiar a `stop()` si preferís restart).
+- **Decisión de state management**: reutilizamos `useZoneStore` existente. No se justificaba un store nuevo ni algo "más ligero" — es un único flag boolean que ya está modelado por el store de zona. Zustand está bien acá porque:
+  - Ya existe y lo consume el resto del juego (`useCameraControls`, checkpoints, HUD).
+  - `subscribe()` me da reactividad fina sin re-renders de React.
+  - Para un solo flag no agregar otra abstracción.
+
+### Arquitectura consolidada del interior (estado actual)
+
+Todo lo del interior cuelga del mismo wrapper en `Scene3D.jsx`:
+
+```
+<group position={[190.12, 1.1857, -88.67]}>  // OX/OY/OZ de HouseScene
+  <Room1 />          // visual + physics (ROOM_Y_OFFSET lift)
+  <RoomLabels />     // textos flotantes billboard
+  <RoomMusic />      // PositionalAudio con falloff linear
+  <OrangiePathNPC />
+  <HouseAirdrops />
+</group>
+```
+
+Una sola fórmula Y para TODO: `blenderY + ROOM_Y_OFFSET` (y opcionalmente `+ EYE_HEIGHT` para spawn/clamp). Cualquier asset nuevo que traiga de Blender sigue este patrón.
+
+### Pendientes
+
+- [ ] **Dormitorio** — casi terminado en Blender, falta exportar y sumar al `rooms.glb` + `rooms_physics.glb` (merge en Blender antes de exportar, re-Solidify).
+- [ ] **Basement** — sin empezar; solo meter modelos 3D (decoración), sin lógica nueva. Va dentro del mismo `rooms.glb` unificado.
+- [ ] Evaluar si Solidify 0.8-1.0 eliminó el escape por esquinas. Si no, considerar capsule collision con `three-mesh-bvh`.
+- [ ] Si agregan más cuartos con música distinta, refactorizar `RoomMusic` a un array `[{ plane, url, ... }]` tipo `FLOATING_TEXTS` en vez de hardcodear un solo track.
+
+### Checklist rápido para agregar un nuevo cuarto con música/labels
+
+1. Modelar visual + physics en Blender, aplicar Solidify al physics.
+2. Mergear (Ctrl+J) al `rooms.glb` y `rooms_physics.glb` existentes.
+3. Si tiene texto: añadir planes al `text_rooms.glb`, nombrar con el texto exacto, exportar.
+4. Correr el one-liner de node para extraer transforms (ver comando en la sección de labels arriba).
+5. Pegar coords en `RoomLabels.tsx`. Sumar `ROOM_Y_OFFSET` está implícito en el componente.
+6. Si tiene música propia: extender `RoomMusic` a un array de tracks con sus planes.
