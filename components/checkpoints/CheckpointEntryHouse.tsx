@@ -6,6 +6,7 @@ import { useZoneStore } from '../../lib/zoneStore'
 import { teleportPlayer } from '../../lib/teleportController'
 import { EYE_HEIGHT } from '../../lib/camera/cameraConstants'
 import { localPlayerLive } from '../../lib/localPlayerRef'
+import { ROOM_Y_OFFSET, PHYSICS_EXTRA_Y } from '../../lib/roomsConfig'
 
 // HouseScene offset (must match HouseScene.jsx OX/OY/OZ)
 const OX = 190.12, OY = 1.1857, OZ = -88.67
@@ -14,12 +15,16 @@ const OX = 190.12, OY = 1.1857, OZ = -88.67
 // Blender (from checkpoint_entry_house.glb / node checkpoint_door_house_entry): (-186.10, 11.36, 96.25)
 const CHECKPOINT_WORLD: [number, number, number] = [-186.10 + OX, 11.36 + OY, 96.25 + OZ]
 
-// Where to teleport when entering the house (world coords captured from CoordsDebug)
-// A bit past the interior-side of the door so the player spawns inside the room.
-const INTERIOR_POS = new THREE.Vector3(48.52, 317.19, -25.73)
+// Where to teleport when entering the house (world coords captured from CoordsDebug).
+// Base reading at the correct standing spot inside rooms.glb was
+// (72.96, 317.19, 3.66) before the ROOM_Y_OFFSET lift. We add ROOM_Y_OFFSET
+// to follow the rooms mesh and +3 extra so the player drops a tiny bit onto
+// the physics floor (gravity + physics catches them cleanly without the
+// huge 20-unit plummet the user reported).
+const INTERIOR_POS = new THREE.Vector3(72.96, 320.19 + ROOM_Y_OFFSET + PHYSICS_EXTRA_Y, 3.66)
 // teleport receives orbit-yaw (camera) which is player-facing + π,
-// so to *display* 180° we pass 0 rad (180° - 180°).
-const INTERIOR_ROT = 0 // displayed facing = 180°
+// so to *display* 90° we pass -90° (-π/2 rad).
+const INTERIOR_ROT = -Math.PI / 2 // displayed facing = 90°
 
 const TRIGGER_DISTANCE = 8 // units — how close player must be
 

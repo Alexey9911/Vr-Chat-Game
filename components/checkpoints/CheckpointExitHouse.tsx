@@ -5,6 +5,7 @@ import { useZoneStore } from '../../lib/zoneStore'
 import { teleportPlayer } from '../../lib/teleportController'
 import { EYE_HEIGHT } from '../../lib/camera/cameraConstants'
 import { localPlayerLive } from '../../lib/localPlayerRef'
+import { ROOM_Y_OFFSET } from '../../lib/roomsConfig'
 
 // HouseScene offset (must match HouseScene.jsx OX/OY/OZ)
 const OX = 190.12, OY = 1.1857, OZ = -88.67
@@ -17,7 +18,10 @@ const EXTERIOR_POS = new THREE.Vector3(-42.21, 5.00, 8.97)
 const EXTERIOR_ROT = 90 * (Math.PI / 180) // displayed facing = 270°
 
 // Exit checkpoint position in WORLD space (Blender + offset)
-const EXIT_CHECKPOINT_POS = new THREE.Vector3(-141.60 + OX, 321 + OY, 87.89 + OZ)
+// Exit checkpoint also follows the ROOM_Y_OFFSET lift — otherwise it would
+// be floating 150 units below the new rooms floor and the player could
+// never reach it.
+const EXIT_CHECKPOINT_POS = new THREE.Vector3(-141.60 + OX, 321 + OY + ROOM_Y_OFFSET, 87.89 + OZ)
 
 const TRIGGER_DISTANCE = 6
 

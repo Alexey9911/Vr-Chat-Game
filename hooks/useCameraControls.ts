@@ -12,6 +12,7 @@ import { getHouseCollisionMesh, getCollisionMeshes } from '../lib/collisionRef'
 import { setTeleportFunction } from '../lib/teleportController'
 import { requestPointerLockSafe, cancelPendingPointerLock } from '../lib/pointerLockHelper'
 import { useZoneStore } from '../lib/zoneStore'
+import { ROOM_Y_OFFSET, PHYSICS_EXTRA_Y } from '../lib/roomsConfig'
 
 // Physics constants
 const GRAVITY = -35
@@ -162,7 +163,7 @@ export const useCameraControls = () => {
   // =============================================
   useEffect(() => {
     const applyFar = (zone: 'exterior' | 'interior' | 'balcon') => {
-      const far = zone === 'interior' ? 100 : 350
+      const far = zone === 'interior' ? 150 : 350
       if ((camera as any).far !== far) {
         ;(camera as any).far = far
         ;(camera as any).updateProjectionMatrix?.()
@@ -493,10 +494,15 @@ export const useCameraControls = () => {
     // Move player vertically
     playerPos.current.y += velocityY.current * delta
 
-    // Ground check — zone-aware floor height
+    // Ground check — zone-aware floor height.
+    // Interior floor: Blender Y ~311 + HouseScene OY offset (1.1857) + the
+    // ROOM_Y_OFFSET lift applied to the rooms mesh in Room1.tsx. Without
+    // the ROOM_Y_OFFSET term the ground clamp never engages and the player
+    // falls straight through the rooms physics into the void below.
     const currentZone = useZoneStore.getState().currentZone
-    // Interior floor: Blender Y ~311 + HouseScene OY offset (1.1857)
-    const floorY = currentZone === 'interior' ? 311 + 1.1857 + EYE_HEIGHT : EYE_HEIGHT
+    const floorY = currentZone === 'interior'
+      ? 311 + 1.1857 + ROOM_Y_OFFSET + PHYSICS_EXTRA_Y + EYE_HEIGHT
+      : EYE_HEIGHT
     if (playerPos.current.y <= floorY) {
       playerPos.current.y = floorY
       velocityY.current = 0
@@ -545,8 +551,10 @@ export const useCameraControls = () => {
     // World boundaries (invisible wall) — zone-aware
     // Exterior has NO clamp — collisions are enforced by the exterior_calle_collision mesh (raycast above).
     if (currentZone === 'interior') {
-      // Interior: room1 Blender bounds + HouseScene offset (OX=190.12, OZ=-88.67)
-      const xMin = -197 + 190.12, xMax = -87 + 190.12, zMin = 13 + (-88.67), zMax = 163 + (-88.67)
+      // Interior invisible-wall boundary — kept intentionally generous so
+      // the new rooms_physics.glb (walls as planes) is the real authority
+      // on collisions. The clamp only prevents runaway NaN positions.
+      const xMin = -300, xMax = 300, zMin = -300, zMax = 300
       playerPos.current.x = Math.max(xMin, Math.min(xMax, playerPos.current.x))
       playerPos.current.z = Math.max(zMin, Math.min(zMax, playerPos.current.z))
     }
