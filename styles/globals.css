@@ -88,7 +88,7 @@ a {
   background: rgba(15, 15, 20, 0.55);
   padding: 20px;
   backdrop-filter: blur(10px);
-  border-left: 4px solid #00d4ff;
+  border-left: 4px solid #10b981;
   clip-path: polygon(0 0, 100% 0, 96% 100%, 0 100%);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   font-family: 'Burbank Big Condensed', 'Arial Black', Impact, sans-serif;
@@ -135,9 +135,9 @@ a {
 }
 
 .key-button.pressed {
-  background: #f1c40f;
+  background: #10b981;
   border-color: #fff;
-  color: #000;
+  color: #fff;
   transform: scale(1.05);
   box-shadow: 0 0 15px rgba(241, 196, 15, 0.6);
 }

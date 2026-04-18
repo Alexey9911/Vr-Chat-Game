@@ -12,7 +12,7 @@ const CASection: React.FC = () => {
       padding: '16px 20px',
       backdropFilter: 'blur(10px)',
       border: '1px solid rgba(255, 255, 255, 0.08)',
-      borderLeft: '4px solid #00d4ff',
+      borderLeft: '4px solid #10b981',
       clipPath: 'polygon(0 0, 100% 0, 96% 100%, 0 100%)',
       boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)',
       fontFamily: "'Burbank Big Condensed', 'Arial Black', Impact, sans-serif"

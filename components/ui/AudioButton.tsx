@@ -70,30 +70,38 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
   // the canvas (pointer-lock happens in useCameraControls).
   useEffect(() => {
     const handlePointerLockChange = () => {
-      setIsCursorFree(!document.pointerLockElement)
+      const locked: any = (document as any).pointerLockElement || (document as any).webkitPointerLockElement
+      setIsCursorFree(!locked)
     }
     const handleKey = (e: KeyboardEvent) => {
       if (e.key !== 't' && e.key !== 'T') return
+      // Ignore auto-repeat (holding T should not spam toggle).
+      if (e.repeat) { e.preventDefault(); return }
       const el = document.activeElement as any
       const typing = !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
       if (typing) return
       if (lobbyVisible || chatActive) return
       e.preventDefault()
-      if (document.pointerLockElement) {
+      const locked: any = (document as any).pointerLockElement || (document as any).webkitPointerLockElement
+      if (locked) {
         cursorIntent.intentionalUnlock = true
-        document.exitPointerLock?.()
+        const exit = (document as any).exitPointerLock || (document as any).webkitExitPointerLock
+        exit?.call(document)
       } else {
-        // Lock the canvas, not the body — useCameraControls checks the
-        // pointerLockElement is the actual <canvas>.
-        const canvas = document.querySelector('canvas') as HTMLCanvasElement | null
-        canvas?.requestPointerLock?.()
+        // Lock the canvas — useCameraControls checks pointerLockElement === canvas.
+        const canvas = document.querySelector('canvas') as any
+        const req = canvas?.requestPointerLock || canvas?.webkitRequestPointerLock || canvas?.mozRequestPointerLock
+        req?.call(canvas)
       }
     }
     document.addEventListener('pointerlockchange', handlePointerLockChange)
+    document.addEventListener('webkitpointerlockchange', handlePointerLockChange as any)
     window.addEventListener('keydown', handleKey)
-    setIsCursorFree(!document.pointerLockElement)
+    const locked: any = (document as any).pointerLockElement || (document as any).webkitPointerLockElement
+    setIsCursorFree(!locked)
     return () => {
       document.removeEventListener('pointerlockchange', handlePointerLockChange)
+      document.removeEventListener('webkitpointerlockchange', handlePointerLockChange as any)
       window.removeEventListener('keydown', handleKey)
     }
   }, [lobbyVisible, chatActive])
@@ -194,11 +202,13 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
         className={`hud-btn hud-btn--cursor ${isCursorFree ? 'is-free' : ''}`}
         onClick={() => {
           if (isCursorFree) {
-            const canvas = document.querySelector('canvas') as HTMLCanvasElement | null
-            canvas?.requestPointerLock?.()
+            const canvas = document.querySelector('canvas') as any
+            const req = canvas?.requestPointerLock || canvas?.webkitRequestPointerLock || canvas?.mozRequestPointerLock
+            req?.call(canvas)
           } else {
             cursorIntent.intentionalUnlock = true
-            document.exitPointerLock?.()
+            const exit = (document as any).exitPointerLock || (document as any).webkitExitPointerLock
+            exit?.call(document)
           }
         }}
         title={isCursorFree ? "Cursor Free (press T or click canvas to lock)" : "Cursor Locked (press T or click to free)"}

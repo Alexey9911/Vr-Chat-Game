@@ -14,7 +14,7 @@
   padding: 12px;
   background: rgba(15, 15, 20, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-right: 4px solid #00d4ff;
+  border-right: 4px solid #10b981;
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   clip-path: polygon(0 0, 100% 0, 100% 100%, 4% 100%);
@@ -70,43 +70,39 @@
   letter-spacing: 0.4px;
 }
 
-/* Cursor/ESC Button — Dedicated vibrant beautiful gradient */
+/* Cursor/T Button — pump.fun emerald gradient when cursor is free */
 .hud-btn--cursor.is-free {
-  background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
-  border-color: #00d2ff;
+  background: linear-gradient(135deg, #10b981 0%, #22c55e 100%);
+  border-color: #10b981;
   color: #fff;
-  box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.45);
   animation: pulse-cursor 2s ease-in-out infinite;
 }
 
 .hud-btn--cursor.is-free:hover {
-  background: linear-gradient(135deg, #33e0ff 0%, #5a9cf0 100%);
-  box-shadow: 0 0 20px rgba(0, 212, 255, 0.7);
+  background: linear-gradient(135deg, #22c55e 0%, #4ade80 100%);
+  box-shadow: 0 0 22px rgba(16, 185, 129, 0.75);
   transform: scale(1.08);
 }
 
 @keyframes pulse-cursor {
-  0%, 100% {
-    box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(0, 212, 255, 0.6);
-  }
+  0%, 100% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.25); }
+  50%      { box-shadow: 0 0 20px rgba(16, 185, 129, 0.65); }
 }
 
-/* Music Button, and Skin Button — Elegant Gradient when active */
+/* Music Button, and Skin Button — emerald gradient when available */
 .hud-btn--music:not(:disabled):not(.cooldown),
 .hud-btn--skin {
-  background: linear-gradient(135deg, rgba(88, 101, 242, 0.4) 0%, rgba(138, 43, 226, 0.2) 100%);
-  border-color: rgba(88, 101, 242, 0.4);
-  box-shadow: 0 0 10px rgba(88, 101, 242, 0.2);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.4) 0%, rgba(34, 197, 94, 0.2) 100%);
+  border-color: rgba(16, 185, 129, 0.45);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.25);
   animation: pulse-music 3s ease-in-out infinite;
 }
 
 .hud-btn--music:not(:disabled):not(.cooldown):hover,
 .hud-btn--skin:hover {
-  background: linear-gradient(135deg, rgba(88, 101, 242, 0.6) 0%, rgba(138, 43, 226, 0.4) 100%);
-  box-shadow: 0 0 15px rgba(88, 101, 242, 0.4);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.6) 0%, rgba(34, 197, 94, 0.4) 100%);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.45);
   transform: scale(1.08);
 }
 
@@ -129,12 +125,8 @@
 }
 
 @keyframes pulse-music {
-  0%, 100% {
-    box-shadow: 0 0 8px rgba(88, 101, 242, 0.2);
-  }
-  50% {
-    box-shadow: 0 0 16px rgba(88, 101, 242, 0.4);
-  }
+  0%, 100% { box-shadow: 0 0 8px rgba(16, 185, 129, 0.22); }
+  50%      { box-shadow: 0 0 16px rgba(16, 185, 129, 0.45); }
 }
 
 @keyframes pulse-playing {
@@ -270,7 +262,7 @@
   background: rgba(15, 15, 20, 0.55);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-left: 4px solid #f1c40f;
+  border-left: 4px solid #10b981;
   clip-path: polygon(0 0, 100% 0, 96% 100%, 0 100%);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   z-index: 500;
@@ -300,10 +292,10 @@
 }
 
 .skin-bar-item.active {
-  background: #f1c40f;
+  background: #10b981;
   border-color: #fff;
-  color: #000;
-  box-shadow: 0 0 15px rgba(241, 196, 15, 0.6);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.7);
   transform: scale(1.05);
 }
 
@@ -322,10 +314,10 @@
   display: flex;
   gap: 8px;
   padding: 8px 12px;
-  background: rgba(0, 0, 40, 0.7);
+  background: rgba(15, 15, 20, 0.55);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-left: 5px solid #9b59b6;
+  border-left: 5px solid #10b981;
   clip-path: polygon(0 0, 100% 0, 96% 100%, 0 100%);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   z-index: 500;
@@ -338,8 +330,8 @@
   align-items: center;
   gap: 4px;
   padding: 6px 10px;
-  background: rgba(0, 0, 20, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(15, 15, 20, 0.55);
+  border: 1px solid rgba(16, 185, 129, 0.4);
   color: rgba(255, 255, 255, 0.8);
   font-weight: 900;
   cursor: pointer;

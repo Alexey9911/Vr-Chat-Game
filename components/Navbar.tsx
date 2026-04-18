@@ -8,7 +8,7 @@ const btnBase: React.CSSProperties = {
   height: 56,
   backgroundColor: 'rgba(255, 255, 255, 0.85)',
   border: '1px solid rgba(255, 255, 255, 0.5)',
-  borderLeft: '5px solid #00d4ff',
+  borderLeft: '5px solid #10b981',
   transform: 'skewX(-12deg)',
   cursor: 'pointer',
   overflow: 'hidden',
@@ -21,8 +21,8 @@ const btnBase: React.CSSProperties = {
 const btnHover: React.CSSProperties = {
   transform: 'scale(1.1) skewX(-12deg)',
   backgroundColor: 'rgba(255, 255, 255, 1)',
-  border: '1px solid #fff',
-  boxShadow: '0 6px 16px rgba(0,0,0,0.3)',
+  border: '1px solid #10b981',
+  boxShadow: '0 6px 16px rgba(16, 185, 129, 0.35)',
 };
 
 function IconLink({ href, src, alt, noBorder }: { href: string; src: string; alt: string; noBorder?: boolean }) {

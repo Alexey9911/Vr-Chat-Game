@@ -223,9 +223,13 @@ export default function LobbyScreen() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
+      // Ignore auto-repeat: holding ESC must NOT spam toggle the lobby.
+      if (e.repeat) { e.preventDefault(); return }
       const el = document.activeElement as any
       const typing = !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
       if (typing) return
+      // Don't open/close lobby while chat is open (chat handles its own ESC).
+      if (useKeyboardStore.getState().chatActive) return
       if (!isConnected) return
       e.preventDefault()
       const nextVisible = !lobbyVisible
@@ -238,11 +242,16 @@ export default function LobbyScreen() {
     }
     const onPointerLockChange = () => {
       // Unlock happened while we're connected and the lobby is hidden:
-      //   - If it was intentional (T key / HUD button) → don't open lobby.
+      //   - If it was intentional (T key / HUD button / chat opening) → don't open lobby.
       //   - Otherwise → user pressed ESC → open lobby.
-      if (document.pointerLockElement) return
+      const cur: any = (document as any).pointerLockElement || (document as any).webkitPointerLockElement
+      if (cur) return
       if (!useMultiplayerStore.getState().isConnected) return
       if (useMultiplayerStore.getState().lobbyVisible) return
+      // Chat just opened → useCameraControls releases lock → DON'T interpret
+      // that as an ESC press. This fixes: pressing Enter to open chat would
+      // pop the lobby back open.
+      if (useKeyboardStore.getState().chatActive) return
       if (cursorIntent.intentionalUnlock) {
         cursorIntent.intentionalUnlock = false
         return
@@ -251,9 +260,11 @@ export default function LobbyScreen() {
     }
     window.addEventListener('keydown', onKey)
     document.addEventListener('pointerlockchange', onPointerLockChange)
+    document.addEventListener('webkitpointerlockchange', onPointerLockChange as any)
     return () => {
       window.removeEventListener('keydown', onKey)
       document.removeEventListener('pointerlockchange', onPointerLockChange)
+      document.removeEventListener('webkitpointerlockchange', onPointerLockChange as any)
     }
   }, [isConnected, lobbyVisible, setLobbyVisible])
 
@@ -291,11 +302,17 @@ export default function LobbyScreen() {
   // useCameraControls checks `pointerLockElement === canvas`, so locking
   // document.body would be accepted by the browser but ignored by the
   // camera — camera wouldn't move. We MUST target the canvas.
+  //
+  // Safari prefixes pointer-lock APIs with `webkit`; handle both.
   const lockCanvas = () => {
-    const canvas = document.querySelector('canvas')
+    const canvas = document.querySelector('canvas') as any
     if (!canvas) return
-    if (document.pointerLockElement === canvas) return
-    try { canvas.requestPointerLock() } catch {}
+    const cur: any = (document as any).pointerLockElement || (document as any).webkitPointerLockElement
+    if (cur === canvas) return
+    try {
+      const req = canvas.requestPointerLock || canvas.webkitRequestPointerLock || canvas.mozRequestPointerLock
+      req?.call(canvas)
+    } catch {}
   }
 
   // Finalize player profile and enter the game 
