@@ -169,7 +169,7 @@ export const useCameraControls = () => {
   // =============================================
   useEffect(() => {
     const applyFar = (zone: 'exterior' | 'interior' | 'balcon') => {
-      const far = zone === 'interior' ? 200 : 350
+      const far = zone === 'interior' ? 250 : 350
       if ((camera as any).far !== far) {
         ;(camera as any).far = far
         ;(camera as any).updateProjectionMatrix?.()
