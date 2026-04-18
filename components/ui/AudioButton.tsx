@@ -171,9 +171,44 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
     return () => clearInterval(interval)
   }, [isConnected])
 
-  // NOTE: M is reserved for the lobby menu (see LobbyScreen). The music
-  // play/stop button is clickable from the HUD (no keyboard shortcut).
-  // Previously M toggled music which conflicted with the menu hotkey.
+  // NOTE: M is reserved for the lobby menu (see LobbyScreen).
+  //
+  // HUD hotkeys (shown as small pill badges under each icon):
+  //   Y → YouTube modal
+  //   U → Music play/stop ("volume" icon)
+  //   I → Settings modal
+  //   N → Customization / Skins modal
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.repeat) return
+      const el = document.activeElement as any
+      const typing = !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
+      if (typing || chatActive || lobbyVisible) return
+      const k = e.key.toLowerCase()
+      if (k === 'y') {
+        e.preventDefault()
+        toggleYouTubeModal()
+      } else if (k === 'u') {
+        e.preventDefault()
+        // Mirror the button's click handler: play if stopped, stop if playing.
+        if (!cooldown && !skinMusicDisabledLive()) {
+          isActuallyPlayingLive() ? handleStop() : handlePlay()
+        }
+      } else if (k === 'i') {
+        e.preventDefault()
+        toggleSettings()
+      } else if (k === 'n') {
+        e.preventDefault()
+        toggleModal()
+      }
+    }
+    // Helpers to read the latest playing/disabled state from the closure
+    // without re-subscribing the effect on every state tick.
+    const isActuallyPlayingLive = () => isActuallyPlaying
+    const skinMusicDisabledLive = () => (isYouTubePlaying || (!(currentSkinId && hasSkinAudio(currentSkinId)) && !isActuallyPlaying))
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [chatActive, lobbyVisible, cooldown, isActuallyPlaying, isYouTubePlaying, currentSkinId, toggleYouTubeModal, toggleSettings, toggleModal])
 
   const handlePlay = () => {
     if (!isConnected || cooldown) return
@@ -238,32 +273,36 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
         className={`hud-btn hud-btn--music ${isActuallyPlaying ? 'is-playing' : ''} ${cooldown ? 'cooldown' : ''}`}
         onClick={isActuallyPlaying ? handleStop : handlePlay}
         disabled={cooldown || skinMusicDisabled}
-        title={isYouTubePlaying ? 'Stop YouTube first' : isActuallyPlaying ? 'Stop Music' : hasAudio ? 'Play Music' : 'No audio for this skin'}
+        title={isYouTubePlaying ? 'Stop YouTube first' : isActuallyPlaying ? 'Stop Music (U)' : hasAudio ? 'Play Music (U)' : 'No audio for this skin'}
       >
         {isActuallyPlaying
           ? <Square size={17} fill="currentColor" />
           : hasAudio
           ? <Volume2 size={19} />
           : <VolumeX size={19} className="hud-icon-disabled" />}
+        <span className="hud-btn-hotkey">U</span>
       </button>
 
       {/* YOUTUBE MUSIC */}
       <button
         className={`hud-btn hud-btn--youtube ${isYouTubePlaying ? 'is-playing' : ''}`}
         onClick={toggleYouTubeModal}
-        title={isYouTubePlaying ? 'YouTube Music playing' : 'YouTube Music'}
+        title={isYouTubePlaying ? 'YouTube Music playing (Y)' : 'YouTube Music (Y)'}
       >
-        <img src="/youtube-icon.svg" alt="YouTube" draggable={false} style={{ width: '100%', height: '100%', objectFit: 'contain', pointerEvents: 'none' }} />
+        <img src="/youtube-icon.svg" alt="YouTube" draggable={false} />
+        <span className="hud-btn-hotkey">Y</span>
       </button>
 
-      {/* SKINS */}
-      <button className="hud-btn hud-btn--skin" onClick={toggleModal} title="Change Skin (C)">
+      {/* SKINS / CUSTOMIZATION */}
+      <button className="hud-btn hud-btn--skin" onClick={toggleModal} title="Change Skin (N)">
         <Palette size={19} />
+        <span className="hud-btn-hotkey">N</span>
       </button>
 
       {/* SETTINGS */}
-      <button className="hud-btn hud-btn--settings" onClick={toggleSettings} title="Settings">
+      <button className="hud-btn hud-btn--settings" onClick={toggleSettings} title="Settings (I)">
         <Settings size={17} />
+        <span className="hud-btn-hotkey">I</span>
       </button>
 
       {/* PUSH-TO-TALK BUTTON — click-hold or press V to talk */}
