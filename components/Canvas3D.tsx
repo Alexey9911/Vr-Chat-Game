@@ -73,7 +73,7 @@ const Canvas3D: React.FC<{ loadingOverlayEnabled?: boolean; forceHidden?: boolea
           camera={{
             fov: 75,
             near: 0.1,
-            far: 1000,
+            far: 350,
             position: [-59.95, EYE_HEIGHT, -87.86]
           }}
         >

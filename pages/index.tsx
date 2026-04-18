@@ -6,6 +6,7 @@ import KeyboardHUD from '../components/KeyboardHUD'
 import TouchControls from '../components/TouchControls'
 import { useIsMobile } from '../hooks/useIsMobile'
 import CASection from '../components/CASection'
+import CoordsDebug from '../components/CoordsDebug'
 import EntryLoadingOverlay from '../components/EntryLoadingOverlay'
 import { useMultiplayerStore } from '../lib/multiplayerStore'
 import Navbar from '../components/Navbar'
@@ -112,6 +113,7 @@ function HomePage() {
               <>
                 <Navbar />
                 <CASection />
+                <CoordsDebug />
                 {isMobile ? <TouchControls /> : <KeyboardHUD />}
                 <CinematicHUD />
                 {/* Debug overlays — temporarily disabled (uncomment when tuning positions / camera frustum) */}

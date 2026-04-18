@@ -9,9 +9,9 @@
   transform: translateY(-50%);
   z-index: 1500;
   display: grid;
-  grid-template-columns: repeat(2, 60px);
-  gap: 8px;
-  padding: 12px;
+  grid-template-columns: repeat(2, 74px);
+  gap: 10px;
+  padding: 14px;
   background: rgba(15, 15, 20, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-right: 4px solid #10b981;
@@ -26,8 +26,8 @@
    contained inside the button (no more absolute pill overflowing outside). */
 .hud-btn {
   position: relative;
-  width: 60px;
-  height: 60px;
+  width: 74px;
+  height: 74px;
   background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
   border: 1px solid rgba(255, 255, 255, 0.15);
   cursor: pointer;
@@ -35,10 +35,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 6px;
   transition: all 0.15s ease;
   color: #ffffff;
-  padding: 4px 0 3px;
+  padding: 10px 0 8px;
   flex-shrink: 0;
   clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
 }
@@ -47,8 +47,8 @@
    must respect the stacked layout — the previous inline 100%×100% blew the
    icon up to the full button. */
 .hud-btn > img {
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
   pointer-events: none;
   flex-shrink: 0;
@@ -73,10 +73,10 @@
 /* Hotkey letter shown BELOW the icon inside the button — no background,
    transparent, same clean look as the mic button's built-in label. */
 .hud-btn-hotkey {
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 10px;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 13px;
   font-weight: 900;
-  letter-spacing: 1px;
+  letter-spacing: 1.2px;
   line-height: 1;
   pointer-events: none;
   font-family: 'Burbank Big Condensed', 'Arial Black', Impact, sans-serif;
@@ -225,7 +225,7 @@
 }
 
 .hud-btn-sublabel {
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.5px;
   color: rgba(255, 255, 255, 0.5);

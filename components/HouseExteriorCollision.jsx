@@ -38,7 +38,15 @@ export default function HouseExteriorCollision() {
     // Debug: dump every mesh name so we can see what Three.js actually parsed
     // (useful when Blender names with '.' collide with GLTF name sanitization).
     const allMeshNames = []
-    gltf.scene.traverse((c) => { if (c.isMesh) allMeshNames.push(c.name) })
+    gltf.scene.traverse((c) => {
+      if (c.isMesh) {
+        allMeshNames.push(c.name)
+        // Hide EVERY mesh in this GLB — it's purely collision geometry and should
+        // never be visible, even meshes not in the whitelist (e.g. new car colliders
+        // the user was seeing around the parked cars).
+        c.visible = false
+      }
+    })
     // eslint-disable-next-line no-console
     console.log('[collision] GLB mesh names:', allMeshNames)
     gltf.scene.traverse((child) => {

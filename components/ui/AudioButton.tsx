@@ -10,6 +10,7 @@ import { useSkinStore } from '../../lib/skins/skinStore'
 import { useViewStore } from '../../lib/camera/viewStore'
 import { useSettingsStore } from '../../lib/settings/settingsStore'
 import { cursorIntent } from '../../lib/cursorIntent'
+import { requestPointerLockSafe } from '../../lib/pointerLockHelper'
 
 interface AudioButtonProps {
   onPlayMusic: () => void
@@ -104,11 +105,10 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
       }
       // Cursor is free. If it was just released by the browser via ESC we
       // DON'T want to immediately re-lock — that would defeat the press.
-      if (Date.now() - lastUnlockTs < 250) return
+      if (Date.now() - lastUnlockTs < 350) return
       e.preventDefault()
-      const canvas = document.querySelector('canvas') as any
-      const req = canvas?.requestPointerLock || canvas?.webkitRequestPointerLock || canvas?.mozRequestPointerLock
-      req?.call(canvas)
+      const canvas = document.querySelector('canvas') as HTMLCanvasElement | null
+      if (canvas) requestPointerLockSafe(canvas)
     }
     document.addEventListener('pointerlockchange', handlePointerLockChange)
     document.addEventListener('webkitpointerlockchange', handlePointerLockChange as any)
@@ -242,9 +242,8 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
         className={`hud-btn hud-btn--cursor ${isCursorFree ? 'is-free' : ''}`}
         onClick={() => {
           if (isCursorFree) {
-            const canvas = document.querySelector('canvas') as any
-            const req = canvas?.requestPointerLock || canvas?.webkitRequestPointerLock || canvas?.mozRequestPointerLock
-            req?.call(canvas)
+            const canvas = document.querySelector('canvas') as HTMLCanvasElement | null
+            if (canvas) requestPointerLockSafe(canvas)
           } else {
             cursorIntent.intentionalUnlock = true
             const exit = (document as any).exitPointerLock || (document as any).webkitExitPointerLock
@@ -253,7 +252,7 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
         }}
         title={isCursorFree ? "Cursor Free (press ESC or click canvas to lock)" : "Cursor Locked (press ESC to free)"}
       >
-        <span style={{ fontSize: '13px', fontWeight: 900, letterSpacing: '1px' }}>ESC</span>
+        <span style={{ fontSize: '17px', fontWeight: 900, letterSpacing: '1.2px' }}>ESC</span>
       </button>
 
       {/* LOBBY MENU (M) */}
@@ -265,7 +264,7 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
         }}
         title="Open/Close Menu (M)"
       >
-        <span style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '1px' }}>M</span>
+        <span style={{ fontSize: '22px', fontWeight: 900, letterSpacing: '1.2px' }}>M</span>
       </button>
 
       {/* MUSIC (skin) */}
@@ -276,10 +275,10 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
         title={isYouTubePlaying ? 'Stop YouTube first' : isActuallyPlaying ? 'Stop Music (U)' : hasAudio ? 'Play Music (U)' : 'No audio for this skin'}
       >
         {isActuallyPlaying
-          ? <Square size={17} fill="currentColor" />
+          ? <Square size={22} fill="currentColor" />
           : hasAudio
-          ? <Volume2 size={19} />
-          : <VolumeX size={19} className="hud-icon-disabled" />}
+          ? <Volume2 size={24} />
+          : <VolumeX size={24} className="hud-icon-disabled" />}
         <span className="hud-btn-hotkey">U</span>
       </button>
 
@@ -295,13 +294,13 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
 
       {/* SKINS / CUSTOMIZATION */}
       <button className="hud-btn hud-btn--skin" onClick={toggleModal} title="Change Skin (N)">
-        <Palette size={19} />
+        <Palette size={24} />
         <span className="hud-btn-hotkey">N</span>
       </button>
 
       {/* SETTINGS */}
       <button className="hud-btn hud-btn--settings" onClick={toggleSettings} title="Settings (I)">
-        <Settings size={17} />
+        <Settings size={22} />
         <span className="hud-btn-hotkey">I</span>
       </button>
 
@@ -341,7 +340,7 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
         }}
         title="Push to Talk (hold or press V)"
       >
-        <Mic size={18} />
+        <Mic size={23} />
         <span className="hud-btn-sublabel">V</span>
       </button>
 

@@ -23,6 +23,14 @@ const OX = 190.12, OY = 1.1857, OZ = -88.67
 
 const COLLISION_NODE_NAMES = ['car1', 'car2', 'car3', 'car4']
 
+// Thicken car colliders so the player can't glance off corners. We grow
+// each collider's geometry on X/Z around its own bounding-box center
+// (Y stays untouched so we don't lift the hitbox off the ground or cap
+// it through the ceiling). Value chosen empirically: 1.25× adds ~12%
+// half-width on every side, enough to close the diagonal corner gaps
+// without making the car feel like a bigger obstacle than it looks.
+const COLLIDER_INFLATE_XZ = 1.25
+
 export default function CarsCollision() {
   const gltf = useGLTF('/alon_house/physics_cars.glb')
 
@@ -39,6 +47,28 @@ export default function CarsCollision() {
         child.material.side = THREE.DoubleSide
       }
       child.visible = false
+
+      // Inflate geometry on X/Z around its local bounding-box center so the
+      // collider is slightly thicker than the visible car. We clone the
+      // geometry first — several cars may share the same BufferGeometry
+      // instance (Blender "linked duplicates"), and mutating a shared
+      // geometry would inflate every duplicate together, cumulatively.
+      if (!child.userData.__inflated) {
+        child.geometry = child.geometry.clone()
+        child.geometry.computeBoundingBox()
+        const bb = child.geometry.boundingBox
+        if (bb) {
+          const cx = (bb.min.x + bb.max.x) * 0.5
+          const cz = (bb.min.z + bb.max.z) * 0.5
+          child.geometry.translate(-cx, 0, -cz)
+          child.geometry.scale(COLLIDER_INFLATE_XZ, 1, COLLIDER_INFLATE_XZ)
+          child.geometry.translate(cx, 0, cz)
+          child.geometry.computeBoundingBox()
+          child.geometry.computeBoundingSphere()
+        }
+        child.userData.__inflated = true
+      }
+
       child.updateMatrixWorld(true)
       registerCollisionMesh(child.name + '_collision', child)
       registered.push(child.name + '_collision')

@@ -9,9 +9,12 @@ import { localPlayerLive } from '../../lib/localPlayerRef'
 // HouseScene offset (must match HouseScene.jsx OX/OY/OZ)
 const OX = 190.12, OY = 1.1857, OZ = -88.67
 
-// Exterior spawn point (same as player spawn)
-const EXTERIOR_POS = new THREE.Vector3(-59.95, EYE_HEIGHT, -87.86)
-const EXTERIOR_ROT = (74.61 + 180) * (Math.PI / 180) // Same as SPAWN_ROT
+// Exterior spawn point — just outside the house entry checkpoint
+// World coords captured from CoordsDebug so the player lands facing away from the door.
+const EXTERIOR_POS = new THREE.Vector3(-42.21, 5.00, 8.97)
+// teleport receives orbit-yaw (camera) which is player-facing + π,
+// so displayed 270° ⇒ pass 90° (270° - 180°).
+const EXTERIOR_ROT = 90 * (Math.PI / 180) // displayed facing = 270°
 
 // Exit checkpoint position in WORLD space (Blender + offset)
 const EXIT_CHECKPOINT_POS = new THREE.Vector3(-141.60 + OX, 321 + OY, 87.89 + OZ)

@@ -14,10 +14,12 @@ const OX = 190.12, OY = 1.1857, OZ = -88.67
 // Blender (from checkpoint_entry_house.glb / node checkpoint_door_house_entry): (-186.10, 11.36, 96.25)
 const CHECKPOINT_WORLD: [number, number, number] = [-186.10 + OX, 11.36 + OY, 96.25 + OZ]
 
-// Where to teleport when entering the house (room1 center in world space)
-// Blender room1 center: (-141.60, 341.43, 87.89), offset for floor level
-const INTERIOR_POS = new THREE.Vector3(-141.60 + OX, 341.43 - 20 + OY, 87.89 + OZ)
-const INTERIOR_ROT = 0 // radians — will be adjusted later
+// Where to teleport when entering the house (world coords captured from CoordsDebug)
+// A bit past the interior-side of the door so the player spawns inside the room.
+const INTERIOR_POS = new THREE.Vector3(48.52, 317.19, -25.73)
+// teleport receives orbit-yaw (camera) which is player-facing + π,
+// so to *display* 180° we pass 0 rad (180° - 180°).
+const INTERIOR_ROT = 0 // displayed facing = 180°
 
 const TRIGGER_DISTANCE = 8 // units — how close player must be
 

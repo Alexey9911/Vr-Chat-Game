@@ -10,6 +10,7 @@ import { compressPosition, compressRotation } from './usePositionSync'
 import { setLocalPlayerLive } from '../lib/localPlayerRef'
 import { getHouseCollisionMesh, getCollisionMeshes } from '../lib/collisionRef'
 import { setTeleportFunction } from '../lib/teleportController'
+import { requestPointerLockSafe, cancelPendingPointerLock } from '../lib/pointerLockHelper'
 import { useZoneStore } from '../lib/zoneStore'
 
 // Physics constants
@@ -150,6 +151,33 @@ export const useCameraControls = () => {
   }, [camera, teleport])
 
   // =============================================
+  // DYNAMIC CAMERA FAR — drop the far plane hard when the player enters
+  // an interior room so Three.js can frustum-cull the entire exterior
+  // (house, garden, street, cars, NPCs, airdrops, …) for free. The
+  // swap happens during the checkpoint fade — the screen is black, so
+  // there is no visible pop even though the projection matrix changes.
+  // Values:
+  //   exterior / balcon → 350  (same as before, sees the whole plot)
+  //   interior          → 100  (rooms are tiny, 100 is plenty)
+  // =============================================
+  useEffect(() => {
+    const applyFar = (zone: 'exterior' | 'interior' | 'balcon') => {
+      const far = zone === 'interior' ? 100 : 350
+      if ((camera as any).far !== far) {
+        ;(camera as any).far = far
+        ;(camera as any).updateProjectionMatrix?.()
+      }
+    }
+    // Apply for the current zone on mount.
+    applyFar(useZoneStore.getState().currentZone)
+    // And on every zone change. The zoneStore flips `currentZone` exactly
+    // at teleport time (mid fade-out), giving us the black frame to mask
+    // the projection swap.
+    const unsub = useZoneStore.subscribe((state) => applyFar(state.currentZone))
+    return () => unsub()
+  }, [camera])
+
+  // =============================================
   // MOUSE ORBIT — pointer lock on click, mousemove updates orbit angles
   // =============================================
   useEffect(() => {
@@ -175,11 +203,12 @@ export const useCameraControls = () => {
       )
     }
     
+    // Pointer-lock on click, via the shared helper that handles Chromium's
+    // silent post-ESC cooldown so one click is always enough.
     const onClick = () => {
       if (chatActive || lobbyVisible || cinematicMode) return
-      canvas.requestPointerLock()
+      requestPointerLockSafe(canvas)
     }
-    
     canvas.addEventListener('click', onClick)
     document.addEventListener('mousemove', onMouseMove)
 
@@ -232,6 +261,7 @@ export const useCameraControls = () => {
 
     return () => {
       canvas.removeEventListener('click', onClick)
+      cancelPendingPointerLock()
       document.removeEventListener('mousemove', onMouseMove)
       canvas.removeEventListener('touchstart', onTouchStart)
       canvas.removeEventListener('touchmove',  onTouchMove)
@@ -584,12 +614,19 @@ export const useCameraControls = () => {
       }
     }
 
-    // Smooth radial distance: snap inward (instant) / lerp outward (smooth)
+    // Smooth radial distance: FAST lerp inward (no hard snap — looked brusque
+    // against small colliders like cars) / SLOW lerp outward (prevents zoom
+    // flicker when a fast orbit momentarily misses the collider).
+    // k_inward=30 converges ~95% in ~100ms — fast enough that the player
+    // never actually sees the camera inside a wall, but smooth enough to
+    // avoid the hard "teleport" feel. CAM_COLLISION_OFFSET=0.5 acts as the
+    // safety buffer that keeps us from clipping during those 100ms.
     if (targetDist < smoothedCamDist.current) {
-      smoothedCamDist.current = targetDist
+      const kIn = 1 - Math.exp(-30 * delta)
+      smoothedCamDist.current += (targetDist - smoothedCamDist.current) * kIn
     } else {
-      const k = 1 - Math.exp(-8 * delta)
-      smoothedCamDist.current += (targetDist - smoothedCamDist.current) * k
+      const kOut = 1 - Math.exp(-8 * delta)
+      smoothedCamDist.current += (targetDist - smoothedCamDist.current) * kOut
     }
 
     const finalCamPos = lookAtPoint.clone().add(camDir.multiplyScalar(smoothedCamDist.current))

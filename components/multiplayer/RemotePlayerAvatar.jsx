@@ -116,8 +116,9 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
   // Y offset to raise skins above floor.
   // Alon has its own built-in ALON_FEET_Y_OFFSET inside AlonAvatar.tsx (1.5 at local scale).
   // Small-rig skins (chillhouse, tobaku, unc, pinguin) clip into the floor at 0.8, so
-  // raise them to ~1.4 world-units to sit cleanly on the ground.
-  const skinYOffset = isAlonSkin ? 0 : isSmallRig ? 1.4 : 0
+  // raise them to ~1.5 world-units to sit cleanly on the ground (bumped +0.1 from
+  // 1.4 per user feedback — they were still grazing the floor).
+  const skinYOffset = isAlonSkin ? 0 : isSmallRig ? 1.5 : 0
 
   // Nickname/chat vertical offsets — proportional to total rendered height
   // Characters are ~2 units tall at scale 1, so ~14 units at 7x scale
