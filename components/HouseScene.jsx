@@ -12,7 +12,7 @@ const OX = 190.12, OY = 1.1857, OZ = -88.67
 // Plane positions extracted from texto_autos_casa.glb (Blender coords) + HouseScene offset.
 // Plane NODE NAME = text displayed.
 const FLOATING_TEXTS = [
-  { label: '$AlonHouse',       position: [-231.09 + OX, 54.26 + OY,  96.19 + OZ], style: 'alonverse',  fontSize: 8 },
+  { label: '$ticketname',      position: [-231.09 + OX, 54.26 + OY,  96.19 + OZ], style: 'alonverse',  fontSize: 8 },
   { label: 'Lamborghini Urus', position: [-268.09 + OX, 23.02 + OY, 107.37 + OZ], style: 'cybertruck', fontSize: 2.5 },
   { label: 'BMW M4',           position: [-273.81 + OX, 23.02 + OY,  51.14 + OZ], style: 'cybertruck', fontSize: 2.5 },
   { label: 'Bananamobile',     position: [-274.41 + OX, 23.02 + OY,  75.29 + OZ], style: 'cybertruck', fontSize: 2.5 },
