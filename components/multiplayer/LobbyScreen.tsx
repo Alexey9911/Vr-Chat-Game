@@ -240,31 +240,29 @@ export default function LobbyScreen() {
         lockCanvas()
       }
     }
-    const onPointerLockChange = () => {
-      // Unlock happened while we're connected and the lobby is hidden:
-      //   - If it was intentional (T key / HUD button / chat opening) → don't open lobby.
-      //   - Otherwise → user pressed ESC → open lobby.
-      const cur: any = (document as any).pointerLockElement || (document as any).webkitPointerLockElement
-      if (cur) return
+    // ESC opens the lobby. We use ONLY a keydown listener — previously we
+    // also listened to `pointerlockchange`, but that fired on ANY pointer-lock
+    // release (Alt+Tab, window blur, TAB focus change, devtools opening…),
+    // causing the lobby to open on random key combos. Chrome 100+ dispatches
+    // a JS `keydown` for ESC even while pointer-lock is active, so keydown
+    // alone is sufficient and unambiguous.
+    const onOpenKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      if (e.repeat) { e.preventDefault(); return }
+      const el = document.activeElement as any
+      const typing = !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
+      if (typing) return
+      if (useKeyboardStore.getState().chatActive) return
       if (!useMultiplayerStore.getState().isConnected) return
       if (useMultiplayerStore.getState().lobbyVisible) return
-      // Chat just opened → useCameraControls releases lock → DON'T interpret
-      // that as an ESC press. This fixes: pressing Enter to open chat would
-      // pop the lobby back open.
-      if (useKeyboardStore.getState().chatActive) return
-      if (cursorIntent.intentionalUnlock) {
-        cursorIntent.intentionalUnlock = false
-        return
-      }
+      e.preventDefault()
       setLobbyVisible(true)
     }
     window.addEventListener('keydown', onKey)
-    document.addEventListener('pointerlockchange', onPointerLockChange)
-    document.addEventListener('webkitpointerlockchange', onPointerLockChange as any)
+    window.addEventListener('keydown', onOpenKey)
     return () => {
       window.removeEventListener('keydown', onKey)
-      document.removeEventListener('pointerlockchange', onPointerLockChange)
-      document.removeEventListener('webkitpointerlockchange', onPointerLockChange as any)
+      window.removeEventListener('keydown', onOpenKey)
     }
   }, [isConnected, lobbyVisible, setLobbyVisible])
 
@@ -775,7 +773,7 @@ export default function LobbyScreen() {
       {/* Top Navbar */}
       <div className="lobby-top-bar">
         <div className="lobby-brand">
-          <h1 className="lobby-title">$ticketname</h1>
+          <h1 className="lobby-title">$</h1>
           <p className="lobby-subtitle-concept">3D SOCIAL WORLD</p>
         </div>
         <div className="lobby-nav-tabs">
@@ -788,7 +786,7 @@ export default function LobbyScreen() {
         <div className="lobby-top-right">
           <div className="top-stat"><span style={{color: '#10b981', marginRight: '5px'}}>●</span> NODE SYNCED</div>
           <div className="top-stat" style={{color: '#f1c40f', fontWeight: 'bold', letterSpacing: '1px'}}>EARLY ACCESS</div>
-          <img src="/elonkiss.png" alt="ticketname" style={{width: '45px', height: '45px', objectFit: 'contain', filter: 'drop-shadow(0 0 5px rgba(255,255,255,0.2))', marginLeft: '10px', borderRadius: '50%'}} />
+          <img src="/elonkiss.png" alt="" style={{width: '45px', height: '45px', objectFit: 'contain', filter: 'drop-shadow(0 0 5px rgba(255,255,255,0.2))', marginLeft: '10px', borderRadius: '50%'}} />
         </div>
       </div>
 
@@ -803,7 +801,7 @@ export default function LobbyScreen() {
                  <div className="level-info">
                    <div className="level-shield">🌐</div>
                    <div className="level-text">
-                     <span className="lvl-big">TICKETNAME</span>
+                     <span className="lvl-big"></span>
                      <span className="xp-text">LOBBY 1</span>
                    </div>
                  </div>
@@ -849,7 +847,7 @@ export default function LobbyScreen() {
                {/* Logo / PFP in center - positioned above nickname */}
                <img 
                   src="/avatar.png" 
-                  alt="ticketname Avatar" 
+                  alt="" 
                   style={{ width: '360px', height: '360px', objectFit: 'contain', marginBottom: '10px', filter: 'drop-shadow(0 0 15px rgba(74,222,128,0.6))' }} 
                 />
 
@@ -948,7 +946,7 @@ export default function LobbyScreen() {
                <div className="play-section play-section--compact">
                   <div className="game-mode">
                     <span className="mode-title">PLAYING IN</span>
-                    <span className="mode-name">TICKETNAME</span>
+                    <span className="mode-name"></span>
                   </div>
                </div>
             </div>

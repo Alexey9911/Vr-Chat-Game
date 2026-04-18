@@ -40,33 +40,35 @@ body {
   justify-content: center;
 }
 
-/* When the lobby is visible, tile the lobby background across the full
-   viewport so monitors larger than FHD never show plain black letterbox bars.
+/* Lobby background: single centered image that covers the whole viewport
+   (no tiling — tiling looked ugly on ultra-wide). `cover` scales proportionally
+   so the image always fills the screen while staying centered.
    Added/removed dynamically by LobbyScreen via `document.body.classList`. */
 body.in-lobby {
   background-color: #0b3d1f;
   background-image: url('/alon_house/bacgroundImage.png');
-  background-repeat: repeat;
-  background-size: 800px auto;
-  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center center;
+  background-attachment: fixed;
 }
 
 /* =============================================
-   FHD STAGE CAP — on monitors larger than 1920x1080,
-   the game/lobby is letterboxed/pillarboxed to Full HD.
-   `transform: translateZ(0)` makes <main> a containing
-   block so `position: fixed` children (lobby, HUD, canvas)
-   are clipped to the stage instead of the full viewport.
+   MAIN STAGE — Fills the entire viewport (no FHD cap).
+   Previously `main` was capped at 1920x1080 with black bars on bigger
+   monitors — removed per user request: "que se vea todo normal".
+   `transform: translateZ(0)` keeps it a containing block so `position: fixed`
+   children (lobby overlay, HUD, canvas) are clipped/layered against <main>.
+   UI elements continue to use `position: fixed` relative to the viewport;
+   on ultra-wide monitors they sit at the true screen edges (no letterbox).
    ============================================= */
 main {
   position: relative;
   width: 100vw;
   height: 100vh;
-  max-width: 1920px;
-  max-height: 1080px;
   overflow: hidden;
   transform: translateZ(0);
-  background: #000;
+  background: transparent;
 }
 
 a {
@@ -459,7 +461,7 @@ a {
 .nav-tab {
   background: none;
   border: none;
-  color: #ccc;
+  color: #ffffff;
   font-size: 18px;
   font-weight: bold;
   cursor: pointer;
