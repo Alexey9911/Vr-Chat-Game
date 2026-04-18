@@ -94,6 +94,26 @@ function FloatingTextItem({ label, position, style, fontSize }) {
   )
 }
 
+// Full exterior house model (Draco-compressed but textures NOT yet optimized).
+// Loaded in addition to `house_scene-v1.glb` (which is the scene WITHOUT the house).
+// Textures are raw 2k PNG/JPG for now — user wants to measure lag on PC vs mobile
+// before deciding on WebP/KTX2 optimization. Same offset as HouseScene so everything
+// aligns in world space.
+function FullHouseModel() {
+  const gltf = useGLTF('/alon_house/alon_house-v1.glb')
+  useEffect(() => {
+    if (!gltf.scene) return
+    gltf.scene.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = true
+        child.receiveShadow = true
+      }
+    })
+  }, [gltf.scene])
+  if (!gltf.scene) return null
+  return <primitive object={gltf.scene} />
+}
+
 function HouseDancer() {
   // Separate GLB: only the dancer (char1 + Armature + Boom_Dance + other clips)
   const gltf = useGLTF('/alon_house/alon_skin_house-v1.glb')
@@ -175,6 +195,7 @@ export default function HouseScene() {
 if (typeof window !== 'undefined') {
   setTimeout(() => {
     useGLTF.preload('/alon_house/house_scene-v1.glb')
+    useGLTF.preload('/alon_house/alon_house-v1.glb')
     useGLTF.preload('/alon_house/alon_skin_house-v1.glb')
   }, 100)
 }

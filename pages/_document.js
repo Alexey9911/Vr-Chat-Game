@@ -4,8 +4,10 @@ export default function Document() {
   return (
     <Html lang="es">
       <Head>
-        <link rel="icon" type="image/svg+xml" href="/faviconsvg.svg" />
-        <link rel="shortcut icon" type="image/svg+xml" href="/faviconsvg.svg" />
+        {/* Favicon removed per user request — using browser default (empty) for now.
+            `data:,` short-circuits the browser's automatic /favicon.ico request so we
+            don't get a 404 spam in the console. */}
+        <link rel="icon" href="data:," />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

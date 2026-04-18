@@ -11,10 +11,19 @@ import {
 // Must share the same offset as HouseScene (OX, OY, OZ) because meshes live in Blender world coords.
 const OX = 190.12, OY = 1.1857, OZ = -88.67
 
+// Whitelist of collider mesh names to register from the GLB.
+// Three.js / GLTFLoader sometimes replaces '.' with '_' in mesh names depending on
+// the exporter — we accept BOTH variants to be safe. Extra meshes in the GLB are
+// ignored; check the [collision] log in DevTools to confirm names.
 const COLLISION_NODE_NAMES = [
   'casa_collision',
   'jardin_house_collision',
   'exterior_calle_collision',
+  // New colliders added 2026-04-17 from the updated `collision house externo.glb`.
+  // These are NOT garden/exterior — they are arbitrary new obstacles (cars, props).
+  'Cube.001', 'Cube_001',
+  'Cube.002', 'Cube_002',
+  'Circle.001', 'Circle_001',
 ]
 
 export default function HouseExteriorCollision() {
@@ -24,6 +33,12 @@ export default function HouseExteriorCollision() {
     if (!gltf.scene) return
     const registered = []
     gltf.scene.updateMatrixWorld(true)
+    // Debug: dump every mesh name so we can see what Three.js actually parsed
+    // (useful when Blender names with '.' collide with GLTF name sanitization).
+    const allMeshNames = []
+    gltf.scene.traverse((c) => { if (c.isMesh) allMeshNames.push(c.name) })
+    // eslint-disable-next-line no-console
+    console.log('[collision] GLB mesh names:', allMeshNames)
     gltf.scene.traverse((child) => {
       if (!child.isMesh) return
       if (!COLLISION_NODE_NAMES.includes(child.name)) return
