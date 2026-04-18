@@ -4,7 +4,9 @@
 
 .hud-panel {
   position: fixed;
-  top: 50%;
+  /* Shifted above 50% to avoid overlapping the WASD controls-hud
+     (bottom:30px, right:30px) on short viewports. */
+  top: 38%;
   right: 16px;
   transform: translateY(-50%);
   z-index: 1500;
