@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useMemo } from 'react'
+import React, { useRef, useEffect, useMemo, Suspense } from 'react'
 import { useGLTF, useAnimations, Text, Text3D, Billboard, Center } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { SkeletonUtils } from 'three-stdlib'
@@ -99,16 +99,39 @@ function FloatingTextItem({ label, position, style, fontSize }) {
 // Textures are raw 2k PNG/JPG for now — user wants to measure lag on PC vs mobile
 // before deciding on WebP/KTX2 optimization. Same offset as HouseScene so everything
 // aligns in world space.
+// Trace: fires immediately, before Suspense resolves — proves the component is
+// mounting. If you never see this, FullHouseModel isn't being rendered at all.
+if (typeof window !== 'undefined') {
+  // eslint-disable-next-line no-console
+  console.log('[alon_house-v1] component file loaded; attempting fetch probe...')
+  fetch('/alon_house/alon_house-v1.glb', { method: 'HEAD' })
+    .then((r) => console.log('[alon_house-v1] HEAD status:', r.status, 'bytes:', r.headers.get('content-length')))
+    .catch((err) => console.error('[alon_house-v1] HEAD failed:', err))
+}
+
 function FullHouseModel() {
+  // eslint-disable-next-line no-console
+  console.log('[alon_house-v1] FullHouseModel render tick')
   const gltf = useGLTF('/alon_house/alon_house-v1.glb')
   useEffect(() => {
     if (!gltf.scene) return
+    let meshCount = 0
     gltf.scene.traverse((child) => {
       if (child.isMesh) {
+        meshCount++
         child.castShadow = true
         child.receiveShadow = true
+        child.frustumCulled = false // safeguard while debugging visibility
       }
     })
+    // Debug: log bbox so we can tell if it's centered, huge, or off-screen.
+    const box = new THREE.Box3().setFromObject(gltf.scene)
+    const c = new THREE.Vector3(), s = new THREE.Vector3()
+    box.getCenter(c); box.getSize(s)
+    // eslint-disable-next-line no-console
+    console.log(
+      `[alon_house-v1] meshes:${meshCount} center:(${c.x.toFixed(2)}, ${c.y.toFixed(2)}, ${c.z.toFixed(2)}) size:(${s.x.toFixed(2)}, ${s.y.toFixed(2)}, ${s.z.toFixed(2)})`
+    )
   }, [gltf.scene])
   if (!gltf.scene) return null
   return <primitive object={gltf.scene} />
@@ -173,6 +196,13 @@ export default function HouseScene() {
       <group position={[OX, OY, OZ]}>
         {/* House scene GLB (static geometry, char1 hidden) */}
         <primitive ref={sceneRef} object={gltf.scene} />
+
+        {/* New full house model (Draco only, 2k textures unoptimized — for lag testing).
+            Wrapped in its OWN Suspense so if this GLB is slow or fails it doesn't block
+            the rest of HouseScene from rendering. */}
+        <Suspense fallback={null}>
+          <FullHouseModel />
+        </Suspense>
 
         {/* Dancing alon skin decoration — loaded from separate alon_skin_house-v1.glb */}
         <HouseDancer />

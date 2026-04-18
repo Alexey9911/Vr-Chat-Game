@@ -20,10 +20,12 @@ const COLLISION_NODE_NAMES = [
   'jardin_house_collision',
   'exterior_calle_collision',
   // New colliders added 2026-04-17 from the updated `collision house externo.glb`.
+  // Actual GLB names (confirmed from console log): Cube, Cube001, Cube002, Circle001.
   // These are NOT garden/exterior — they are arbitrary new obstacles (cars, props).
-  'Cube.001', 'Cube_001',
-  'Cube.002', 'Cube_002',
-  'Circle.001', 'Circle_001',
+  'Cube',
+  'Cube001', 'Cube.001', 'Cube_001',
+  'Cube002', 'Cube.002', 'Cube_002',
+  'Circle001', 'Circle.001', 'Circle_001',
 ]
 
 export default function HouseExteriorCollision() {
