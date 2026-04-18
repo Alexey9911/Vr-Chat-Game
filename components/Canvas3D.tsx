@@ -92,7 +92,8 @@ const Canvas3D: React.FC<{ loadingOverlayEnabled?: boolean; forceHidden?: boolea
           <CameraController />
           <CinematicCamera />
           <CameraDebugHUD />
-          <DebugCameraFar />
+          {/* Leva debug panel (camera near/far tuning) — temporarily disabled */}
+          {/* <DebugCameraFar /> */}
          
           {/* Perspective Camera Setup */}
           <PerspectiveCamera

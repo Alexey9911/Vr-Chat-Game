@@ -9,6 +9,7 @@ import YouTubeModal from './YouTubeModal'
 import { useSkinStore } from '../../lib/skins/skinStore'
 import { useViewStore } from '../../lib/camera/viewStore'
 import { useSettingsStore } from '../../lib/settings/settingsStore'
+import { cursorIntent } from '../../lib/cursorIntent'
 
 interface AudioButtonProps {
   onPlayMusic: () => void
@@ -64,19 +65,38 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
   const [isYouTubePlaying, setIsYouTubePlaying] = useState(false)
   const [isCursorFree, setIsCursorFree] = useState(false)
 
-  // Track cursor lock state only. ESC no longer re-locks — ESC opens lobby
-  // (handled in LobbyScreen). Cursor free/lock is toggled via the HUD button
-  // or by clicking the canvas (pointer-lock happens in useCameraControls).
+  // Track cursor lock state. ESC opens the lobby (handled in LobbyScreen).
+  // Cursor lock/free is toggled with the T key, the HUD button, or clicking
+  // the canvas (pointer-lock happens in useCameraControls).
   useEffect(() => {
     const handlePointerLockChange = () => {
       setIsCursorFree(!document.pointerLockElement)
     }
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key !== 't' && e.key !== 'T') return
+      const el = document.activeElement as any
+      const typing = !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
+      if (typing) return
+      if (lobbyVisible || chatActive) return
+      e.preventDefault()
+      if (document.pointerLockElement) {
+        cursorIntent.intentionalUnlock = true
+        document.exitPointerLock?.()
+      } else {
+        // Lock the canvas, not the body — useCameraControls checks the
+        // pointerLockElement is the actual <canvas>.
+        const canvas = document.querySelector('canvas') as HTMLCanvasElement | null
+        canvas?.requestPointerLock?.()
+      }
+    }
     document.addEventListener('pointerlockchange', handlePointerLockChange)
+    window.addEventListener('keydown', handleKey)
     setIsCursorFree(!document.pointerLockElement)
     return () => {
       document.removeEventListener('pointerlockchange', handlePointerLockChange)
+      window.removeEventListener('keydown', handleKey)
     }
-  }, [])
+  }, [lobbyVisible, chatActive])
 
   // Sync settings → audio systems on mount and on change
   useEffect(() => {
@@ -174,15 +194,16 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
         className={`hud-btn hud-btn--cursor ${isCursorFree ? 'is-free' : ''}`}
         onClick={() => {
           if (isCursorFree) {
-            // Because pointerlock must be requested upon user gesture, and the canvas usually owns it, we might try locking body:
-            document.body.requestPointerLock?.()
+            const canvas = document.querySelector('canvas') as HTMLCanvasElement | null
+            canvas?.requestPointerLock?.()
           } else {
+            cursorIntent.intentionalUnlock = true
             document.exitPointerLock?.()
           }
         }}
-        title={isCursorFree ? "Cursor Free (click canvas to lock)" : "Cursor Locked (click to free)"}
+        title={isCursorFree ? "Cursor Free (press T or click canvas to lock)" : "Cursor Locked (press T or click to free)"}
       >
-        <span style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '1px' }}>ESC</span>
+        <span style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '1px' }}>T</span>
       </button>
 
       {/* MUSIC (skin) */}

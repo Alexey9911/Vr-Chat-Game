@@ -75,8 +75,10 @@ export default function Scene3D({ containerRef }) {
         <HouseExteriorCollision />
       </Suspense>
 
-      {/* Invisible collision boxes for 4 parked cars (hardcoded AABBs, 0 draw calls) */}
-      <CarsCollision />
+      {/* Invisible collision meshes for 4 parked cars (loaded from physics_cars.glb, 0 draw calls) */}
+      <Suspense fallback={null}>
+        <CarsCollision />
+      </Suspense>
 
       {/* Checkpoint + Interior rooms + NPCs — same Blender scene offset as HouseScene */}
       <group position={[190.12, 1.1857, -88.67]}>

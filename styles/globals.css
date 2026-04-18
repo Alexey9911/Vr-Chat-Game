@@ -24,21 +24,49 @@ a:focus,
 html,
 body {
   max-width: 100vw;
-  overflow-x: hidden;
+  overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #000;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  background: #000;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* When the lobby is visible, tile the lobby background across the full
+   viewport so monitors larger than FHD never show plain black letterbox bars.
+   Added/removed dynamically by LobbyScreen via `document.body.classList`. */
+body.in-lobby {
+  background-color: #0b3d1f;
+  background-image: url('/alon_house/bacgroundImage.png');
+  background-repeat: repeat;
+  background-size: 800px auto;
+  background-position: center;
+}
+
+/* =============================================
+   FHD STAGE CAP — on monitors larger than 1920x1080,
+   the game/lobby is letterboxed/pillarboxed to Full HD.
+   `transform: translateZ(0)` makes <main> a containing
+   block so `position: fixed` children (lobby, HUD, canvas)
+   are clipped to the stage instead of the full viewport.
+   ============================================= */
+main {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  max-width: 1920px;
+  max-height: 1080px;
+  overflow: hidden;
+  transform: translateZ(0);
+  background: #000;
 }
 
 a {
@@ -375,6 +403,15 @@ a {
   font-family: 'Burbank Big Condensed', 'Arial Black', Impact, sans-serif;
   color: white;
   text-transform: uppercase;
+  transition: opacity 0.22s ease-out;
+}
+.lobby-overlay.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.lobby-overlay.is-visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* Background image - Clean, no filters */
@@ -394,9 +431,9 @@ a {
   justify-content: space-between;
   align-items: center;
   padding: 15px 30px;
-  background: rgba(0, 0, 10, 0.4);
-  backdrop-filter: blur(5px);
-  border-bottom: 2px solid rgba(255,255,255,0.1);
+  background: rgba(16, 185, 129, 0.18);
+  backdrop-filter: blur(6px);
+  border-bottom: 2px solid rgba(16, 185, 129, 0.45);
 }
 
 .lobby-brand .lobby-title {
@@ -408,9 +445,10 @@ a {
 
 .lobby-subtitle-concept {
   font-size: 14px;
-  color: #f1c40f;
+  color: #4ade80;
   margin-top: -5px;
   font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
 }
 
 .lobby-nav-tabs {
@@ -435,10 +473,11 @@ a {
 }
 
 .nav-tab.active {
-  color: black;
-  background: #f1c40f;
+  color: #0b3d1f;
+  background: #4ade80;
   padding: 2px 15px;
   clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+  filter: drop-shadow(0 0 0.5px #000) drop-shadow(0 0 0.5px #000);
 }
 
 .lobby-top-right {
@@ -451,7 +490,8 @@ a {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(0,0,0,0.5);
+  background: rgba(16, 185, 129, 0.35);
+  border: 1px solid rgba(16, 185, 129, 0.5);
   padding: 5px 12px;
   border-radius: 4px;
   font-weight: bold;
@@ -478,11 +518,22 @@ a {
 }
 
 .info-box {
-  background: rgba(0, 0, 40, 0.7);
-  border-left: 5px solid #5bc0de;
+  background: rgba(16, 185, 129, 0.32);
+  border-left: 5px solid #10b981;
   padding: 12px 15px;
   clip-path: polygon(0 0, 100% 0, 96% 100%, 0 100%);
   backdrop-filter: blur(8px);
+  filter: drop-shadow(0 0 0.5px #000) drop-shadow(0 0 0.5px #000);
+}
+
+/* CHOOSE YOUR SKIN COLOR panel — lighter green tint so it reads as its
+   own section without clashing with the emerald-heavy rest of the lobby. */
+.info-box.skin-picker-box {
+  background: rgba(74, 222, 128, 0.22);
+  border-left: 5px solid #22c55e;
+}
+.info-box.skin-picker-box .lobby-label {
+  color: #ffffff !important;
 }
 
 .season-header {
@@ -494,7 +545,7 @@ a {
   margin-bottom: 5px;
 }
 
-.blue-diamond { color: #5bc0de; }
+.blue-diamond { color: #4ade80; }
 
 .level-info {
   display: flex;
@@ -514,16 +565,15 @@ a {
 .lvl-big { font-size: 28px; font-weight: bold; }
 .xp-text { font-size: 12px; color: #ccc; }
 
-.battlepass-box { border-left-color: #d9534f; padding: 0; }
-.daily-box { border-left-color: #9b59b6; padding: 0; }
-.skin-picker-box { border-left-color: #f39c12; }
+.battlepass-box { border-left-color: #16a34a; padding: 0; }
+.daily-box { border-left-color: #4ade80; padding: 0; }
 
 .box-title { color: white; font-weight: bold; font-size: 18px; padding: 5px 15px; }
 .box-desc { color: #ccc; font-size: 12px; font-weight: bold; padding: 10px 15px; }
 
-.bg-red { background: rgba(255, 15, 123, 0.7); }
-.bg-purple { background: rgba(138, 43, 226, 0.7); }
-.bg-teal { background: rgba(0, 242, 254, 0.4); }
+.bg-red { background: rgba(16, 185, 129, 0.75); }
+.bg-purple { background: rgba(34, 197, 94, 0.65); }
+.bg-teal { background: rgba(255, 255, 255, 0.18); }
 
 /* Skin Picker Specifics */
 .lobby-colors {
@@ -552,16 +602,17 @@ a {
   box-shadow: 0 0 10px white;
 }
 
-.text-orange { color: #f39c12 !important; }
+.text-orange { color: #4ade80 !important; }
 
-/* Center Panel (Nickname) */
+/* Center Panel (Avatar + Nickname + PLAY button) */
 .lobby-center-panel {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: center;
   align-items: center;
-  padding-bottom: 30px;
+  gap: 6px;
+  padding-bottom: 20px;
 }
 
 .nickname-container {
@@ -580,8 +631,8 @@ a {
   font-size: 28px;
   margin-bottom: -15px;
   z-index: 2;
-  color: #f1c40f;
-  text-shadow: 0 2px 5px rgba(0,0,0,0.8);
+  color: #ffffff;
+  text-shadow: 0 2px 5px rgba(0,0,0,0.8), 0 0 12px rgba(74, 222, 128, 0.6);
 }
 
 .fortnite-input {
@@ -601,7 +652,7 @@ a {
 }
 
 .fortnite-input:focus {
-  border-bottom-color: #f39c12;
+  border-bottom-color: #4ade80;
 }
 
 .fortnite-input::placeholder { color: rgba(255,255,255,0.5); font-size: 22px; }
@@ -637,6 +688,12 @@ a {
   align-items: flex-end;
 }
 
+/* Compact play-section (no PLAY button here anymore, only PLAYING IN card)
+   pushed to the bottom so it sits at the base of the right panel. */
+.play-section--compact {
+  margin-top: auto;
+}
+
 .play-section {
   display: flex;
   flex-direction: column;
@@ -647,46 +704,47 @@ a {
 .lobby-chat-preview {
   width: 100%;
   height: 250px;
-  background: rgba(0, 0, 20, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-left: 4px solid #f1c40f;
+  background: rgba(16, 185, 129, 0.28);
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  border-left: 4px solid #10b981;
   padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 5px;
   overflow-y: auto;
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(6px);
   margin-bottom: 10px;
 }
 
 .lobby-chat-title {
-  color: #00f2fe;
+  color: #4ade80;
   font-size: 16px;
   font-weight: bold;
-  border-bottom: 1px solid rgba(255,255,255,0.2);
+  border-bottom: 1px solid rgba(74, 222, 128, 0.3);
   padding-bottom: 5px;
   margin-bottom: 5px;
 }
 
 .game-mode {
-  background: rgba(255,255,255,0.9);
-  color: black;
+  background: rgba(255,255,255,0.95);
+  color: #0b3d1f;
   display: flex;
   flex-direction: column;
   padding: 12px 15px;
   text-align: right;
   clip-path: polygon(0 0, 100% 0, 100% 100%, 5% 100%);
   margin-bottom: -5px;
+  filter: drop-shadow(0 0 0.5px #000) drop-shadow(0 0 0.5px #000);
 }
 
-.mode-title { font-size: 14px; font-weight: bold; color: #333; }
-.mode-name { font-size: 24px; font-weight: 900; color: #5bc0de; margin-top: -5px; white-space: nowrap; }
+.mode-title { font-size: 14px; font-weight: bold; color: #0b3d1f; }
+.mode-name { font-size: 24px; font-weight: 900; color: #16a34a; margin-top: -5px; white-space: nowrap; }
 
 .lobby-play-btn {
-  background: linear-gradient(90deg, #ff0f7b, #f89b29, #00f2fe, #ff0f7b);
+  background: linear-gradient(90deg, #16a34a, #22c55e, #4ade80, #16a34a);
   background-size: 300% auto;
   color: white;
-  border: 3px solid rgba(255, 255, 255, 0.8);
+  border: 3px solid rgba(255, 255, 255, 0.85);
   border-radius: 12px;
   padding: 20px 40px;
   font-size: 42px;
@@ -697,7 +755,7 @@ a {
   letter-spacing: 3px;
   text-shadow: 0 2px 8px rgba(0,0,0,0.9);
   animation: dynamicPlayButton 4s ease-in-out infinite;
-  box-shadow: 0 0 30px rgba(255, 15, 123, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 30px rgba(34, 197, 94, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.12), 0 0 0 1px rgba(0,0,0,0.5);
   position: relative;
   overflow: hidden;
 }
@@ -714,26 +772,11 @@ a {
 }
 
 @keyframes dynamicPlayButton {
-  0% { 
-    background-position: 0% center;
-    box-shadow: 0 0 30px rgba(255, 15, 123, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.1);
-  }
-  25% { 
-    background-position: 33% center;
-    box-shadow: 0 0 40px rgba(248, 155, 41, 0.7), inset 0 0 25px rgba(255, 255, 255, 0.15);
-  }
-  50% { 
-    background-position: 66% center;
-    box-shadow: 0 0 40px rgba(0, 242, 254, 0.7), inset 0 0 25px rgba(255, 255, 255, 0.15);
-  }
-  75% { 
-    background-position: 100% center;
-    box-shadow: 0 0 40px rgba(248, 155, 41, 0.7), inset 0 0 25px rgba(255, 255, 255, 0.15);
-  }
-  100% { 
-    background-position: 0% center;
-    box-shadow: 0 0 30px rgba(255, 15, 123, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.1);
-  }
+  0%   { background-position:   0% center; box-shadow: 0 0 30px rgba(34, 197, 94, 0.6),  inset 0 0 20px rgba(255,255,255,0.1); }
+  25%  { background-position:  33% center; box-shadow: 0 0 40px rgba(74, 222, 128, 0.75), inset 0 0 25px rgba(255,255,255,0.18); }
+  50%  { background-position:  66% center; box-shadow: 0 0 40px rgba(16, 185, 129, 0.75), inset 0 0 25px rgba(255,255,255,0.18); }
+  75%  { background-position: 100% center; box-shadow: 0 0 40px rgba(74, 222, 128, 0.75), inset 0 0 25px rgba(255,255,255,0.18); }
+  100% { background-position:   0% center; box-shadow: 0 0 30px rgba(34, 197, 94, 0.6),  inset 0 0 20px rgba(255,255,255,0.1); }
 }
 
 @keyframes shimmer {
@@ -743,7 +786,7 @@ a {
 
 .lobby-play-btn:hover { 
   transform: scale(1.05); 
-  box-shadow: 0 0 40px rgba(255, 15, 123, 0.8);
+  box-shadow: 0 0 44px rgba(74, 222, 128, 0.9);
 }
 
 .lobby-play-btn:disabled {
@@ -771,7 +814,6 @@ a {
   display: flex;
   align-items: center;
   gap: 10px;
-  border: none;
   padding: 8px 20px;
   font-size: 20px;
   font-weight: bold;
@@ -780,6 +822,7 @@ a {
   font-family: inherit;
   transition: transform 0.2s;
   border: 1px solid rgba(255,255,255,0.2);
+  filter: drop-shadow(0 0 0.5px #000) drop-shadow(0 0 0.5px #000);
 }
 
 .news-btn:hover { transform: scale(1.05); }
@@ -820,9 +863,9 @@ a {
 }
 
 .settings-ui-panel {
-  background: rgba(0, 0, 20, 0.85);
-  border: 2px solid #5bc0de;
-  border-left: 8px solid #ff0f7b;
+  background: rgba(16, 185, 129, 0.28);
+  border: 2px solid #10b981;
+  border-left: 8px solid #4ade80;
   width: 100%;
   max-width: 800px;
   padding: 30px;
@@ -831,6 +874,8 @@ a {
   flex-direction: column;
   gap: 20px;
   animation: fadeIn 0.3s ease-out;
+  filter: drop-shadow(0 0 0.5px #000) drop-shadow(0 0 0.5px #000);
+  backdrop-filter: blur(8px);
 }
 
 .setting-item h3 {
@@ -862,29 +907,30 @@ a {
   appearance: none;
   width: 25px;
   height: 25px;
-  background: #5bc0de;
+  background: #ffffff;
   cursor: pointer;
   border-radius: 50%;
-  box-shadow: -410px 0 0 400px #ff0f7b;
+  box-shadow: -410px 0 0 400px #22c55e;
+  border: 1px solid #0b3d1f;
 }
 
 .control-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.07);
   padding: 15px 20px;
   margin-bottom: 10px;
-  border-left: 4px solid #5bc0de;
+  border-left: 4px solid #22c55e;
 }
 
 .control-row span:first-child {
-  color: #f1c40f;
+  color: #ffffff;
   font-weight: 900;
   font-size: 22px;
-  background: rgba(0,0,0,0.5);
+  background: rgba(16, 185, 129, 0.7);
   padding: 5px 15px;
-  border: 1px solid #5bc0de;
+  border: 1px solid #ffffff;
   border-radius: 5px;
 }
 
@@ -907,7 +953,7 @@ a {
 .preview-gif {
   width: 50px; height: 50px;
   background: #111;
-  border: 2px solid white;
+  border: 2px solid #4ade80;
   border-radius: 8px;
   object-fit: cover;
 }

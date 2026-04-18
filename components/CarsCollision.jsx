@@ -1,83 +1,70 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect } from 'react'
 import * as THREE from 'three'
+import { useGLTF } from '@react-three/drei'
 import {
   registerCollisionMesh,
   unregisterCollisionMesh,
 } from '../lib/collisionRef'
 
-// Invisible AABB collision boxes for the 4 parked cars outside the house.
-// Values hardcoded from `public/alon_house/physics_cars.glb`
-// (inspected via `scripts/inspect-glb.mjs`). Doing it manually instead of
-// loading the GLB to save an extra fetch + GPU upload — the file is
-// essentially just 4 box volumes, no geometry worth rendering.
+// Invisible collision meshes for the 4 parked cars outside the house.
+// Loads the source GLB so Blender transforms (Ctrl+A rotations, parent
+// hierarchies, etc.) are respected exactly — the previous hardcoded AABB
+// approach introduced imprecision when node rotations were baked into
+// the geometry.
 //
-// DRAW CALLS: Each mesh has `visible = false`, so Three.js skips rendering
-// entirely → 0 draw calls for all 4 boxes. The only cost is the raycast
-// performed in `hooks/useCameraControls.ts` (4 extra AABB intersections
-// per camera/player step — negligible).
+// DRAW CALLS: Each mesh is forced to `visible = false`, so Three.js skips
+// rendering entirely → 0 draw calls for all 4 boxes. The only runtime
+// cost is the bounding-box raycast in `hooks/useCameraControls.ts`
+// (4 extra AABB intersections per step — negligible).
 //
-// Coords are Blender-space centers; the parent <group> applies the same
-// offset used by HouseScene / HouseExteriorCollision.
+// Same offset as HouseScene / HouseExteriorCollision because meshes
+// live in Blender world coords.
 const OX = 190.12, OY = 1.1857, OZ = -88.67
 
-const CARS = [
-  { id: 'car1_collision', center: [-276.67, 6.19,  49.28], size: [38.69, 15.75, 16.81] },
-  { id: 'car2_collision', center: [-273.45, 6.10,  75.14], size: [39.69, 20.96, 19.18] },
-  { id: 'car3_collision', center: [-273.33, 6.11, 104.65], size: [41.09, 20.96, 19.33] },
-  { id: 'car4_collision', center: [-273.47, 5.36, 138.24], size: [37.82, 13.52, 18.13] },
-]
+const COLLISION_NODE_NAMES = ['car1', 'car2', 'car3', 'car4']
 
 export default function CarsCollision() {
-  const groupRef = useRef(null)
-  const meshRefs = useRef([])
-
-  // Shared geometry + material: 1 unit box scaled per-car. Shared so we
-  // don't allocate 4 identical BufferGeometries — cheap either way, but
-  // consistent with the other collision components.
-  const geometry = useMemo(() => new THREE.BoxGeometry(1, 1, 1), [])
-  const material = useMemo(
-    () => new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, visible: false }),
-    []
-  )
+  const gltf = useGLTF('/alon_house/physics_cars.glb')
 
   useEffect(() => {
+    if (!gltf.scene) return
     const registered = []
-    meshRefs.current.forEach((mesh, i) => {
-      if (!mesh) return
-      mesh.visible = false
-      mesh.updateMatrixWorld(true)
-      registerCollisionMesh(CARS[i].id, mesh)
-      registered.push(CARS[i].id)
+    gltf.scene.updateMatrixWorld(true)
+    gltf.scene.traverse((child) => {
+      if (!child.isMesh) return
+      if (!COLLISION_NODE_NAMES.includes(child.name)) return
+      // DoubleSide so raycaster hits regardless of normal direction
+      if (child.material) {
+        child.material = child.material.clone()
+        child.material.side = THREE.DoubleSide
+      }
+      child.visible = false
+      child.updateMatrixWorld(true)
+      registerCollisionMesh(child.name + '_collision', child)
+      registered.push(child.name + '_collision')
 
-      // Debug: verify world-space AABB
-      const box = new THREE.Box3().setFromObject(mesh)
+      // Debug: verify world-space AABB vs Blender
+      const box = new THREE.Box3().setFromObject(child)
       const size = new THREE.Vector3()
       const center = new THREE.Vector3()
       box.getSize(size)
       box.getCenter(center)
       // eslint-disable-next-line no-console
       console.log(
-        `[collision] ${CARS[i].id} world center:(${center.x.toFixed(2)}, ${center.y.toFixed(2)}, ${center.z.toFixed(2)}) size:(${size.x.toFixed(2)}, ${size.y.toFixed(2)}, ${size.z.toFixed(2)})`
+        `[collision] ${child.name} world center:(${center.x.toFixed(2)}, ${center.y.toFixed(2)}, ${center.z.toFixed(2)}) size:(${size.x.toFixed(2)}, ${size.y.toFixed(2)}, ${size.z.toFixed(2)})`
       )
     })
     return () => {
       registered.forEach((id) => unregisterCollisionMesh(id))
     }
-  }, [])
+  }, [gltf.scene])
 
+  if (!gltf.scene) return null
   return (
-    <group position={[OX, OY, OZ]} ref={groupRef}>
-      {CARS.map((car, i) => (
-        <mesh
-          key={car.id}
-          ref={(el) => { meshRefs.current[i] = el }}
-          position={car.center}
-          scale={car.size}
-          geometry={geometry}
-          material={material}
-          visible={false}
-        />
-      ))}
+    <group position={[OX, OY, OZ]}>
+      <primitive object={gltf.scene} />
     </group>
   )
 }
+
+useGLTF.preload('/alon_house/physics_cars.glb')

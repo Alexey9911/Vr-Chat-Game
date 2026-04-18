@@ -96,7 +96,7 @@ function HomePage() {
         <link rel="preload" href="/elonkiss.png" as="image" />
       </Head>
 
-      <main style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
+      <main>
         {isClient && (
           <>
             {!readyForLobby && (
@@ -114,7 +114,8 @@ function HomePage() {
                 <CASection />
                 {isMobile ? <TouchControls /> : <KeyboardHUD />}
                 <CinematicHUD />
-                <PositionDebug />
+                {/* Debug overlays — temporarily disabled (uncomment when tuning positions / camera frustum) */}
+                {/* <PositionDebug /> */}
               </>
             )}
 

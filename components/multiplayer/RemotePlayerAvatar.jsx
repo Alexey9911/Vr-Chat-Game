@@ -2,10 +2,6 @@ import React, { useRef, memo, Suspense } from 'react'
 import { Billboard, Text, Html, useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { CharacterSoldier } from './CharacterSoldier'
-import ElonAvatar from './ElonAvatar'
-import ElonMuskChibiAvatar from './ElonMuskChibiAvatar'
-import Ai16zAvatar from './Ai16zAvatar'
-import TrumpSkinAvatar from './TrumpSkinAvatar'
 import AlonAvatar from './AlonAvatar'
 import ChillHouseAvatar from './ChillHouseAvatar'
 import TobakuAvatar from './TobakuAvatar'
@@ -104,7 +100,7 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
   const isAlonSkin = player.skinId === 'alon'
   const isAdmin = player.isAdmin || false
   // Skins using the same "char1" tiny-scale rig as trumpskin/elonmuskchibi
-  const SMALL_RIG_SKINS = ['trumpskin', 'elonmuskchibi', 'chillhouse', 'tobaku', 'unc', 'pinguin']
+  const SMALL_RIG_SKINS = ['chillhouse', 'tobaku', 'unc', 'pinguin']
   const isSmallRig = SMALL_RIG_SKINS.includes(player.skinId)
 
   // All skins scaled up to match the larger map
@@ -117,8 +113,11 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
     skinScale = 5.0
   }
 
-  // Y offset to raise skins above floor (Alon has built-in offset in AlonAvatar.tsx)
-  const skinYOffset = isAlonSkin ? 0 : isSmallRig ? 0.8 : 0
+  // Y offset to raise skins above floor.
+  // Alon has its own built-in ALON_FEET_Y_OFFSET inside AlonAvatar.tsx (1.5 at local scale).
+  // Small-rig skins (chillhouse, tobaku, unc, pinguin) clip into the floor at 0.8, so
+  // raise them to ~1.4 world-units to sit cleanly on the ground.
+  const skinYOffset = isAlonSkin ? 0 : isSmallRig ? 1.4 : 0
 
   // Nickname/chat vertical offsets — proportional to total rendered height
   // Characters are ~2 units tall at scale 1, so ~14 units at 7x scale
@@ -131,17 +130,7 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
       {/* Character model — at feet level, per-player Suspense to avoid full-scene blink */}
       <group ref={characterRef} scale={[skinScale, skinScale, skinScale]} position-y={skinYOffset}>
         <Suspense fallback={null}>
-        {/* TEMPORARILY DISABLED: elon, ai16z, soldier — uncomment to re-enable */}
-        {/* player.skinId === 'elon' ? (
-          <ElonAvatar animation={animation} />
-        ) : player.skinId === 'ai16z' ? (
-          <Ai16zAvatar animation={animation} />
-        ) : */}
-        {player.skinId === 'elonmuskchibi' ? (
-          <ElonMuskChibiAvatar animation={animation} />
-        ) : player.skinId === 'trumpskin' ? (
-          <TrumpSkinAvatar animation={animation} />
-        ) : player.skinId === 'chillhouse' ? (
+        {player.skinId === 'chillhouse' ? (
           <ChillHouseAvatar animation={animation} />
         ) : player.skinId === 'tobaku' ? (
           <TobakuAvatar animation={animation} />

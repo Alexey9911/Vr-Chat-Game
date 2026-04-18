@@ -15,6 +15,7 @@ import { useSkinStore } from '../../lib/skins/skinStore'
 import type { SkinColors } from '../../lib/skins/skinTypes'
 import SkinPreviewCanvas from '../skins/SkinPreviewCanvas'
 import { playYouTubeAudio, stopYouTubeAudio, isYouTubeAudioPlaying, getCurrentVideoTitle, setYouTubeVolume } from '../../lib/audio/youtubePlayer'
+import { cursorIntent } from '../../lib/cursorIntent'
 
 const ENVIRONMENT_OPTIONS: { value: EnvironmentPreset; label: string; description: string }[] = [
   { value: 'sunset', label: 'Sunset', description: 'Warm golden hour lighting' },
@@ -143,8 +144,6 @@ export default function LobbyScreen() {
   const [isAdminMode, setIsAdminMode] = useState(false)
   const [autoJoinNickname, setAutoJoinNickname] = useState<string | null>(null)
   const [connectingLobby, setConnectingLobby] = useState<string | null>(null)
-  const [showMicStep, setShowMicStep] = useState(false)
-  const [micStatus, setMicStatus] = useState<'pending' | 'granted' | 'denied' | 'skipped'>('pending')
   const playroomRef = useRef<any>(null)
   const hasInitialized = useRef(false)
   const localPlayerIdRef = useRef<string | null>(null)
@@ -211,7 +210,16 @@ export default function LobbyScreen() {
     }
   }, [])
 
-  // ESC → reopen lobby when connected (no reconnect). Ignored while typing.
+  // ESC ↔ toggle lobby when connected (open AND close). No reconnect.
+  //
+  // Two cases:
+  //   A) Pointer is locked: browser handles ESC natively to exit lock and
+  //      does NOT dispatch a JS 'keydown' for Escape. We detect this via
+  //      `pointerlockchange` and open the lobby when the unlock wasn't
+  //      user-initiated (flagged via `cursorIntent.intentionalUnlock`).
+  //   B) Pointer is free: regular keydown closes or opens the lobby, and
+  //      when closing we re-lock the canvas synchronously (the ESC press
+  //      is a valid user gesture so the browser allows the lock).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
@@ -219,13 +227,42 @@ export default function LobbyScreen() {
       const typing = !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
       if (typing) return
       if (!isConnected) return
-      if (lobbyVisible) return
       e.preventDefault()
+      const nextVisible = !lobbyVisible
+      setLobbyVisible(nextVisible)
+      if (!nextVisible) {
+        // Closing the lobby — re-lock camera synchronously so camera moves
+        // without needing a click on the canvas.
+        lockCanvas()
+      }
+    }
+    const onPointerLockChange = () => {
+      // Unlock happened while we're connected and the lobby is hidden:
+      //   - If it was intentional (T key / HUD button) → don't open lobby.
+      //   - Otherwise → user pressed ESC → open lobby.
+      if (document.pointerLockElement) return
+      if (!useMultiplayerStore.getState().isConnected) return
+      if (useMultiplayerStore.getState().lobbyVisible) return
+      if (cursorIntent.intentionalUnlock) {
+        cursorIntent.intentionalUnlock = false
+        return
+      }
       setLobbyVisible(true)
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    document.addEventListener('pointerlockchange', onPointerLockChange)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.removeEventListener('pointerlockchange', onPointerLockChange)
+    }
   }, [isConnected, lobbyVisible, setLobbyVisible])
+
+  // Toggle <body class="in-lobby"> so the CSS can tile the lobby background
+  // across the full viewport (avoids ugly black letterbox bars on >FHD monitors).
+  useEffect(() => {
+    document.body.classList.toggle('in-lobby', lobbyVisible)
+    return () => { document.body.classList.remove('in-lobby') }
+  }, [lobbyVisible])
 
   // Poll YouTube playback state while on the CUSTOMIZATION tab
   useEffect(() => {
@@ -250,13 +287,26 @@ export default function LobbyScreen() {
     }
   }
 
+  // Helper: request pointer lock on the actual <canvas> element.
+  // useCameraControls checks `pointerLockElement === canvas`, so locking
+  // document.body would be accepted by the browser but ignored by the
+  // camera — camera wouldn't move. We MUST target the canvas.
+  const lockCanvas = () => {
+    const canvas = document.querySelector('canvas')
+    if (!canvas) return
+    if (document.pointerLockElement === canvas) return
+    try { canvas.requestPointerLock() } catch {}
+  }
+
   // Finalize player profile and enter the game 
   const handlePlayClick = () => {
     initAudioOnInteraction()
     // If already in-game (lobby was reopened via ESC), just close the overlay
+    // and re-lock the canvas synchronously (this click is a valid user gesture).
     if (isConnected) {
       setError('')
       setLobbyVisible(false)
+      lockCanvas()
       return
     }
     if (!nickname.trim()) {
@@ -269,7 +319,8 @@ export default function LobbyScreen() {
       return
     }
     setError('')
-    setShowMicStep(true)
+    // Mic permission is now optional, managed from Audio Settings inside the lobby.
+    // No blocking prompt here — user can enable mic anytime later.
 
     const me = pk.myPlayer()
     const profile = isAdminMode 
@@ -301,25 +352,9 @@ export default function LobbyScreen() {
 
     setConnected(true)
     setLobbyVisible(false)
-  }
-
-  // Step 2: Handle mic permission from the friendly UI
-  const handleMicEnable = async () => {
-    try {
-      const vc = await import('../../lib/audio/voiceChatSystem')
-      const ok = await vc.initVoiceChat()
-      setMicStatus(ok ? 'granted' : 'denied')
-      // Auto-hide modal after short feedback (world already loading)
-      setTimeout(() => setShowMicStep(false), 800)
-    } catch {
-      setMicStatus('denied')
-      setTimeout(() => setShowMicStep(false), 800)
-    }
-  }
-
-  const handleMicSkip = () => {
-    setMicStatus('skipped')
-    setShowMicStep(false)
+    // Lock camera synchronously within this click handler so the user can
+    // move the camera immediately without having to click on the canvas.
+    lockCanvas()
   }
 
   // Background connection for live chat and state sync
@@ -706,15 +741,13 @@ export default function LobbyScreen() {
     }
   }, [autoJoinNickname])
 
-  if (!lobbyVisible) return null
-
-  // Show admin password modal if admin URL detected
+  // Show admin password modal if admin URL detected (takes over UI)
   if (showAdminModal) {
     return <AdminPasswordModal onSuccess={handleAdminSuccess} onCancel={handleAdminCancel} />
   }
 
   return (
-    <div className="lobby-overlay">
+    <div className={`lobby-overlay ${lobbyVisible ? 'is-visible' : 'is-hidden'}`} aria-hidden={!lobbyVisible}>
       {/* Background image - Clean, no filters */}
       <img
         className="lobby-video-bg"
@@ -800,7 +833,7 @@ export default function LobbyScreen() {
                <img 
                   src="/avatar.png" 
                   alt="ticketname Avatar" 
-                  style={{ width: '450px', height: '450px', objectFit: 'contain', marginBottom: '20px', filter: 'drop-shadow(0 0 15px rgba(241,196,15,0.6))' }} 
+                  style={{ width: '360px', height: '360px', objectFit: 'contain', marginBottom: '10px', filter: 'drop-shadow(0 0 15px rgba(74,222,128,0.6))' }} 
                 />
 
                {/* Mobile-only skin picker */}
@@ -840,6 +873,20 @@ export default function LobbyScreen() {
                  </div>
                  {error && <p className="lobby-error">{error}</p>}
                </div>
+
+               {/* PLAY button — centered under nickname */}
+               <button
+                 className="lobby-play-btn"
+                 onClick={handlePlayClick}
+                 disabled={isConnecting}
+                 style={{ marginTop: 20 }}
+               >
+                 {isConnecting ? (
+                   <span className="lobby-loading">CONNECTING...</span>
+                 ) : (
+                   'PLAY'
+                 )}
+               </button>
             </div>
 
             {/* Right Sidebar */}
@@ -879,22 +926,13 @@ export default function LobbyScreen() {
                   })}
                </div>
                
-               <div className="play-section">
+               {/* PLAYING IN — dropped to the bottom of the right panel since the
+                   PLAY button moved to the center column. */}
+               <div className="play-section play-section--compact">
                   <div className="game-mode">
                     <span className="mode-title">PLAYING IN</span>
                     <span className="mode-name">TICKETNAME</span>
                   </div>
-                  <button 
-                    className="lobby-play-btn" 
-                    onClick={handlePlayClick}
-                    disabled={isConnecting}
-                  >
-                    {isConnecting ? (
-                       <span className="lobby-loading">CONNECTING...</span>
-                    ) : (
-                       'PLAY'
-                    )}
-                  </button>
                </div>
             </div>
           </>
@@ -972,6 +1010,7 @@ export default function LobbyScreen() {
                      <span style={{color: 'white', fontWeight: 'bold', width: '50px'}}>{settingsLocalMicGain}%</span>
                   </div>
                 </div>
+                <MicPermissionRow />
                 <div className="setting-item">
                   <h3>YouTube Music</h3>
                   <p>Paste a YouTube URL in the CUSTOMIZATION tab to share music with everyone in the lobby.</p>
@@ -1018,7 +1057,8 @@ export default function LobbyScreen() {
                   <h3>KEYBOARD BINDINGS</h3>
                   <p>Quick reference for in-game actions</p>
                 </div>
-                <div className="control-row"><span>ESC</span> <span>Open this Lobby (pause)</span></div>
+                <div className="control-row"><span>ESC</span> <span>Toggle this Lobby (pause)</span></div>
+                <div className="control-row"><span>T</span> <span>Toggle mouse cursor (free / lock)</span></div>
                 <div className="control-row"><span>Click</span> <span>Lock mouse to camera</span></div>
                 <div className="control-row"><span>C</span> <span>Change Skins Panel</span></div>
                 <div className="control-row"><span>V</span> <span>Hold to Voice Chat</span></div>
@@ -1060,43 +1100,92 @@ export default function LobbyScreen() {
          </div>
       </div>
 
-      {/* Mic Permission Step — Friendly overlay before entering the game */}
-      {showMicStep && (
-        <div className="mic-permission-overlay">
-          <div className="mic-permission-card">
-            <div className="mic-permission-icon">
-              {micStatus === 'granted' ? '✅' : micStatus === 'denied' ? '⚠️' : '🎙️'}
-            </div>
-            <h2 className="mic-permission-title">
-              {micStatus === 'granted'
-                ? 'Mic Enabled!'
-                : micStatus === 'denied'
-                ? 'Mic Blocked'
-                : 'Voice Chat'}
-            </h2>
-            <p className="mic-permission-desc">
-              {micStatus === 'granted'
-                ? 'Joining the world...'
-                : micStatus === 'denied'
-                ? 'No worries — you can still hear others. Entering...'
-                : 'Enable your microphone to talk with other players using push-to-talk (V key). You can still hear everyone without a mic.'}
-            </p>
-            {micStatus === 'pending' && (
-              <div className="mic-permission-actions">
-                <button className="mic-permission-btn mic-permission-btn--enable" onClick={handleMicEnable}>
-                  🎙️ Enable Microphone
-                </button>
-                <button className="mic-permission-btn mic-permission-btn--skip" onClick={handleMicSkip}>
-                  Skip — Just Listen
-                </button>
-              </div>
-            )}
-            {micStatus !== 'pending' && (
-              <div className="mic-permission-loading">
-                <span className="lobby-loading">Entering world...</span>
-              </div>
-            )}
-          </div>
+    </div>
+  )
+}
+
+// ───────────────────────────────────────────────────────────────────
+// MIC PERMISSION ROW — lives inside Audio Settings tab
+// Detects current browser permission state and lets the user enable it.
+// ───────────────────────────────────────────────────────────────────
+function MicPermissionRow() {
+  const [state, setState] = React.useState<'unknown' | 'prompt' | 'granted' | 'denied'>('unknown')
+  const [busy, setBusy] = React.useState(false)
+
+  const refresh = React.useCallback(async () => {
+    // Try the Permissions API first (Chromium, Firefox)
+    try {
+      const perms: any = (navigator as any).permissions
+      if (perms?.query) {
+        const res = await perms.query({ name: 'microphone' as PermissionName })
+        setState(res.state as any)
+        res.onchange = () => setState((res.state as any))
+        return
+      }
+    } catch {}
+    // Fallback: check if our voice chat module already has a track
+    try {
+      const vc = await import('../../lib/audio/voiceChatSystem')
+      setState(vc.isMicAvailable() ? 'granted' : 'prompt')
+    } catch {
+      setState('prompt')
+    }
+  }, [])
+
+  React.useEffect(() => { refresh() }, [refresh])
+
+  const handleEnable = async () => {
+    setBusy(true)
+    try {
+      const vc = await import('../../lib/audio/voiceChatSystem')
+      const ok = await vc.initVoiceChat()
+      setState(ok ? 'granted' : 'denied')
+    } catch {
+      setState('denied')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const label =
+    state === 'granted' ? '✅ Microphone enabled — press and hold V to talk'
+    : state === 'denied' ? '⛔ Microphone blocked by browser — allow it from the site permissions (padlock icon in the URL bar)'
+    : '🎙️ Microphone not enabled — turn it on to use voice chat (V key)'
+
+  return (
+    <div className="setting-item">
+      <h3>Microphone</h3>
+      <p>{label}</p>
+      {state !== 'granted' && (
+        <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+          <button
+            onClick={handleEnable}
+            disabled={busy || state === 'denied'}
+            className="lobby-play-btn"
+            style={{
+              fontSize: 15,
+              padding: '10px 18px',
+              animation: 'none',
+              background: state === 'denied'
+                ? 'linear-gradient(45deg, #555, #777)'
+                : 'linear-gradient(45deg, #10b981, #059669)',
+              opacity: busy || state === 'denied' ? 0.6 : 1,
+              cursor: busy || state === 'denied' ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {busy ? 'Requesting…' : state === 'denied' ? 'BLOCKED' : 'TURN ON MIC'}
+          </button>
+          <button
+            onClick={refresh}
+            className="lobby-play-btn"
+            style={{
+              fontSize: 13, padding: '10px 14px', animation: 'none',
+              background: 'linear-gradient(45deg, #374151, #1f2937)',
+            }}
+            title="Re-check permission"
+          >
+            REFRESH
+          </button>
         </div>
       )}
     </div>

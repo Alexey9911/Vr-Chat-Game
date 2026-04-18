@@ -303,6 +303,78 @@ Regla: **cualquier consumidor que extraiga `.geometry` o reparente un mesh de un
 | 2026-04-17 | house_scene pasado a ETC1S (baja calidad) | ✅ | 4.5 MB → 7.93 MB (en vez de 18 MB con UASTC). Lejos no se nota la distorsión. Skins siguen en UASTC. Script `compress-glb.mjs` acepta `mode: 'etc1s' \| 'uastc'` por target. |
 | 2026-04-17 | Bug: nickname input bloqueado post-loading | ✅ | `useKtx2Loader` creaba N loaders (uno por componente) → WASM transcoder Basis se compilaba 10+ veces bloqueando main thread. Fix: singleton por `gl` con WeakMap en `hooks/useKtx2Loader.ts`. |
 | 2026-04-17 | Rollback house_scene a Draco (commit 76bde55) | ✅ | KTX2 en house_scene traía muchos bugs (clip por meshopt quantization, peso inflado, más compile time WASM) sin beneficio perceptual. Con el singleton fix, el loading screen ya va fluido → no hace falta comprimir la escena. `HouseScene.jsx` + `OrangiePathNPC.jsx` + `HouseAirdrops.jsx` + `House_scene-v1.tsx` vuelven a `useGLTF` / `.glb`. Skins siguen en KTX2 UASTC. |
+| 2026-04-17 | Lobby screen UX overhaul | ✅ | ESC toggle lobby (open+close), T key para cursor free/lock, FHD 1920x1080 stage cap con tiled bg, fade transition 0.22s, auto pointer-lock al cerrar lobby, mic permission inline en Audio Settings (detecta granted/prompt/denied), removido fullscreen mic overlay. Ver sección "Sesión 2026-04-17 — Lobby/UX Overhaul" abajo. |
+| 2026-04-17 | CUSTOMIZATION tab en lobby | ✅ | Nuevo tab con `SkinPreviewCanvas` transparente + flechas prev/next + paleta de colores + input YouTube. Lógica de skin change y YouTube replicada de `SkinsModal` / `YouTubeModal`. |
+| 2026-04-17 | Audio/Video settings wired | ✅ | Sliders Music/Mic/LocalMic conectados a `useSettingsStore` + `setGlobalVolumeMultiplier` / `setMicVolumeMultiplier` / `setLocalMicGain` / `setYouTubeVolume`. Environment preset buttons (sunset/night/warehouse) conectados a `setEnvironment`. |
+| 2026-04-17 | Pump.fun palette en lobby | ✅ | Globals.css migrado de tonos dorados/cyan/magenta a verdes emerald (`#10b981`, `#22c55e`, `#4ade80`) + white. Borders finos vía `filter: drop-shadow()` sobre elementos con clip-path. Twitter/PumpFun buttons conservan color original. Skin-picker-box queda con dark slate `rgba(15,23,42,0.82)` para contraste. |
+| 2026-04-17 | Bug doble-ESC arreglado | ✅ | Causa root: navegador captura ESC nativamente cuando puntero está locked y **no dispara keydown** a JS → primer ESC liberaba puntero, segundo abría lobby. Fix: listener `pointerlockchange` en LobbyScreen + flag `cursorIntent.intentionalUnlock` en `lib/cursorIntent.ts` que T/HUD-button setean antes de `exitPointerLock`. Resultado: primer ESC abre lobby siempre. |
+| 2026-04-17 | CarsCollision via GLB | ✅ | `components/CarsCollision.jsx` carga `public/alon_house/physics_cars.glb` + traverse + `Box3.setFromObject` para respetar rotaciones bakeadas. Meshes `visible=false` → 0 draw calls. Primer intento hardcoded falló (inspect-glb.mjs ignora rotaciones y jerarquía de nodos). |
+| 2026-04-17 | Skins limpieza | ✅ | Removidos `elonmuskchibi` y `trumpskin` de `skinsConfig.ts` + imports/branches en `RemotePlayerAvatar.jsx`. Skins activas: `alon`, `chillhouse`, `tobaku`, `unc`, `pinguin`. `skinYOffset` de small-rig subido 0.8 → 1.4 para que no traspasen el suelo. |
+| 2026-04-17 | Debug overlays hidden | ✅ | `<PositionDebug />` en `pages/index.tsx:118` comentado. `<DebugCameraFar />` (Leva panel) en `Canvas3D.tsx:96` comentado. Reactivar cuando haga falta tunear posiciones/cámara. |
+
+---
+
+## Sesión 2026-04-17 — Lobby/UX Overhaul (roadmap + log)
+
+Todo lo que hicimos en esta tanda, para tener contexto completo si hay que volver atrás:
+
+### Lobby screen
+- **ESC toggle completo** (`@components/multiplayer/LobbyScreen.tsx:213-250`): abre Y cierra la lobby cuando el user está conectado. Ignora mientras escribe en inputs. Maneja el caso especial de que ESC esté siendo consumido por el navegador al exitear pointer lock (ver "Bug ESC" abajo).
+- **Fade transition** (`@styles/globals.css:385-404`): la lobby siempre queda montada; se anima con `opacity 0.22s ease-out` + `pointer-events: none` cuando oculta. Clase toggleada `.is-visible` / `.is-hidden`.
+- **Background tileado en >FHD** (`@styles/globals.css:43-52`): clase `body.in-lobby` aplicada por `useEffect` en LobbyScreen. Muestra `bacgroundImage.png` tileado en las bandas que quedarían negras en monitores >1920x1080. En modo juego (lobby oculta) vuelve a `#000`.
+- **Auto pointer-lock al cerrar** (`@components/multiplayer/LobbyScreen.tsx:259-270`): cuando `lobbyVisible` pasa de true→false estando conectado, se llama `requestPointerLock()` tras 60ms. La ESC/click que cerró la lobby sirve como transient user activation.
+- **Mic permission inline** (`@components/multiplayer/LobbyScreen.tsx:1069+`): subcomponente `MicPermissionRow` en tab AUDIO SETTINGS. Detecta estado con `navigator.permissions.query({name:'microphone'})` con fallback a `isMicAvailable()`. UI: botón verde TURN ON MIC, gris BLOCKED, o check verde ya enabled. Eliminado el overlay fullscreen pre-entry.
+- **PLAY click idempotente** (`@components/multiplayer/LobbyScreen.tsx:254-261`): si ya estás `isConnected`, PLAY solo cierra la lobby (no reconecta, no muestra mic step).
+- **Tabs reales**: LOBBY, CUSTOMIZATION, AUDIO SETTINGS, VIDEO SETTINGS, CONTROLS — todos wireados a stores reales. Placeholders eliminados.
+
+### Pointer lock / cursor
+- **T key toggle** (`@components/ui/AudioButton.tsx:74-87`): presionar T hace toggle de pointer lock. Ignora si estás escribiendo, en lobby o en chat.
+- **HUD cursor button**: el botón relabelado `ESC` → `T`, misma función que la tecla.
+- **`cursorIntent.intentionalUnlock`** (`@lib/cursorIntent.ts`): flag compartido entre AudioButton y LobbyScreen. Set a `true` cuando el user pulsa T / clickea botón antes de `exitPointerLock`. LobbyScreen lee el flag en `pointerlockchange` para distinguir T/botón (no abrir lobby) vs ESC (abrir lobby).
+- **Bug ESC double-press**: root cause = browser consume keydown Escape cuando puntero locked. Solución = escuchar `pointerlockchange` en vez de `keydown`. Ver `@components/multiplayer/LobbyScreen.tsx:231-243`.
+
+### FHD stage cap
+- **`main` capado a 1920x1080** (`@styles/globals.css:61-69`): `max-width: 1920px; max-height: 1080px; overflow: hidden;` + `transform: translateZ(0)` que convierte a `main` en containing block para descendientes `position: fixed`. Eso limita TODOS los elementos fijos (canvas, lobby, HUD) al stage sin editar cada regla.
+- **Body centrado** (`@styles/globals.css:34-41`): `display: flex; align-items: center; justify-content: center;` + `min-height: 100vh; overflow: hidden;`.
+- **`<main>` inline styles quitados** (`@pages/index.tsx:99`) para que max-width/height aplique.
+
+### Skins & física
+- **Removidos** de `skinsConfig.ts`: `elonmuskchibi`, `trumpskin`. Archivos `ElonMuskChibiAvatar.tsx` / `TrumpSkinAvatar.tsx` quedaron en disco sin usar (reactivables si el user los pide).
+- **Y offset elevado** (`@components/multiplayer/RemotePlayerAvatar.jsx:120`): `skinYOffset` para small-rig 0.8 → **1.4** para que no traspasen el suelo. Alon sigue con su `ALON_FEET_Y_OFFSET = 1.5` interno.
+- **CarsCollision** (`@components/CarsCollision.jsx`): carga `physics_cars.glb` con `useGLTF` + traverse + `Box3.setFromObject`. Meshes `visible=false` → 0 draw calls. Mismo patrón que `HouseExteriorCollision.jsx`. Offset `OX/OY/OZ` compartido.
+- **Lección aprendida**: `scripts/inspect-glb.mjs` usa `accessor.min/max * scale + translation` que NO respeta rotaciones bakeadas ni jerarquía de nodos. Para colisiones precisas **cargar el GLB en runtime** y usar `Box3.setFromObject()` (Three.js walks la matriz mundial completa).
+
+### UI re-skin Pump.fun
+- **Palette tokens**: emerald principal `#10b981` (pump.fun button), secundarios `#22c55e` / `#4ade80` / `#16a34a`, dark `#0b3d1f`, accent white.
+- **Panel bgs** usan tints translúcidos de `rgba(16, 185, 129, 0.18-0.35)` para mantener feel de vidrio + backdrop-filter blur. Settings-ui-panel usa 0.28.
+- **Contraste en skin-picker-box** (`@styles/globals.css:531-534`): `background: rgba(15, 23, 42, 0.82)` (dark slate) + `border-left: 5px solid #f59e0b` (ámbar) → destaca visualmente entre los paneles verdes.
+- **Thin black borders en clip-path**: truco `filter: drop-shadow(0 0 0.5px #000) drop-shadow(0 0 0.5px #000)` respeta el polígono del clip. Aplicado a `.nav-tab.active`, `.info-box`, `.game-mode`, `.news-btn`, `.settings-ui-panel`.
+- **PLAY button** con gradient verde dinámico + glow pump-style en vez del rainbow anterior.
+- **Twitter (`#1DA1F2`) y Pump.fun (`#10b981`) buttons preservados** con sus inline styles originales en `@components/multiplayer/LobbyScreen.tsx:1036-1048`.
+
+### Debug hidden (temporal)
+- `<PositionDebug />` — comentado en `@pages/index.tsx:118`. Descomentarlo cuando toque tunear spawn/checkpoint/colisiones.
+- `<DebugCameraFar />` (Leva panel near/far tuning) — comentado en `@components/Canvas3D.tsx:96`. Reactivar para ajustar camera frustum.
+
+### Archivos creados en esta sesión
+- `@lib/cursorIntent.ts` — flag compartido para distinguir unlocks intencionales.
+- `@components/CarsCollision.jsx` — colisiones invisibles para los 4 autos.
+
+### Archivos modificados clave
+- `@pages/index.tsx` — removido inline styling de `<main>`, debug comentado.
+- `@pages/_app.tsx` — sin cambios.
+- `@styles/globals.css` — palette pump.fun, FHD cap, fade transition, tiled bg.
+- `@components/Canvas3D.tsx` — Leva panel comentado.
+- `@components/Scene3D.jsx` — mount de `CarsCollision` con Suspense.
+- `@components/multiplayer/LobbyScreen.tsx` — reescrito: ESC handlers, mic inline, customization tab, audio/video wireados, fade.
+- `@components/multiplayer/RemotePlayerAvatar.jsx` — skins removidas, Y offset subido.
+- `@components/ui/AudioButton.tsx` — T key, cursor intent flag, label ESC→T.
+- `@lib/skins/skinsConfig.ts` — removidos `elonmuskchibi`, `trumpskin`.
+
+### TODOs / pendientes conocidos
+- Los archivos `ElonMuskChibiAvatar.tsx` / `TrumpSkinAvatar.tsx` / `ElonAvatar.tsx` / `Ai16zAvatar.tsx` quedan en `components/multiplayer/` sin usarse. Si no se van a reactivar, se pueden borrar (junto con sus `.glb` assets) para limpiar.
+- Si tras activar la lobby vía ESC se ve "parpadeo" en las transiciones rápidas, subir el delay del `setTimeout(..., 60)` de auto pointer-lock.
+- Si algún modal hijo (SkinsModal, SettingsModal, YouTubeModal) queda mal recortado en monitores >FHD, hay que darles `max-width: 100%` o similares (no testeado).
 
 ---
 
