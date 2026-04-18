@@ -90,11 +90,12 @@ const KeyboardHUD: React.FC = () => {
           color: 'rgba(255,255,255,0.5)' 
         }}>
           <div>C – Skins</div>
-          <div>V – Vista</div>
-          {animationLabels.anim2 ? (<div>2 – {animationLabels.anim2}</div>) : null}
-          {animationLabels.anim3 ? (<div>3 – {animationLabels.anim3}</div>) : null}
-          {animationLabels.anim4 ? (<div>4 – {animationLabels.anim4}</div>) : null}
-          {animationLabels.anim5 ? (<div>5 – {animationLabels.anim5}</div>) : null}
+          <div>M – Menu</div>
+          <div>1 – Emote</div>
+          <div>2 – Emote</div>
+          <div>3 – Emote</div>
+          <div>4 – Emote</div>
+          <div>5 – Emote</div>
         </div>
       </div>
     </div>
