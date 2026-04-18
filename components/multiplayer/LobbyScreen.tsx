@@ -630,7 +630,7 @@ export default function LobbyScreen() {
       {/* Background image - Clean, no filters */}
       <img
         className="lobby-video-bg"
-        src="/alonVersion/image.png"
+        src="/alon_house/bacgroundImage.png"
         alt=""
       />
       
