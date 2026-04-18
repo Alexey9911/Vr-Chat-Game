@@ -55,13 +55,16 @@ export default function SkinBar() {
 
   return (
     <div className="skin-bar">
-      {SKINS.map((skin) => (
+      {SKINS.map((skin, i) => (
         <button
           key={skin.id}
           className={`skin-bar-item ${activeSkinId === skin.id ? 'active' : ''}`}
           onClick={() => applySkin(skin.id)}
           title={skin.label}
         >
+          {/* Number badge shown on mobile (vertical bar). CSS toggles which
+              one is visible depending on viewport width. */}
+          <span className="skin-bar-index">{i + 1}</span>
           <span className="skin-bar-label">{skin.label}</span>
         </button>
       ))}

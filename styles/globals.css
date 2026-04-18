@@ -966,31 +966,53 @@ a {
 }
 
 @media (max-width: 950px) {
-  .lobby-left-panel {
-    display: none;
-  }
-  .lobby-right-panel {
-    display: none;
-  }
-  .lobby-nav-tabs {
-    display: none;
-  }
-  .lobby-top-right {
-    display: none;
-  }
+  .lobby-left-panel { display: none; }
+  .lobby-right-panel { display: none; }
+  .lobby-nav-tabs { display: none; }
+  .lobby-top-right { display: none; }
+
+  /* Compact the whole lobby-main so the PLAY button is visible without
+     scrolling. Avatar was 360x360 inline; overridden with !important to
+     avoid editing every inline style in LobbyScreen.tsx. */
   .lobby-main {
-    padding: 20px;
-    justify-content: center;
+    padding: 12px;
+    justify-content: flex-start;
+    gap: 8px;
+    overflow-y: auto;
   }
   .lobby-center-panel {
-    padding-bottom: 10px;
+    padding-bottom: 8px;
+    gap: 8px;
+  }
+  .lobby-center-panel img[alt=""] {
+    width: 140px !important;
+    height: 140px !important;
+    margin-bottom: 4px !important;
   }
   .fortnite-input {
-    width: 280px;
-    font-size: 22px;
+    width: min(90vw, 260px);
+    font-size: 18px;
+    padding: 10px 14px;
   }
   .info-box.mobile-skin-picker {
     display: block !important;
+    margin-bottom: 8px !important;
+  }
+  .lobby-play-btn {
+    font-size: 24px;
+    padding: 12px 28px;
+    min-width: 200px;
+  }
+  /* Small mobiles: even more compression */
+  @media (max-height: 720px) {
+    .lobby-center-panel img[alt=""] {
+      width: 100px !important;
+      height: 100px !important;
+    }
+    .lobby-play-btn {
+      font-size: 20px;
+      padding: 10px 24px;
+    }
   }
 }
 
@@ -2820,12 +2842,15 @@ a {
     padding: 6px 10px;
   }
 
-  /* Chat: left side, narrower to leave room for controls on right */
+  /* Chat: left side, narrower to leave room for controls on right.
+     Pushed further left to clear the new vertical skin bar (which sits at
+     left:8px with width~44px) and made smaller per user request. */
   .chat-container {
-    left: 8px;
-    width: calc(55vw);
-    max-width: calc(55vw);
+    left: 64px;
+    width: calc(48vw);
+    max-width: calc(48vw);
     bottom: 65px;
+    font-size: 12px;
   }
 
   .chat-live-log {
@@ -2866,4 +2891,40 @@ a {
     font-size: 11px;
     padding: 4px 8px;
   }
+}
+
+/* =============================================
+   FHD VIRTUAL STAGE — on monitors LARGER than 1920x1080, clamp the in-game
+   HUD to a 1920x1080 rectangle centered on screen. The 3D canvas still
+   fills the full viewport; only the overlay UI anchors to a virtual FHD
+   stage so HUD elements don't drift to the real screen edges.
+   On smaller displays (≤ FHD, tablets, phones) none of these rules apply
+   and the HUD uses its original `top/right/bottom/left` values.
+   Horizontal formula (for any `right: Xpx`):
+     right = max(Xpx, calc(50vw - 960px + Xpx))
+   Vertical formula (for any `bottom: Ypx`):
+     bottom = max(Ypx, calc(50vh - 540px + Ypx))
+   ============================================= */
+@media (min-width: 1921px) {
+  .hud-panel       { right: max(16px,  calc(50vw - 944px))  !important; }
+  .controls-hud    { right: max(30px,  calc(50vw - 930px))  !important; }
+  .chat-container  { left:  max(30px,  calc(50vw - 930px))  !important; }
+  .gif-bar-row     { left:  max(30px,  calc(50vw - 930px))  !important; }
+  .players-list    { right: max(16px,  calc(50vw - 944px))  !important; }
+  .instructions    { left:  max(30px,  calc(50vw - 930px))  !important; }
+  .ca-section      { left:  max(30px,  calc(50vw - 930px))  !important; }
+  /* .skin-bar / .emote-bar / .cinematic-hud already use left:50% (screen
+     center) which coincides with the virtual stage center → no change. */
+}
+
+@media (min-height: 1081px) {
+  .controls-hud    { bottom: max(30px,  calc(50vh - 510px)) !important; }
+  .chat-container  { bottom: max(110px, calc(50vh - 430px)) !important; }
+  .gif-bar-row     { bottom: max(20px,  calc(50vh - 520px)) !important; }
+  .players-list    { top:    max(16px,  calc(50vh - 524px)) !important; }
+  .instructions    { top:    max(30px,  calc(50vh - 510px)) !important; }
+  .ca-section      { top:    max(30px,  calc(50vh - 510px)) !important; }
+  .skin-bar        { bottom: max(80px,  calc(50vh - 460px)) !important; }
+  .emote-bar       { bottom: max(16px,  calc(50vh - 524px)) !important; }
+  .cinematic-hud   { top:    max(12px,  calc(50vh - 528px)) !important; }
 }

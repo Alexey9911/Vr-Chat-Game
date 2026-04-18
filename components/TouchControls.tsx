@@ -12,6 +12,25 @@ const TouchControls: React.FC = () => {
     e.preventDefault();
     removePressedKey(key);
   };
+  // Stop the button from taking keyboard focus on mouse/touch down — focus
+  // gain would fire `focusin` on <button> which is still handled in
+  // useCameraControls (although now narrowed to inputs only, this keeps the
+  // HUD visually consistent and avoids any lingering blue focus ring).
+  const preventFocus = (e: React.MouseEvent | React.PointerEvent) => {
+    e.preventDefault();
+  };
+  const btnBase: React.CSSProperties = {
+    fontSize: 26,
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    border: '2px solid #fff',
+    background: '#222a',
+    color: '#fff',
+    touchAction: 'none',
+    WebkitUserSelect: 'none',
+    userSelect: 'none',
+  };
 
   return (
     <div
@@ -31,21 +50,30 @@ const TouchControls: React.FC = () => {
     >
       <div>
         <button
-          style={{ fontSize: 30, width: 60, height: 60, opacity: isKeyPressed("w") ? 1 : 0.7, borderRadius: 12, border: '2px solid #fff', background: '#222a', color: '#fff' }}
+          tabIndex={-1}
+          onMouseDown={preventFocus}
+          onPointerDown={preventFocus}
+          style={{ ...btnBase, opacity: isKeyPressed("w") ? 1 : 0.7 }}
           onTouchStart={handleTouchStart("w")}
           onTouchEnd={handleTouchEnd("w")}
           onTouchCancel={handleTouchEnd("w")}
         >↑</button>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'row', gap: 24 }}>
+      <div style={{ display: 'flex', flexDirection: 'row', gap: 20 }}>
         <button
-          style={{ fontSize: 30, width: 60, height: 60, opacity: isKeyPressed("a") ? 1 : 0.7, borderRadius: 12, border: '2px solid #fff', background: '#222a', color: '#fff' }}
+          tabIndex={-1}
+          onMouseDown={preventFocus}
+          onPointerDown={preventFocus}
+          style={{ ...btnBase, opacity: isKeyPressed("a") ? 1 : 0.7 }}
           onTouchStart={handleTouchStart("a")}
           onTouchEnd={handleTouchEnd("a")}
           onTouchCancel={handleTouchEnd("a")}
         >←</button>
         <button
-          style={{ fontSize: 30, width: 60, height: 60, opacity: isKeyPressed("d") ? 1 : 0.7, borderRadius: 12, border: '2px solid #fff', background: '#222a', color: '#fff' }}
+          tabIndex={-1}
+          onMouseDown={preventFocus}
+          onPointerDown={preventFocus}
+          style={{ ...btnBase, opacity: isKeyPressed("d") ? 1 : 0.7 }}
           onTouchStart={handleTouchStart("d")}
           onTouchEnd={handleTouchEnd("d")}
           onTouchCancel={handleTouchEnd("d")}
@@ -53,7 +81,10 @@ const TouchControls: React.FC = () => {
       </div>
       <div>
         <button
-          style={{ fontSize: 30, width: 60, height: 60, opacity: isKeyPressed("s") ? 1 : 0.7, borderRadius: 12, border: '2px solid #fff', background: '#222a', color: '#fff' }}
+          tabIndex={-1}
+          onMouseDown={preventFocus}
+          onPointerDown={preventFocus}
+          style={{ ...btnBase, opacity: isKeyPressed("s") ? 1 : 0.7 }}
           onTouchStart={handleTouchStart("s")}
           onTouchEnd={handleTouchEnd("s")}
           onTouchCancel={handleTouchEnd("s")}

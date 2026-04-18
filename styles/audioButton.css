@@ -303,6 +303,11 @@
   display: block;
 }
 
+/* Number badge shown only on mobile vertical layout (see media query below). */
+.skin-bar-index {
+  display: none;
+}
+
 /* =============================================
    EMOTE BAR — Horizontal bar at bottom (smaller, below skins)
    ============================================= */
@@ -383,13 +388,27 @@
     border-radius: 10px;
   }
 
+  /* Mobile skin bar: VERTICAL on the LEFT side, mirror of the right-side
+     HUD panel. Centered vertically, short numeric labels (1, 2, 3…) so it
+     stays narrow and doesn't cover the chat or the arrow controls. */
   .skin-bar {
-    bottom: 60px;
+    position: fixed;
+    top: 50%;
+    left: 8px;
+    bottom: auto;
+    right: auto;
+    transform: translateY(-50%);
+    flex-direction: column;
     gap: 6px;
-    padding: 8px 10px;
-    max-width: 90vw;
-    overflow-x: auto;
+    padding: 8px;
+    max-width: none;
+    max-height: 70vh;
+    overflow-y: auto;
+    overflow-x: hidden;
     scrollbar-width: none;
+    clip-path: none;
+    border-left: none;
+    border-right: 4px solid #10b981;
   }
 
   .skin-bar::-webkit-scrollbar {
@@ -397,9 +416,22 @@
   }
 
   .skin-bar-item {
-    padding: 8px 12px;
-    font-size: 11px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    font-size: 16px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    clip-path: none;
+    border-radius: 8px;
+    flex-shrink: 0;
   }
+
+  /* Hide the skin name, show the number badge instead. */
+  .skin-bar .skin-bar-label { display: none; }
+  .skin-bar .skin-bar-index { display: block; }
 
   .emote-bar {
     bottom: 10px;

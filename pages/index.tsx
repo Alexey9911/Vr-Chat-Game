@@ -88,8 +88,8 @@ function HomePage() {
   return (
     <>
       <Head>
-        <title>ticket name</title>
-        <meta name="description" content="ticket name" />
+        <title>3D World</title>
+        <meta name="description" content="3D World" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="preload" href="/sky.hdr" as="fetch" crossOrigin="anonymous" />

@@ -14,10 +14,12 @@ const OX = 190.12, OY = 1.1857, OZ = -88.67
 const FLOATING_TEXTS = [
   // Temporary placeholder — label left as just '$' until ticketname is decided.
   { label: '$',                position: [-231.09 + OX, 54.26 + OY,  96.19 + OZ], style: 'alonverse',  fontSize: 8 },
-  { label: 'Lamborghini Urus', position: [-268.09 + OX, 23.02 + OY, 107.37 + OZ], style: 'cybertruck', fontSize: 2.5 },
-  { label: 'BMW M4',           position: [-273.81 + OX, 23.02 + OY,  51.14 + OZ], style: 'cybertruck', fontSize: 2.5 },
-  { label: 'Bananamobile',     position: [-274.41 + OX, 23.02 + OY,  75.29 + OZ], style: 'cybertruck', fontSize: 2.5 },
-  { label: 'Corvette C8',      position: [-271.96 + OX, 23.02 + OY, 137.87 + OZ], style: 'cybertruck', fontSize: 2.5 },
+  // Car name floating labels temporarily hidden per user request — keep the
+  // entries commented so we can restore them later without losing the coords.
+  // { label: 'Lamborghini Urus', position: [-268.09 + OX, 23.02 + OY, 107.37 + OZ], style: 'cybertruck', fontSize: 2.5 },
+  // { label: 'BMW M4',           position: [-273.81 + OX, 23.02 + OY,  51.14 + OZ], style: 'cybertruck', fontSize: 2.5 },
+  // { label: 'Bananamobile',     position: [-274.41 + OX, 23.02 + OY,  75.29 + OZ], style: 'cybertruck', fontSize: 2.5 },
+  // { label: 'Corvette C8',      position: [-271.96 + OX, 23.02 + OY, 137.87 + OZ], style: 'cybertruck', fontSize: 2.5 },
 ]
 
 function FloatingTextItem({ label, position, style, fontSize }) {

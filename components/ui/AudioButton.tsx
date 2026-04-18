@@ -65,34 +65,50 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
   const [isYouTubePlaying, setIsYouTubePlaying] = useState(false)
   const [isCursorFree, setIsCursorFree] = useState(false)
 
-  // Track cursor lock state. ESC opens the lobby (handled in LobbyScreen).
-  // Cursor lock/free is toggled with the T key, the HUD button, or clicking
-  // the canvas (pointer-lock happens in useCameraControls).
+  // ESC toggles the pointer-lock (cursor lock/free). T is no longer used.
+  //
+  // Timeline when pointer is LOCKED and user presses ESC:
+  //   1. Browser natively exits pointer-lock (we can't prevent this).
+  //   2. `pointerlockchange` fires → we stamp `lastUnlockTs = now`.
+  //   3. Chrome 100+ dispatches `keydown` for ESC.
+  //   4. Our handler sees "unlocked < 250ms ago" → skip (user's goal was to
+  //      free the cursor; don't re-lock immediately).
+  //
+  // Timeline when pointer is FREE and user presses ESC:
+  //   1. No native browser action.
+  //   2. `keydown` fires → `Date.now() - lastUnlockTs > 250` → requestPointerLock
+  //      on the canvas (the keypress is a valid user gesture).
+  //
+  // Net behaviour: ESC acts as a real toggle. First press frees the cursor,
+  // next press locks it back into the game.
   useEffect(() => {
+    let lastUnlockTs = 0
     const handlePointerLockChange = () => {
       const locked: any = (document as any).pointerLockElement || (document as any).webkitPointerLockElement
       setIsCursorFree(!locked)
+      if (!locked) lastUnlockTs = Date.now()
     }
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key !== 't' && e.key !== 'T') return
-      // Ignore auto-repeat (holding T should not spam toggle).
+      if (e.key !== 'Escape') return
       if (e.repeat) { e.preventDefault(); return }
       const el = document.activeElement as any
       const typing = !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
       if (typing) return
       if (lobbyVisible || chatActive) return
-      e.preventDefault()
       const locked: any = (document as any).pointerLockElement || (document as any).webkitPointerLockElement
       if (locked) {
+        // Let the browser handle the native ESC-exit. Don't preventDefault —
+        // that would break the browser's pointer-lock release.
         cursorIntent.intentionalUnlock = true
-        const exit = (document as any).exitPointerLock || (document as any).webkitExitPointerLock
-        exit?.call(document)
-      } else {
-        // Lock the canvas — useCameraControls checks pointerLockElement === canvas.
-        const canvas = document.querySelector('canvas') as any
-        const req = canvas?.requestPointerLock || canvas?.webkitRequestPointerLock || canvas?.mozRequestPointerLock
-        req?.call(canvas)
+        return
       }
+      // Cursor is free. If it was just released by the browser via ESC we
+      // DON'T want to immediately re-lock — that would defeat the press.
+      if (Date.now() - lastUnlockTs < 250) return
+      e.preventDefault()
+      const canvas = document.querySelector('canvas') as any
+      const req = canvas?.requestPointerLock || canvas?.webkitRequestPointerLock || canvas?.mozRequestPointerLock
+      req?.call(canvas)
     }
     document.addEventListener('pointerlockchange', handlePointerLockChange)
     document.addEventListener('webkitpointerlockchange', handlePointerLockChange as any)
@@ -155,20 +171,9 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
     return () => clearInterval(interval)
   }, [isConnected])
 
-  // M hotkey — FIX: also check input focus (fixes conflict with PlayroomKit nickname input)
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const el = document.activeElement as any
-      const typing = !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
-      if (typing || chatActive || lobbyVisible) return
-      if ((e.key === 'm' || e.key === 'M') && !cooldown) {
-        e.preventDefault()
-        isActuallyPlaying ? handleStop() : handlePlay()
-      }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [chatActive, lobbyVisible, cooldown, isActuallyPlaying])
+  // NOTE: M is reserved for the lobby menu (see LobbyScreen). The music
+  // play/stop button is clickable from the HUD (no keyboard shortcut).
+  // Previously M toggled music which conflicted with the menu hotkey.
 
   const handlePlay = () => {
     if (!isConnected || cooldown) return
@@ -211,9 +216,21 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
             exit?.call(document)
           }
         }}
-        title={isCursorFree ? "Cursor Free (press T or click canvas to lock)" : "Cursor Locked (press T or click to free)"}
+        title={isCursorFree ? "Cursor Free (press ESC or click canvas to lock)" : "Cursor Locked (press ESC to free)"}
       >
-        <span style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '1px' }}>T</span>
+        <span style={{ fontSize: '13px', fontWeight: 900, letterSpacing: '1px' }}>ESC</span>
+      </button>
+
+      {/* LOBBY MENU (M) */}
+      <button
+        className="hud-btn hud-btn--menu"
+        onClick={() => {
+          const s = useMultiplayerStore.getState()
+          s.setLobbyVisible(!s.lobbyVisible)
+        }}
+        title="Open/Close Menu (M)"
+      >
+        <span style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '1px' }}>M</span>
       </button>
 
       {/* MUSIC (skin) */}
@@ -221,7 +238,7 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
         className={`hud-btn hud-btn--music ${isActuallyPlaying ? 'is-playing' : ''} ${cooldown ? 'cooldown' : ''}`}
         onClick={isActuallyPlaying ? handleStop : handlePlay}
         disabled={cooldown || skinMusicDisabled}
-        title={isYouTubePlaying ? 'Stop YouTube first' : isActuallyPlaying ? 'Stop Music (M)' : hasAudio ? 'Play Music (M)' : 'No audio for this skin'}
+        title={isYouTubePlaying ? 'Stop YouTube first' : isActuallyPlaying ? 'Stop Music' : hasAudio ? 'Play Music' : 'No audio for this skin'}
       >
         {isActuallyPlaying
           ? <Square size={17} fill="currentColor" />

@@ -3,7 +3,7 @@ import ChangeAdressConsole from "./changeAdressConsole/ChangeAdressConsole";
 
 const CASection: React.FC = () => {
   return (
-    <div style={{
+    <div className="ca-section" style={{
       position: 'fixed',
       top: '30px',
       left: '30px',

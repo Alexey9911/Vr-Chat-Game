@@ -210,59 +210,35 @@ export default function LobbyScreen() {
     }
   }, [])
 
-  // ESC ↔ toggle lobby when connected (open AND close). No reconnect.
+  // M ↔ toggle lobby menu (open AND close).
   //
-  // Two cases:
-  //   A) Pointer is locked: browser handles ESC natively to exit lock and
-  //      does NOT dispatch a JS 'keydown' for Escape. We detect this via
-  //      `pointerlockchange` and open the lobby when the unlock wasn't
-  //      user-initiated (flagged via `cursorIntent.intentionalUnlock`).
-  //   B) Pointer is free: regular keydown closes or opens the lobby, and
-  //      when closing we re-lock the canvas synchronously (the ESC press
-  //      is a valid user gesture so the browser allows the lock).
+  // Simplified design (replaces the old ESC + pointerlockchange combo which
+  // was fragile and collided with Alt+Tab / window-blur / Chrome's native
+  // pointer-lock exit). Now the mapping is:
+  //   M     → toggle lobby menu (JS-controlled, predictable).
+  //   ESC   → browser-native pointer-lock release ONLY (frees the cursor).
+  //   T     → same as ESC via JS (kept for muscle memory / mobile).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return
-      // Ignore auto-repeat: holding ESC must NOT spam toggle the lobby.
+      if (e.key !== 'm' && e.key !== 'M') return
       if (e.repeat) { e.preventDefault(); return }
       const el = document.activeElement as any
       const typing = !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
       if (typing) return
-      // Don't open/close lobby while chat is open (chat handles its own ESC).
       if (useKeyboardStore.getState().chatActive) return
       if (!isConnected) return
       e.preventDefault()
       const nextVisible = !lobbyVisible
       setLobbyVisible(nextVisible)
       if (!nextVisible) {
-        // Closing the lobby — re-lock camera synchronously so camera moves
-        // without needing a click on the canvas.
+        // Closing the lobby — re-lock camera synchronously so the camera
+        // responds without needing an extra click on the canvas.
         lockCanvas()
       }
     }
-    // ESC opens the lobby. We use ONLY a keydown listener — previously we
-    // also listened to `pointerlockchange`, but that fired on ANY pointer-lock
-    // release (Alt+Tab, window blur, TAB focus change, devtools opening…),
-    // causing the lobby to open on random key combos. Chrome 100+ dispatches
-    // a JS `keydown` for ESC even while pointer-lock is active, so keydown
-    // alone is sufficient and unambiguous.
-    const onOpenKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return
-      if (e.repeat) { e.preventDefault(); return }
-      const el = document.activeElement as any
-      const typing = !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
-      if (typing) return
-      if (useKeyboardStore.getState().chatActive) return
-      if (!useMultiplayerStore.getState().isConnected) return
-      if (useMultiplayerStore.getState().lobbyVisible) return
-      e.preventDefault()
-      setLobbyVisible(true)
-    }
     window.addEventListener('keydown', onKey)
-    window.addEventListener('keydown', onOpenKey)
     return () => {
       window.removeEventListener('keydown', onKey)
-      window.removeEventListener('keydown', onOpenKey)
     }
   }, [isConnected, lobbyVisible, setLobbyVisible])
 

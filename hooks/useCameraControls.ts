@@ -302,7 +302,17 @@ export const useCameraControls = () => {
   }, [removePressedKey, chatActive])
 
   useEffect(() => {
-    const clear = () => setPressedKeys(new Set())
+    // Clear pressed keys only when focus moves to a REAL text input
+    // (chat box, nickname field, etc.). Previously we cleared on ANY focus
+    // change, which wiped W/A/S/D the moment a mobile user tapped a
+    // TouchControls arrow button (buttons take focus on tap → focusin →
+    const clear = (e: Event) => {
+      const target = e.target as HTMLElement | null
+      if (!target) return
+      const tag = target.tagName
+      const isRealInput = tag === 'INPUT' || tag === 'TEXTAREA' || (target as any).isContentEditable
+      if (isRealInput) setPressedKeys(new Set())
+    }
     window.addEventListener('focusin', clear, true)
     window.addEventListener('focusout', clear, true)
     return () => {

@@ -17,7 +17,7 @@ const LABEL_Y_OFFSET = 16
 // NPC base position in GLB: (-242.55, 0.87, 3.25) ≈ near path 5, so we start heading toward path 2.
 
 const NPC_Y = 0.87 // NPC's own ground Y from its GLB node (we ignore path plane heights per user)
-const SPEED = 100  // units per second
+const SPEED = 50  // units per second (halved per user request — was 100)
 const ARRIVE_EPS = 1.0
 
 // The waypoint traversal order (cycles)
