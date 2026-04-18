@@ -1,23 +1,15 @@
 import React, { useEffect, useRef } from 'react'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
-import { ROOM_Y_OFFSET, PHYSICS_EXTRA_Y } from '../../lib/roomsConfig'
+import { ROOM_Y_OFFSET } from '../../lib/roomsConfig'
 import { registerCollisionMesh, unregisterCollisionMesh } from '../../lib/collisionRef'
 
-// Unified rooms GLB (all rooms merged into a single /alon_house/rooms.glb).
-// Previous per-room split (/alon_house/rooms/room1.glb) was retired.
-//
-// Rendered lifted by ROOM_Y_OFFSET so the exterior camera (far=350) cannot
-// reach the interior geometry — keeps the rooms fully frustum-culled while
-// the player is outside. The checkpoints use the same constant so spawn
-// coords stay in sync without per-file edits.
-//
-// COLLISION: a dedicated /alon_house/rooms_physics.glb holds the simplified
-// physics geometry (walls as planes, floor, obstacles) — exported from
-// Blender WITHOUT applied solidify to keep tri count tiny. We load it
-// hidden alongside the visual rooms.glb, register every mesh as a
-// collision target, and rely on `DoubleSide` on the raycaster side so
-// zero-thickness walls still block movement from both directions.
+// Interior rooms. Same pattern as HouseExteriorCollision:
+//   - visual GLB (rooms.glb) rendered normally
+//   - physics GLB (rooms_physics.glb) mounted at same lift, meshes
+//     registered as raycast colliders then hidden per-mesh
+// rooms_physics now has solidified thick walls in Blender, so no
+// DoubleSide / material gymnastics needed.
 export default function Room1() {
   const gltf = useGLTF('/alon_house/rooms.glb')
   const physicsGltf = useGLTF('/alon_house/rooms_physics.glb')
@@ -25,27 +17,18 @@ export default function Room1() {
 
   useEffect(() => {
     if (!physicsGltf.scene || !groupRef.current) return
-    const registered: string[] = []
-    // updateMatrixWorld must run AFTER the outer group's Y offset is
-    // applied, otherwise the collision raycast would hit the meshes at
-    // their un-lifted Blender coords (~311 world Y) instead of the lifted
-    // position (~484).
     groupRef.current.updateMatrixWorld(true)
+
+    const registered: string[] = []
     physicsGltf.scene.traverse((child: any) => {
       if (!child.isMesh) return
-      const id = `rooms_phys_${child.uuid}`
-      // DoubleSide so the raycaster hits regardless of normal winding —
-      // critical here because rooms_physics.glb is single-sided planes
-      // (no applied solidify), so without this the player could pass
-      // through walls approaching from the "back" side.
-      if (child.material) {
-        child.material = child.material.clone()
-        child.material.side = THREE.DoubleSide
-      }
+      child.visible = false
       child.updateMatrixWorld(true)
+      const id = `rooms_phys_${child.uuid}`
       registerCollisionMesh(id, child)
       registered.push(id)
     })
+
     return () => {
       registered.forEach((id) => unregisterCollisionMesh(id))
     }
@@ -54,16 +37,7 @@ export default function Room1() {
   return (
     <group ref={groupRef} position={[0, ROOM_Y_OFFSET, 0]}>
       <primitive object={gltf.scene} />
-      {/* Physics GLB mounted but wrapped in an invisible group so the
-          renderer skips it entirely (R3F propagates `visible={false}` via
-          Three.js's scene traversal short-circuit). We still need it in
-          the scene graph so its world matrices track the ROOM_Y_OFFSET
-          lift — the raycaster reads those matrices for collision. */}
-      {physicsGltf.scene && (
-        <group visible={false} position={[0, PHYSICS_EXTRA_Y, 0]}>
-          <primitive object={physicsGltf.scene} />
-        </group>
-      )}
+      {physicsGltf.scene && <primitive object={physicsGltf.scene} />}
     </group>
   )
 }

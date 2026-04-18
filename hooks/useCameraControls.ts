@@ -12,7 +12,7 @@ import { getHouseCollisionMesh, getCollisionMeshes } from '../lib/collisionRef'
 import { setTeleportFunction } from '../lib/teleportController'
 import { requestPointerLockSafe, cancelPendingPointerLock } from '../lib/pointerLockHelper'
 import { useZoneStore } from '../lib/zoneStore'
-import { ROOM_Y_OFFSET, PHYSICS_EXTRA_Y } from '../lib/roomsConfig'
+import { ROOM_Y_OFFSET, ROOM_FLOOR_BLENDER_Y } from '../lib/roomsConfig'
 
 // Physics constants
 const GRAVITY = -35
@@ -495,13 +495,13 @@ export const useCameraControls = () => {
     playerPos.current.y += velocityY.current * delta
 
     // Ground check — zone-aware floor height.
-    // Interior floor: Blender Y ~311 + HouseScene OY offset (1.1857) + the
-    // ROOM_Y_OFFSET lift applied to the rooms mesh in Room1.tsx. Without
-    // the ROOM_Y_OFFSET term the ground clamp never engages and the player
-    // falls straight through the rooms physics into the void below.
+    // Interior floor derived from position_Y_rooms.glb (reference plane
+    // authored at the Blender floor Y). World Y = plane Blender Y +
+    // HouseScene OY (1.1857) + ROOM_Y_OFFSET + EYE_HEIGHT (same formula
+    // as exterior: floor + eye). Single source of truth, no magic.
     const currentZone = useZoneStore.getState().currentZone
     const floorY = currentZone === 'interior'
-      ? 311 + 1.1857 + ROOM_Y_OFFSET + PHYSICS_EXTRA_Y + EYE_HEIGHT
+      ? ROOM_FLOOR_BLENDER_Y + 1.1857 + ROOM_Y_OFFSET + EYE_HEIGHT
       : EYE_HEIGHT
     if (playerPos.current.y <= floorY) {
       playerPos.current.y = floorY

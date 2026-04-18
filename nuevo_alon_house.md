@@ -409,3 +409,62 @@ Todo lo que hicimos en esta tanda, para tener contexto completo si hay que volve
   - Miles de partículas con física → `GPUComputationRenderer`.
   - Variaciones de color/textura por instancia → `instanceColor` attribute o shader custom.
   - Para tu caso actual (3-10 clones estáticos) InstancedMesh básico basta sobradamente.
+
+
+---
+
+## Rooms interiores: colisiones + altura del piso (abril 2026)
+
+### Arquitectura final
+
+Tres archivos GLB trabajando juntos:
+
+- `public/alon_house/rooms.glb` — malla **visual** de las habitaciones.
+- `public/alon_house/rooms_physics.glb` — misma silueta pero **con Solidify aplicado en Blender** (paredes gruesas, no planos). Oculto en runtime, registrado como collider por raycast.
+- `public/alon_house/position_Y_rooms.glb` — **plano de referencia** que vive a la altura Blender del piso (node `plane position Y`, translation.y = `322.70`). Nunca se renderiza; su Y se lee offline con un script node y se hardcodea como constante.
+
+### Constantes (`lib/roomsConfig.ts`)
+
+- `ROOM_Y_OFFSET = 183` — lift vertical aplicado a AMBOS GLB (visual + físico). Único número que tocás si querés mover toda la planta interior.
+- `ROOM_FLOOR_BLENDER_Y = 322.70` — Y Blender del plano de referencia. No se cambia a menos que muevas el plano en Blender y re-exportes.
+
+Fórmula única de altura del piso (en todos los consumidores):
+
+```
+floorY_world = ROOM_FLOOR_BLENDER_Y + HouseScene.OY (1.1857) + ROOM_Y_OFFSET + EYE_HEIGHT
+```
+
+Consumida idéntica en:
+- `hooks/useCameraControls.ts` — ground clamp zona `interior`.
+- `components/checkpoints/CheckpointEntryHouse.tsx` — `INTERIOR_POS` (spawn al entrar).
+
+### Patrón de montaje (`components/rooms/Room1.tsx`)
+
+Espeja exactamente lo que ya funcionaba en `HouseExteriorCollision.jsx`:
+
+1. Visual y físico dentro del MISMO `<group position={[0, ROOM_Y_OFFSET, 0]}>` (nada de wrappers anidados con offsets extra).
+2. `updateMatrixWorld(true)` sobre el grupo padre ANTES de traversar.
+3. Por cada mesh del GLB físico: `child.visible = false` (individual, NO en wrapper), `registerCollisionMesh(id, child)`.
+4. Sin clonar materiales, sin forzar DoubleSide — el GLB físico ya trae paredes sólidas.
+
+### Qué estuvo mal todo este tiempo
+
+Tres bugs acumulados que se solapaban y confundían el diagnóstico:
+
+1. **Wrapper `<group visible={false}>`** alrededor del primitive físico. Three.js deja de propagar actualizaciones de world-matrix al subárbol cuando el padre está invisible. Resultado: las paredes quedaban registradas con matrices stale → el raycaster buscaba los triángulos en coordenadas viejas → nunca pegaba. Solo el piso "parecía funcionar" porque en realidad el clamp del piso es hardcoded (`playerPos.y <= floorY`), no un raycast.
+   - **Fix**: wrapper es `<group>` normal; ocultar mesh por mesh con `child.visible = false`.
+
+2. **Paredes como planos single-sided sin Solidify**. Con el GLB físico exportado desde Blender sin aplicar Solidify, las paredes eran planos de 0 espesor con normales apuntando hacia un solo lado. El Raycaster de three.js respeta `material.side` — FrontSide (default) ignora hits desde atrás. Si el jugador estaba en el lado "back" de la normal → atravesaba.
+   - **Fix real del usuario**: aplicar Solidify en Blender antes de exportar → paredes con espesor y geometría cerrada.
+   - **Fix temporal en código** (ya no necesario, removido): reemplazar material por `MeshBasicMaterial({ side: DoubleSide })`.
+
+3. **Offsets duplicados** (`ROOM_Y_OFFSET` + `PHYSICS_EXTRA_Y`). Al separarlos "para ajustar solo el físico" se desincronizaron visual/físico/spawn/clamp y aparecieron caídas bruscas y flotaciones. Adicionalmente, imports olvidados de `PHYSICS_EXTRA_Y` rompieron el bundle → pantalla negra al entrar.
+   - **Fix**: colapsar a un único `ROOM_Y_OFFSET` y derivar TODO (clamp + spawn) de `ROOM_FLOOR_BLENDER_Y` leído del GLB de referencia.
+
+### Lecciones para la próxima vez
+
+- **Un solo offset vertical para visual + físico**. Si necesitás compensar un desfase, lo arreglás en Blender, no en código.
+- **Nunca envolver un primitive de colisión en `<group visible={false}>`**. Ocultar mesh por mesh.
+- **Paredes de colisión siempre con Solidify** (o body cerrado). No confiar en DoubleSide para compensar geometría abierta.
+- **Coordenadas críticas como constantes derivadas de GLBs de referencia**, no magic numbers. Un plano invisible en Blender es la forma más confiable de sincronizar artista ↔ código para una sola coordenada.
+- **Cuando el "piso funciona pero las paredes no"**: casi siempre es que el piso viene de un clamp hardcoded, no del mesh físico. Verificar con un log del AABB mundo antes de tocar materiales.
