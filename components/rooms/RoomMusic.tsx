@@ -29,10 +29,14 @@ type Track = {
 const TRACKS: Track[] = [
   {
     id: 'indian',
+    // Indian room is more elongated than jewish. PannerNode uses a
+    // SPHERICAL falloff (no ellipsoid), so to cover the long ends we
+    // just enlarge the sphere — bigger refDistance + maxDistance than
+    // jewish, even though the Blender plane scale is the same.
     url: '/alon_house/rooms/indianmusic.mp3',
     centerBlender: [-41.97, 337.35, 173.54],
-    refDistance: 25,
-    maxDistance: 70,
+    refDistance: 45,
+    maxDistance: 115,
   },
   {
     id: 'jewish',
