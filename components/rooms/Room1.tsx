@@ -12,7 +12,7 @@ import { registerCollisionMesh, unregisterCollisionMesh } from '../../lib/collis
 // DoubleSide / material gymnastics needed.
 export default function Room1() {
   const gltf = useGLTF('/alon_house/rooms/room_completed-v1.glb')
-  const ceilingGltf = useGLTF('/alon_house/rooms/techo_rooms-v2.glb')
+  const ceilingGltf = useGLTF('/alon_house/rooms/techo_rooms-v2.glb?v=2')
   const physicsGltf = useGLTF('/alon_house/rooms_physics.glb')
   const groupRef = useRef<THREE.Group>(null)
 
@@ -45,5 +45,5 @@ export default function Room1() {
 }
 
 useGLTF.preload('/alon_house/rooms/room_completed-v1.glb')
-useGLTF.preload('/alon_house/rooms/techo_rooms-v2.glb')
+useGLTF.preload('/alon_house/rooms/techo_rooms-v2.glb?v=2')
 useGLTF.preload('/alon_house/rooms_physics.glb')
