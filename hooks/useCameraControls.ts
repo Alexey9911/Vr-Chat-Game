@@ -182,10 +182,61 @@ export const useCameraControls = () => {
     
     canvas.addEventListener('click', onClick)
     document.addEventListener('mousemove', onMouseMove)
-    
+
+    // =============================================
+    // TOUCH ORBIT — single-finger drag rotates the camera (mobile only).
+    // Two-finger gestures (pinch zoom) are ignored here so the browser's
+    // default behaviour or any future zoom handler can claim them.
+    // We anchor to the last touch position rather than using movementX/Y
+    // because TouchEvent has no such field.
+    // =============================================
+    let lastTouchX = 0
+    let lastTouchY = 0
+    let tracking = false
+    const TOUCH_SENSITIVITY = MOUSE_SENSITIVITY * 1.3 // slightly punchier on phones
+    const onTouchStart = (e: TouchEvent) => {
+      if (chatActive || lobbyVisible || cinematicMode) return
+      if (e.touches.length !== 1) { tracking = false; return }
+      // Ignore touches that originated on UI elements (buttons, bars, etc.)
+      const t = e.touches[0]
+      const target = e.target as HTMLElement | null
+      if (target && target !== canvas) return
+      lastTouchX = t.clientX
+      lastTouchY = t.clientY
+      tracking = true
+    }
+    const onTouchMove = (e: TouchEvent) => {
+      if (!tracking) return
+      if (e.touches.length !== 1) { tracking = false; return }
+      if (chatActive || lobbyVisible || cinematicMode) return
+      const t = e.touches[0]
+      const dx = t.clientX - lastTouchX
+      const dy = t.clientY - lastTouchY
+      lastTouchX = t.clientX
+      lastTouchY = t.clientY
+      // Prevent page scroll while dragging on the canvas.
+      if (e.cancelable) e.preventDefault()
+      targetYaw.current -= dx * TOUCH_SENSITIVITY
+      targetPitch.current = Math.max(
+        CAM_MIN_PITCH,
+        Math.min(CAM_MAX_PITCH, targetPitch.current + dy * TOUCH_SENSITIVITY)
+      )
+    }
+    const onTouchEnd = () => { tracking = false }
+    // `passive: false` is required so preventDefault works in onTouchMove
+    // (Chrome made touchmove passive-by-default some versions ago).
+    canvas.addEventListener('touchstart', onTouchStart, { passive: true })
+    canvas.addEventListener('touchmove',  onTouchMove,  { passive: false })
+    canvas.addEventListener('touchend',   onTouchEnd,   { passive: true })
+    canvas.addEventListener('touchcancel', onTouchEnd,  { passive: true })
+
     return () => {
       canvas.removeEventListener('click', onClick)
       document.removeEventListener('mousemove', onMouseMove)
+      canvas.removeEventListener('touchstart', onTouchStart)
+      canvas.removeEventListener('touchmove',  onTouchMove)
+      canvas.removeEventListener('touchend',   onTouchEnd)
+      canvas.removeEventListener('touchcancel', onTouchEnd)
     }
   }, [gl, cinematicMode, chatActive, lobbyVisible])
 
