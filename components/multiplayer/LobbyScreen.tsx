@@ -1104,7 +1104,8 @@ export default function LobbyScreen() {
                 <div className="control-row"><span>W A S D</span> <span>Move Character</span></div>
                 <div className="control-row"><span>SPACE</span> <span>Jump</span></div>
                 <div className="control-row"><span>1 2 3 4</span> <span>Play Emotes</span></div>
-                <div className="control-row"><span>M</span> <span>Toggle Music</span></div>
+                <div className="control-row"><span>G</span> <span>Play / Stop Music</span></div>
+                <div className="control-row"><span>Y</span> <span>YouTube Music</span></div>
               </div>
             )}
           </div>

@@ -242,7 +242,8 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
         e.preventDefault()
         releasePointerForPanel()
         toggleYouTubeModal()
-      } else if (k === 'u') {
+      } else if (k === 'g') {
+        // Hotkey remapped from 'U' to 'G' — closer to WASD for easier reach.
         e.preventDefault()
         // Mirror the button's click handler: play if stopped, stop if playing.
         if (!cooldown && !skinMusicDisabledLive()) {
@@ -331,14 +332,14 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
         className={`hud-btn hud-btn--music ${isActuallyPlaying ? 'is-playing' : ''} ${cooldown ? 'cooldown' : ''}`}
         onClick={isActuallyPlaying ? handleStop : handlePlay}
         disabled={cooldown || skinMusicDisabled}
-        title={isYouTubePlaying ? 'Stop YouTube first' : isActuallyPlaying ? 'Stop Music (U)' : hasAudio ? 'Play Music (U)' : 'No audio for this skin'}
+        title={isYouTubePlaying ? 'Stop YouTube first' : isActuallyPlaying ? 'Stop Music (G)' : hasAudio ? 'Play Music (G)' : 'No audio for this skin'}
       >
         {isActuallyPlaying
           ? <Square size={22} fill="currentColor" />
           : hasAudio
           ? <Volume2 size={24} />
           : <VolumeX size={24} className="hud-icon-disabled" />}
-        <span className="hud-btn-hotkey">U</span>
+        <span className="hud-btn-hotkey">G</span>
       </button>
 
       {/* YOUTUBE MUSIC */}

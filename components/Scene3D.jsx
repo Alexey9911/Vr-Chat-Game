@@ -39,12 +39,26 @@ export default function Scene3D({ containerRef }) {
     const remotePlayersArray = Array.from(remotePlayers.values());
 
     // Spatial Audio: Update volume based on distance (OPTIMIZED: skip if no music)
-    // IMPORTANT: Exclude local player's own audio — they should hear their own music at full volume
+    // FIX — Pass the FULL `remotePlayersArray` (which includes the local
+    // player's self-entry from the multiplayer store) so spatial processes
+    // BOTH local and remote audio instances uniformly. Matches elonpage1.
+    //
+    // Previously we filtered out the local player ("they should hear their
+    // own music at full volume"). That filter meant spatial NEVER touched
+    // the local player's YT ghost audio, so its volume stayed at the initial
+    // AUDIO_VOLUME (0.5) — and `setYouTubeVolume` from the settings slider
+    // then wrote a FLAT non-spatial value to every YT ghost, clobbering the
+    // distance-based attenuation on remote ghosts as well. Result: YT played
+    // at the same volume everywhere in the map, regardless of distance.
+    //
+    // With the filter removed, the local player's distance-to-self is ~0,
+    // so `calculateVolumeFromDistance(0) = MAX_VOLUME` — they still hear
+    // their own music at full volume, and remote YT ghosts now attenuate
+    // correctly with distance, same as skin music.
     const activeAudioInstances = getActiveAudioInstances();
     if (activeAudioInstances.size > 0) {
       const myPosition = { x: camera.position.x, z: camera.position.z };
-      const remoteOnly = remotePlayersArray.filter(p => p.id !== localPlayerId);
-      const audioPositions = getActiveAudioPositions(remoteOnly, activeAudioInstances);
+      const audioPositions = getActiveAudioPositions(remotePlayersArray, activeAudioInstances);
       updateSpatialAudio(myPosition, audioPositions, performance.now());
     }
 

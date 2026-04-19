@@ -421,11 +421,21 @@ export function resumeYouTubeAudio(): void {
 
 // ─── Volume ───────────────────────────────────────────────────────────
 
-export function setYouTubeVolume(multiplier: number): void {
-  // Update all ghost audios (spatial audio will then sync to YT players)
-  activePlayers.forEach((entry) => {
-    entry.ghostAudio.volume = Math.max(0, Math.min(1, AUDIO_VOLUME * multiplier))
-  })
+export function setYouTubeVolume(_multiplier: number): void {
+  // FIX — NO-OP by design. The master music-volume slider already updates
+  // `globalVolumeMultiplier` in musicSystem via `setGlobalVolumeMultiplier`,
+  // and `updateSpatialAudio` multiplies its distance-based volume by
+  // `getGlobalVolumeMultiplier()` on every 100ms tick — so the multiplier
+  // DOES apply to YT playback, but through the spatial path which preserves
+  // distance attenuation.
+  //
+  // Previously this function wrote `AUDIO_VOLUME * multiplier` FLAT to every
+  // ghost audio, bypassing distance. Combined with the LobbyScreen effect
+  // `useEffect(() => { setYouTubeVolume(settingsVolume / 100) }, [settingsVolume])`
+  // firing on mount / every slider drag, it clobbered spatial and caused
+  // remote YT music to play at a constant volume across the entire map.
+  // Keep the export to avoid breaking the callers in LobbyScreen.tsx
+  // (line 1011) and YouTubeModal.tsx (line 35).
 }
 
 // ─── Queries ──────────────────────────────────────────────────────────
