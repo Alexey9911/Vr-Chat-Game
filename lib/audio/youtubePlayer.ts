@@ -74,9 +74,28 @@ interface YTPlayerEntry {
   videoId: string
   videoTitle: string
   divId: string
+  // FIX (Firefox) — Track last values we pushed through postMessage so we
+  // only send `setVolume` / `mute` / `unMute` when something actually
+  // changed. Firefox's YT iframe is known to silently drop rapid repeated
+  // `setVolume` calls, so reducing the noise dramatically improves the
+  // chance that the change is applied.
+  lastSentVol: number
+  lastSentMuted: boolean | null
+  // FIX (Firefox) — Firefox's YT iframe API sometimes ignores BOTH
+  // `setVolume` AND `mute()` (the postMessage arrives but the media element
+  // inside the cross-origin iframe keeps its previous state). As an
+  // ultimate fallback we `pauseVideo()` when the player should be silent
+  // and `playVideo()` + `seekTo(currentElapsed)` when it should resume,
+  // which is the one API the iframe always honors.
+  startEpochMs: number
+  isPausedFar: boolean
 }
 
 const activePlayers = new Map<string, YTPlayerEntry>()
+
+// Hard cutoff: below this ghost volume we force `mute()` on the iframe
+// instead of relying on `setVolume(0)` (which Firefox often ignores).
+const MUTE_THRESHOLD = 0.02
 
 // Single global volume-sync interval for ALL YouTube players (replaces per-player intervals)
 let globalVolumeSyncInterval: ReturnType<typeof setInterval> | null = null
@@ -84,12 +103,56 @@ let globalVolumeSyncInterval: ReturnType<typeof setInterval> | null = null
 function ensureVolumeSyncRunning(): void {
   if (globalVolumeSyncInterval) return
   globalVolumeSyncInterval = setInterval(() => {
-    activePlayers.forEach((entry) => {
+    activePlayers.forEach((entry, playerId) => {
+      const ghostVol = entry.ghostAudio.volume
+      const shouldSilence = ghostVol < MUTE_THRESHOLD
+      const targetVol = Math.round(ghostVol * 100)
+
       try {
-        entry.player.setVolume(Math.round(entry.ghostAudio.volume * 100))
+        if (shouldSilence) {
+          // HARD CUTOFF — pauseVideo() is the ONE postMessage the YT iframe
+          // always honors across every browser (mute + setVolume get dropped
+          // silently in Firefox). When the player drifts into range we
+          // seek to the correct synced offset and resume.
+          if (!entry.isPausedFar) {
+            entry.player.pauseVideo()
+            // Also attempt mute+setVolume(0) in case the browser DOES honor
+            // them — belt-and-suspenders.
+            try { entry.player.mute() } catch {}
+            try { entry.player.setVolume(0) } catch {}
+            entry.isPausedFar = true
+            entry.lastSentMuted = true
+            entry.lastSentVol = 0
+            console.log('[YT spatial] FAR → pause', playerId, 'ghostVol:', ghostVol.toFixed(3))
+          }
+        } else {
+          if (entry.isPausedFar) {
+            // Resume: seek to the elapsed-since-host-started position so
+            // we stay in sync with other clients, then play + unmute.
+            const elapsedSec = Math.max(0, (Date.now() - entry.startEpochMs) / 1000)
+            try { entry.player.seekTo(elapsedSec, true) } catch {}
+            try { entry.player.unMute() } catch {}
+            try { entry.player.playVideo() } catch {}
+            entry.isPausedFar = false
+            entry.lastSentMuted = false
+            entry.lastSentVol = -1 // force setVolume below
+            console.log('[YT spatial] NEAR → resume', playerId, 'seek:', elapsedSec.toFixed(1) + 's', 'vol:', targetVol)
+          }
+          // Also ensure unmuted when audible (some browsers leave mute stuck).
+          if (entry.lastSentMuted !== false) {
+            try { entry.player.unMute() } catch {}
+            entry.lastSentMuted = false
+            entry.lastSentVol = -1
+          }
+          // Only send setVolume when the integer value actually changed.
+          if (targetVol !== entry.lastSentVol) {
+            entry.player.setVolume(targetVol)
+            entry.lastSentVol = targetVol
+          }
+        }
       } catch {}
     })
-  }, 200) // 5 Hz is enough for smooth volume transitions
+  }, 100) // 10 Hz — snappier response for Firefox; dedup above keeps postMessages down
 }
 
 function stopVolumeSyncIfEmpty(): void {
@@ -188,25 +251,37 @@ function createPlayerDiv(): string {
 // ─── Ghost Audio ──────────────────────────────────────────────────────
 
 function registerGhostAudio(playerId: string): HTMLAudioElement {
+  // FIX (Firefox) — The ghost audio is ONLY a volume proxy used by
+  // spatialAudioSystem: the spatial loop reads and writes `audio.volume`
+  // each tick, and our YT sync loop mirrors that value to the real iframe
+  // via `setVolume` / `pauseVideo`. We never actually output audio through
+  // this element.
+  //
+  // Previously we assigned a silent base64 WAV + `ghost.play()` to keep
+  // the element "active". Firefox FAILS to decode that tiny WAV
+  // (NS_ERROR_DOM_MEDIA_METADATA_ERR in the console) → `audio.error` gets
+  // set → `updateSpatialAudio` skips the element (its guard is
+  // `if (!audio || audio.error) return`) → `ghost.volume` never updates
+  // on Firefox → no `FAR → pause` ever fires and YT plays at a constant
+  // volume everywhere on the map. Chrome just happens to decode the WAV
+  // without issue, which is why it worked there.
+  //
+  // Omitting the src entirely leaves `audio.error` as null, spatial
+  // processes the ghost normally, and nothing tries to play media.
   const ghost = new Audio()
   ghost.volume = AUDIO_VOLUME
-  ghost.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA='
-  ghost.loop = true
 
   const instances = getActiveAudioInstances()
   instances.set(`__youtube_${playerId}__`, ghost)
-
-  ghost.play().catch(() => {})
 
   return ghost
 }
 
 function unregisterGhostAudio(playerId: string, ghost: HTMLAudioElement): void {
-  ghost.pause()
-  ghost.src = ''
-  ghost.load()
+  // No src was ever set, so nothing to pause/reset — just drop the entry.
   const instances = getActiveAudioInstances()
   instances.delete(`__youtube_${playerId}__`)
+  void ghost
 }
 
 // ─── Stream Info ──────────────────────────────────────────────────────
@@ -245,7 +320,14 @@ export async function playYouTubeForPlayer(playerId: string, videoId: string, st
       height: 270,
       videoId,
       playerVars: {
-        autoplay: 0,
+        // FIX — Firefox blocks `playVideo()` on iframes created after page
+        // load without a user gesture, so late joiners never heard anything.
+        // `autoplay: 1` + `mute: 1` is the only combination always allowed
+        // by every browser's autoplay policy. We then `unMute()` inside the
+        // PLAYING state change, which is permitted because the page already
+        // had a user gesture (the lobby "Play" button).
+        autoplay: 1,
+        mute: 1,
         controls: 0,
         disablekb: 1,
         fs: 0,
@@ -253,19 +335,18 @@ export async function playYouTubeForPlayer(playerId: string, videoId: string, st
         rel: 0,
         showinfo: 0,
         iv_load_policy: 3,
+        playsinline: 1,
       },
       events: {
         onReady: (event: { target: YTPlayer }) => {
           clearTimeout(timeout)
           const target = event.target
 
-          // unMute before playing
-          target.unMute()
-
           // Register ghost audio for spatial audio
           const ghost = registerGhostAudio(playerId)
 
-          // Set volume
+          // Set initial volume BEFORE unmuting so there's no loud-burst
+          // between unMute() and the first spatial tick.
           target.setVolume(Math.round(ghost.volume * 100))
 
           // Seek to startTime if syncing
@@ -273,7 +354,7 @@ export async function playYouTubeForPlayer(playerId: string, videoId: string, st
             target.seekTo(startTime, true)
           }
 
-          // Play
+          // Play (mostly redundant with autoplay:1 but harmless)
           target.playVideo()
 
           // Get title
@@ -290,6 +371,14 @@ export async function playYouTubeForPlayer(playerId: string, videoId: string, st
             videoId,
             videoTitle: title,
             divId,
+            lastSentVol: -1,
+            lastSentMuted: null,
+            // startEpochMs = wall-clock time when the video would have been
+            // at second 0. If the caller passed `startTime` (elapsed seconds
+            // since the host started playing), we back-date accordingly so
+            // resume-after-far-pause can seek to the correct synced offset.
+            startEpochMs: Date.now() - (startTime && startTime > 0 ? startTime * 1000 : 0),
+            isPausedFar: false,
           })
 
           // Start global volume sync if not running
@@ -305,10 +394,21 @@ export async function playYouTubeForPlayer(playerId: string, videoId: string, st
         },
         onStateChange: (event: { data: number; target: YTPlayer }) => {
           if (event.data === window.YT.PlayerState.PLAYING) {
-            // Ensure not muted
-            if (event.target.isMuted?.()) {
-              event.target.unMute()
-            }
+            // FIX (Firefox) — unMute + re-apply spatial volume once the
+            // iframe is truly playing. Firefox sometimes drops postMessage
+            // setVolume calls made during `onReady`/buffering, which caused
+            // "plays at full volume, no spatial" for remote YT ghosts.
+            // Re-applying here guarantees the first audible frame already
+            // carries the distance-attenuated volume.
+            try {
+              if (event.target.isMuted?.()) event.target.unMute()
+            } catch {}
+            try {
+              const entry = activePlayers.get(playerId)
+              if (entry) {
+                event.target.setVolume(Math.round(entry.ghostAudio.volume * 100))
+              }
+            } catch {}
             // Update title
             try {
               const data = event.target.getVideoData()
@@ -316,7 +416,33 @@ export async function playYouTubeForPlayer(playerId: string, videoId: string, st
               if (entry && data?.title) entry.videoTitle = data.title
             } catch {}
           } else if (event.data === window.YT.PlayerState.ENDED) {
+            // FIX — On ENDED, if this is the LOCAL player's own video, also
+            // reset Playroom state + notify UI. Previously we only called
+            // `stopYouTubeForPlayer` locally, which removed our own iframe
+            // but left `isYouTubePlaying=true` / `youtubeData=…` in the
+            // Playroom state, so remote peers kept showing the embed cover
+            // image on this avatar forever.
+            const isLocal = playerId === getLocalPlayerId()
             stopYouTubeForPlayer(playerId)
+            if (isLocal) {
+              // Clear module-level local tracking so `getCurrentVideoTitle`
+              // / `isYouTubeAudioPlaying` immediately reflect the end.
+              localVideoTitle = ''
+              localVideoId = ''
+              // Reset PlayroomKit state so remotes stop polling the embed.
+              import('playroomkit').then((pk) => {
+                const me = pk.myPlayer?.()
+                if (me?.id) {
+                  me.setState('isYouTubePlaying', false)
+                  me.setState('youtubeData', null)
+                }
+              }).catch(() => {})
+              // Notify the UI (LobbyScreen / YouTubeModal) so the
+              // "ytPlaying" React state clears without a manual stop click.
+              try {
+                window.dispatchEvent(new CustomEvent('yt-ended'))
+              } catch {}
+            }
           }
         },
         onError: (event: { data: number }) => {

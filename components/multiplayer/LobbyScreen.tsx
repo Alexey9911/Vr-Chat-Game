@@ -262,6 +262,21 @@ export default function LobbyScreen() {
   // Keep YouTube volume in sync with music slider
   useEffect(() => { setYouTubeVolume(settingsVolume / 100) }, [settingsVolume])
 
+  // FIX — Clear local YT UI when the video ends naturally. youtubePlayer
+  // dispatches `yt-ended` from the YT iframe's ENDED state change and also
+  // resets Playroom state so remotes drop the embed cover image; this hook
+  // keeps THIS client's own Customization tab in sync so the input re-enables
+  // and the "now playing" banner disappears without a manual Stop click.
+  useEffect(() => {
+    const onEnded = () => {
+      setYtPlaying(false)
+      setYtTitle('')
+      setYtError('')
+    }
+    window.addEventListener('yt-ended', onEnded as any)
+    return () => window.removeEventListener('yt-ended', onEnded as any)
+  }, [])
+
   // Initialize audio context on first user interaction
   const initAudioOnInteraction = () => {
     if (!audioContextInitialized) {

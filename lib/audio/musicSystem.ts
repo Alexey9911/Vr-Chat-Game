@@ -28,7 +28,7 @@ export const SKIN_AUDIO_MAP: Record<string, string> = {
 }
 
 // Volume configuration
-export const AUDIO_VOLUME = 0.5 // 50% volume (base)
+export const AUDIO_VOLUME = 1.0 // 100% volume (base) — spatial attenuation scales this down with distance
 export const AUDIO_MAX_DISTANCE = 20 // For spatial audio (Phase 4)
 
 // Global volume multiplier (0-1), controlled by settings
