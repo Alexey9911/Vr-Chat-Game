@@ -54,7 +54,11 @@ function VallaText({ label, position, quaternion }: Entry) {
   return (
     <group position={position} quaternion={quaternion}>
       <Text
-        rotation={[-Math.PI / 2, 0, 0]}
+        // Z = π flips the text 180° around the plane normal so it
+        // reads right-side-up (without this it comes out patas arriba
+        // because Blender's plane +Y axis is authored pointing "down"
+        // relative to drei's <Text> +Y up).
+        rotation={[-Math.PI / 2, 0, Math.PI]}
         fontSize={0.6}
         color="#000000"
         anchorX="center"

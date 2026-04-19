@@ -239,6 +239,7 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
     <div className="hud-panel">
       {/* CURSOR / ESC STATE */}
       <button
+        tabIndex={-1}
         className={`hud-btn hud-btn--cursor ${isCursorFree ? 'is-free' : ''}`}
         onClick={() => {
           if (isCursorFree) {
@@ -257,6 +258,7 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
 
       {/* LOBBY MENU (M) */}
       <button
+        tabIndex={-1}
         className="hud-btn hud-btn--menu"
         onClick={() => {
           const s = useMultiplayerStore.getState()
@@ -269,6 +271,7 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
 
       {/* MUSIC (skin) */}
       <button
+        tabIndex={-1}
         className={`hud-btn hud-btn--music ${isActuallyPlaying ? 'is-playing' : ''} ${cooldown ? 'cooldown' : ''}`}
         onClick={isActuallyPlaying ? handleStop : handlePlay}
         disabled={cooldown || skinMusicDisabled}
@@ -284,6 +287,7 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
 
       {/* YOUTUBE MUSIC */}
       <button
+        tabIndex={-1}
         className={`hud-btn hud-btn--youtube ${isYouTubePlaying ? 'is-playing' : ''}`}
         onClick={toggleYouTubeModal}
         title={isYouTubePlaying ? 'YouTube Music playing (Y)' : 'YouTube Music (Y)'}
@@ -293,19 +297,20 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
       </button>
 
       {/* SKINS / CUSTOMIZATION */}
-      <button className="hud-btn hud-btn--skin" onClick={toggleModal} title="Change Skin (N)">
+      <button tabIndex={-1} className="hud-btn hud-btn--skin" onClick={toggleModal} title="Change Skin (N)">
         <Palette size={24} />
         <span className="hud-btn-hotkey">N</span>
       </button>
 
       {/* SETTINGS */}
-      <button className="hud-btn hud-btn--settings" onClick={toggleSettings} title="Settings (I)">
+      <button tabIndex={-1} className="hud-btn hud-btn--settings" onClick={toggleSettings} title="Settings (I)">
         <Settings size={22} />
         <span className="hud-btn-hotkey">I</span>
       </button>
 
       {/* PUSH-TO-TALK BUTTON — click-hold or press V to talk */}
       <button
+        tabIndex={-1}
         className={`hud-btn hud-btn--mic ${localMicActive ? 'is-active' : ''}`}
         onMouseDown={async () => {
           const vc = await import('../../lib/audio/voiceChatSystem')

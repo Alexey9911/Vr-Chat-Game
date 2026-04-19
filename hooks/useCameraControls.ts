@@ -415,6 +415,67 @@ export const useCameraControls = () => {
     }
   }, [setPressedKeys])
 
+  // =============================================
+  // TAB KEY + WINDOW BLUR GUARD
+  //
+  // Root cause of the "se bugea si tabuleo / ESC se queda pegado" report:
+  //   1. User presses Tab while playing → browser's default focus nav moves
+  //      focus to the first focusable element (a HUD button like the ESC /
+  //      cursor toggle).
+  //   2. With that button focused, Space/Enter click the button instead of
+  //      jumping, and the whole cursor-lock ↔ UI state falls out of sync.
+  //   3. Alt+Tabbing out of the window silently releases pointer-lock and
+  //      leaves WASD "stuck" (keyup never fires while the tab is blurred).
+  //
+  // We fix both by:
+  //   a) Intercepting Tab at the window level during gameplay (not typing /
+  //      chat / lobby) — preventDefault + blur any currently-focused HUD
+  //      element so focus returns to <body>. HUD buttons can still be
+  //      clicked with the mouse; Tab simply never navigates to them.
+  //   b) Clearing pressedKeys + resetting cursorIntent on window blur /
+  //      document-hidden so no key stays "down" when the user comes back.
+  // =============================================
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return
+      const el = document.activeElement as any
+      const typing = !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
+      if (typing) return
+      if (useKeyboardStore.getState().chatActive) return
+      if (useMultiplayerStore.getState().lobbyVisible) return
+      e.preventDefault()
+      // Blur whichever HUD element may already be focused so subsequent
+      // Space / Enter / ESC events don't "click" a hidden sticky button.
+      if (el && typeof el.blur === 'function' && el !== document.body) {
+        try { el.blur() } catch {}
+      }
+    }
+
+    const onBlur = () => {
+      // Player alt-tabbed / switched window. Browser already released the
+      // pointer-lock; we just need to stop treating WASD as held.
+      setPressedKeys(new Set())
+      // Next pointer-lock release should be treated as a fresh, user-driven
+      // event — previous `intentionalUnlock` state is now stale.
+      import('../lib/cursorIntent').then(({ cursorIntent }) => {
+        cursorIntent.intentionalUnlock = false
+      }).catch(() => {})
+    }
+
+    const onVisibility = () => {
+      if (document.hidden) onBlur()
+    }
+
+    window.addEventListener('keydown', onKey)
+    window.addEventListener('blur', onBlur)
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('blur', onBlur)
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
+  }, [setPressedKeys])
+
   // Keyboard event handlers
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
@@ -543,6 +604,17 @@ export const useCameraControls = () => {
       const gHits = groundRaycaster.current.intersectObjects(collisionMeshes, false)
       if (gHits.length > 0) {
         floorY = gHits[0].point.y + EYE_HEIGHT
+      } else if (currentZone === 'balcon') {
+        // Player walked / jumped OFF the balcony slab — raycast misses,
+        // which previously kept them clamped to fallbackFloorY (~36 Y),
+        // creating the "suelo invisible" the user reported. Instead, we
+        // treat them as exterior-ground-bound: floor = EYE_HEIGHT. Once
+        // they land (or drop below a clear threshold) we also flip the
+        // zone to 'exterior' so CP4 stops trying to teleport them.
+        floorY = EYE_HEIGHT
+        if (playerPos.current.y < 20 && !isTeleporting.current) {
+          useZoneStore.getState().setZone('exterior')
+        }
       }
     }
 
@@ -567,25 +639,39 @@ export const useCameraControls = () => {
       if (intersects.length > 0 && intersects[0].distance < velocity.current.length() + 0.3) {
         const hit = intersects[0]
 
-        // Step-up probe: look for ground just past the wall, at feet + STEP_HEIGHT.
-        const probeOrigin = playerPos.current.clone()
-          .add(moveDir.clone().multiplyScalar(hit.distance + 0.5))
-        probeOrigin.y += STEP_HEIGHT // start above the potential step top
-        groundRaycaster.current.set(probeOrigin, DOWN_VEC)
-        groundRaycaster.current.far = STEP_HEIGHT * 2
-        const stepHits = groundRaycaster.current.intersectObjects(collisionMeshes, false)
+        // Step-up is ONLY valid while grounded. When airborne (jumping
+        // into a wall) the old code would probe above the wall and snap
+        // the player onto the wall top / ceiling — which is what caused
+        // the "me bugeo y me quedo atorado" report. Skipping step-up
+        // mid-air turns wall contact into a pure slide and gravity
+        // handles the rest cleanly.
+        let didStepUp = false
+        if (isOnGround.current) {
+          const probeOrigin = playerPos.current.clone()
+            .add(moveDir.clone().multiplyScalar(hit.distance + 0.5))
+          probeOrigin.y += STEP_HEIGHT // start above the potential step top
+          groundRaycaster.current.set(probeOrigin, DOWN_VEC)
+          groundRaycaster.current.far = STEP_HEIGHT * 2
+          const stepHits = groundRaycaster.current.intersectObjects(collisionMeshes, false)
 
-        const feetY = playerPos.current.y - EYE_HEIGHT
-        const stepTopY = stepHits.length > 0 ? stepHits[0].point.y : -Infinity
-        const stepHeight = stepTopY - feetY
+          const feetY = playerPos.current.y - EYE_HEIGHT
+          const stepTopY = stepHits.length > 0 ? stepHits[0].point.y : -Infinity
+          const stepHeight = stepTopY - feetY
 
-        if (stepHits.length > 0 && stepHeight > 0 && stepHeight <= STEP_HEIGHT) {
-          // Short obstacle — step over it instead of blocking.
-          playerPos.current.y = stepTopY + EYE_HEIGHT
-          velocityY.current = 0
-          isOnGround.current = true
-        } else {
-          // Regular wall — slide along its normal.
+          if (stepHits.length > 0 && stepHeight > 0 && stepHeight <= STEP_HEIGHT) {
+            // Short obstacle — step over it instead of blocking.
+            playerPos.current.y = stepTopY + EYE_HEIGHT
+            velocityY.current = 0
+            isOnGround.current = true
+            didStepUp = true
+          }
+        }
+
+        if (!didStepUp) {
+          // Regular wall (or airborne contact) — slide along its normal.
+          // Crucially, keep velocityY untouched so gravity / jump arc are
+          // preserved while the lateral component is cancelled on the
+          // wall axis.
           const normal = hit.face?.normal
           if (normal && hit.object) {
             const worldNormal = normal.clone().transformDirection((hit.object as any).matrixWorld)

@@ -37,7 +37,7 @@ const CP3_WORLD = {
 // World-coord landing (sourced from in-game COORDS HUD at desired spot,
 // shifted -15 on X per user request to push player further back on the
 // balcony, away from CP4 so the cooldown/zone-change grace can expire).
-const BALCONY_SPAWN = new THREE.Vector3(-57.86, 38.67, 12.91)
+const BALCONY_SPAWN = new THREE.Vector3(-17, 38.67, 12.91)
 // Face so the player spawns looking outward from the balcony rail.
 // Camera yaw receives orbit-yaw = player facing + π.
 const BALCONY_ROT = Math.PI // displayed facing = 180°
