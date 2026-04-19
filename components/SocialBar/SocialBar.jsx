@@ -36,7 +36,7 @@ const DexScreenerIcon = () => (
 );
 
 const SOCIALS = [
-    { icon: TwitterIcon, label: 'Twitter', url: 'https://x.com/NeyrsAgent' },
+    { icon: TwitterIcon, label: 'Twitter', url: 'https://x.com/a1onverse' },
     { icon: TelegramIcon, label: 'Telegram', url: 'https://t.me/NeyrsDeFI' },
     { icon: GithubIcon, label: 'GitHub', url: 'https://github.com/Neyrspmnd/neyrs-repo' },
     { icon: DocsIcon, label: 'Documentation', url: 'https://docs.neyrs.cloud' },

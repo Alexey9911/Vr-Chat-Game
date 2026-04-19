@@ -87,13 +87,17 @@ export default function LoadingScreen({ sceneProgress = 0, isSceneLoaded = false
 
     let marqueeTl = null;
 
-    // Add loading-active class for extra scroll protection
+    // Add loading-active class for extra scroll protection.
+    // Also add to <body> so `body.loading-active` CSS (which mirrors
+    // `body.in-lobby`) paints the full-viewport background image.
     document.documentElement.classList.add('loading-active');
+    document.body.classList.add('loading-active');
 
     // Main GSAP timeline
     const tl = gsap.timeline({
       onComplete: () => {
         document.documentElement.classList.remove('loading-active');
+        document.body.classList.remove('loading-active');
         if (typeof onCompleteRef.current === 'function') {
           onCompleteRef.current();
         }
@@ -369,6 +373,7 @@ export default function LoadingScreen({ sceneProgress = 0, isSceneLoaded = false
 
     return () => {
       document.documentElement.classList.remove('loading-active');
+      document.body.classList.remove('loading-active');
       if (fallbackTimeoutRef.current) clearTimeout(fallbackTimeoutRef.current);
       tl.kill();
       if (marqueeTl) marqueeTl.kill();

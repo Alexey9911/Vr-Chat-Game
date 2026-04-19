@@ -44,10 +44,14 @@ body {
    (no tiling — tiling looked ugly on ultra-wide). `cover` scales proportionally
    so the image always fills the screen while staying centered.
    Added/removed dynamically by LobbyScreen via `document.body.classList`. */
-body.in-lobby {
+body.in-lobby,
+body.loading-active {
   background-color: #0b3d1f;
   background-image: url('/alon_house/bacgroundImage.png');
   background-repeat: no-repeat;
+  /* Full viewport cover — image scales to fill screen edge to edge,
+     maintains aspect ratio, crops overflow. Loading + lobby share the
+     exact same rule so they look identical. */
   background-size: cover;
   background-position: center center;
   background-attachment: fixed;

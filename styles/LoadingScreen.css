@@ -60,10 +60,17 @@ html.loading-active {
   scrollbar-color: transparent transparent !important;
 }
 
+/* Background image painted directly on .loading-bg so it is always
+   visible regardless of what sits between <body> and the fixed loader.
+   Uses the exact same image + cover rules as `body.in-lobby`. */
 .loading-bg {
   width: 100%;
   height: 100%;
-  background: #0A0A0A url('/alon_house/bacgroundImage.png') center center / cover no-repeat;
+  background-color: #0b3d1f;
+  background-image: url('/alon_house/bacgroundImage.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center center;
   display: flex;
   align-items: center;
   justify-content: center;

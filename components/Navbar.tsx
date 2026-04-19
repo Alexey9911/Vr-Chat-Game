@@ -90,7 +90,7 @@ const Navbar: React.FC = () => {
       }}
     >
       <IconLink href="https://pump.fun" src="/icons/pumpfun.png" alt="Pump Fun" />
-      <IconLink href="https://x.com" src="/icons/twitter.png" alt="Twitter" />
+      <IconLink href="https://x.com/a1onverse" src="/icons/twitter.png" alt="Twitter" />
     </nav>
   );
 };
