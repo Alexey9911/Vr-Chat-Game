@@ -7,7 +7,7 @@ export interface Emote {
   id: string
   name: string
   url: string
-  type: 'gif' | 'png' | 'webp'
+  type: 'gif' | 'png' | 'webp' | 'video'
   keywords?: string[] // For search functionality
 }
 
@@ -19,39 +19,25 @@ const klipyGifCache = new Map<string, string>()
 // NOTE: Local emotes are commented out until GIF files are added to /public/emotes/
 export const EMOTES: Emote[] = [
   {
-    id: 'trump',
-    name: 'Trump Fist Pump',
-    url: '/donald-trump-fist-pump-meme-d4k41onl2jxm1nqg.gif',
+    id: 'alonGif1',
+    name: 'Alon GIF',
+    url: '/alon_house/gifs/gif1.gif',
     type: 'gif',
-    keywords: ['trump', 'donald', 'fist', 'pump', 'win', 'celebrate'],
+    keywords: ['alon', 'gif', 'meme'],
   },
   {
-    id: 'elonsmoke',
-    name: 'Elon Smoke',
-    url: '/elonsmokegif.gif',
+    id: 'alonImage',
+    name: 'Alon Image',
+    url: '/alon_house/gifs/image.gif',
     type: 'gif',
-    keywords: ['elon', 'smoke', 'musk', 'cool'],
+    keywords: ['alon', 'image', 'meme'],
   },
   {
-    id: 'image34026',
-    name: 'Image 34026',
-    url: '/34026.png',
-    type: 'png',
-    keywords: ['image', 'meme'],
-  },
-  {
-    id: 'alongif1',
-    name: 'Alon GIF 1',
-    url: '/alonVersion/gif1.gif',
-    type: 'gif',
-    keywords: ['alon', 'dance', 'meme'],
-  },
-  {
-    id: 'alongif2',
-    name: 'Alon GIF 2',
-    url: '/alonVersion/gif2.gif',
-    type: 'gif',
-    keywords: ['alon', 'dance', 'meme'],
+    id: 'alonVideo1',
+    name: 'Alon Video',
+    url: '/alon_house/gifs/video1.mp4',
+    type: 'video',
+    keywords: ['alon', 'video', 'meme'],
   },
 ]
 

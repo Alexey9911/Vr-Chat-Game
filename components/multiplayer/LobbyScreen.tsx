@@ -958,6 +958,11 @@ export default function LobbyScreen() {
                             if (part.type === 'emote') {
                               const emote = getEmoteById(part.content)
                               if (emote) {
+                                if (emote.type === 'video') {
+                                  return (
+                                    <video key={index} src={emote.url} className="chat-emote-inline" autoPlay loop muted playsInline title={emote.name} />
+                                  )
+                                }
                                 return (
                                   <img
                                     key={index}
@@ -1149,8 +1154,6 @@ export default function LobbyScreen() {
               SERVER ONLINE
             </div>
             <div className="friends-avatars">
-              <img src="/donald-trump-fist-pump-meme-d4k41onl2jxm1nqg.gif" alt="Gif Preview" className="preview-gif" />
-              <img src="/elonsmokegif.gif" alt="Gif Preview" className="preview-gif" />
             </div>
          </div>
       </div>

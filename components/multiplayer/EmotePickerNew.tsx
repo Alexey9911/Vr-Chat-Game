@@ -160,15 +160,26 @@ export default function EmotePickerNew({
                   onMouseLeave={() => setHoveredItem(null)}
                   title={emote.name}
                 >
-                  <img
-                    src={emote.url}
-                    alt={emote.name}
-                    className="emote-picker-img-new"
-                    loading="lazy"
-                    onError={(e) => {
-                      e.currentTarget.style.opacity = '0.5'
-                    }}
-                  />
+                  {emote.type === 'video' ? (
+                    <video
+                      src={emote.url}
+                      className="emote-picker-img-new"
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                    />
+                  ) : (
+                    <img
+                      src={emote.url}
+                      alt={emote.name}
+                      className="emote-picker-img-new"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.style.opacity = '0.5'
+                      }}
+                    />
+                  )}
                   {hoveredItem === emote.id && (
                     <div className="emote-picker-tooltip-new">{emote.name}</div>
                   )}

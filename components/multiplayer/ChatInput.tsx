@@ -290,6 +290,11 @@ export default function ChatInput() {
       if (part.type === 'emote') {
         const emote = getEmoteById(part.content)
         if (emote) {
+          if (emote.type === 'video') {
+            return (
+              <video key={index} src={emote.url} className="chat-emote-inline" autoPlay loop muted playsInline title={emote.name} />
+            )
+          }
           return (
             <img key={index} src={emote.url} alt={emote.name} className="chat-emote-inline" title={emote.name} />
           )
