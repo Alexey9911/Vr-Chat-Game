@@ -38,9 +38,10 @@ const CP3_WORLD = {
 // shifted -15 on X per user request to push player further back on the
 // balcony, away from CP4 so the cooldown/zone-change grace can expire).
 const BALCONY_SPAWN = new THREE.Vector3(-17, 38.67, 12.91)
-// Face so the player spawns looking outward from the balcony rail.
-// Camera yaw receives orbit-yaw = player facing + π.
-const BALCONY_ROT = Math.PI // displayed facing = 180°
+// Face so the player spawns looking in the direction the user wants
+// on the balcony. The HUD reads `playerFacingY` which equals
+// `rotY + π` (mod 2π), so to show 275° we set rotY = 275° − 180° = 95°.
+const BALCONY_ROT = (95 * Math.PI) / 180 // displayed facing = 275°
 
 const TRIGGER_DISTANCE = 6
 

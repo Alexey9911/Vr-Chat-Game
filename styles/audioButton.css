@@ -4,11 +4,12 @@
 
 .hud-panel {
   position: fixed;
-  /* Shifted above 50% to avoid overlapping the WASD controls-hud
-     (bottom:30px, right:30px) on short viewports. */
-  top: 38%;
-  right: 16px;
-  transform: translateY(-50%);
+  /* Anchored to the bottom-right, sitting immediately to the LEFT of the
+     WASD controls-hud (bottom:30px / right:30px / ~200px wide). That
+     keeps the players-list free to grow down the right edge without
+     overlapping the HUD buttons when the lobby is full. */
+  bottom: 30px;
+  right: 250px;
   z-index: 1500;
   display: grid;
   grid-template-columns: repeat(2, 74px);
@@ -406,7 +407,10 @@
 /* Responsive — mobile */
 @media (max-width: 768px) {
   .hud-panel {
+    /* On mobile there's no WASD controls-hud on the right (touch arrows
+       live on the left), so the panel can hug the right edge again. */
     right: 8px;
+    bottom: 8px;
     grid-template-columns: repeat(2, 50px);
     gap: 6px;
     padding: 10px;

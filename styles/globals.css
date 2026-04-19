@@ -2932,7 +2932,10 @@ a {
      bottom = max(Ypx, calc(50vh - 720px + Ypx))
    ============================================= */
 @media (min-width: 2561px) {
-  .hud-panel       { right: max(16px,  calc(50vw - 1264px)) !important; }
+  /* hud-panel now sits immediately to the LEFT of .controls-hud, so its
+     right anchor = controls-hud.right (50vw - 1250px) + ~220px for the
+     WASD panel's own width + gap. Min 250px to match the base rule. */
+  .hud-panel       { right: max(250px, calc(50vw - 1030px)) !important; }
   .controls-hud    { right: max(30px,  calc(50vw - 1250px)) !important; }
   .chat-container  { left:  max(30px,  calc(50vw - 1250px)) !important; }
   .gif-bar-row     { left:  max(30px,  calc(50vw - 1250px)) !important; }

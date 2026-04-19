@@ -27,6 +27,24 @@ export default function RoomsObjectsCollision() {
     gltf.scene.traverse((child: any) => {
       if (!child.isMesh) return
       child.visible = false
+      // Force DoubleSide on the raycast material. Without this, thin object
+      // colliders (sofas, desks, …) only registered hits from the side their
+      // Blender face-orientation happened to point to — jumping INTO them
+      // from the opposite side would miss the ray, the player tunneled a
+      // frame in, then the next-frame ray hit from the wrong direction and
+      // "stuck" them on the collider. DoubleSide makes the collision
+      // symmetric regardless of authored normals, matching the pattern used
+      // by HouseExteriorCollision / HouseBalconyCollision.
+      if (child.material) {
+        child.material = child.material.clone()
+        child.material.side = THREE.DoubleSide
+      }
+      // Recompute bounds so the raycaster's internal sphere/box cull uses
+      // fresh numbers after any geometry transforms done upstream.
+      if (child.geometry) {
+        child.geometry.computeBoundingBox?.()
+        child.geometry.computeBoundingSphere?.()
+      }
       child.updateMatrixWorld(true)
       const id = `rooms_obj_${child.uuid}`
       registerCollisionMesh(id, child)

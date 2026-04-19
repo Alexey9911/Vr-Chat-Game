@@ -14,6 +14,11 @@ export default function Room1() {
   const gltf = useGLTF('/alon_house/rooms/room_completed-v1.glb?v=2')
   const ceilingGltf = useGLTF('/alon_house/rooms/techo_rooms-v2.glb?v=2')
   const physicsGltf = useGLTF('/alon_house/rooms_physics.glb?v=2')
+  // Visual-only patch: small chunk of geometry that fills a gap the user
+  // spotted after updating the rooms objects (solidify pass). Rendered
+  // inside the ROOM_Y_OFFSET group so it aligns with the rest of the
+  // rooms exactly like all other room meshes.
+  const fixBug1Gltf = useGLTF('/alon_house/rooms/fix_bug_1.glb')
   const groupRef = useRef<THREE.Group>(null)
 
   useEffect(() => {
@@ -40,6 +45,7 @@ export default function Room1() {
       <primitive object={gltf.scene} />
       {ceilingGltf.scene && <primitive object={ceilingGltf.scene} />}
       {physicsGltf.scene && <primitive object={physicsGltf.scene} />}
+      {fixBug1Gltf.scene && <primitive object={fixBug1Gltf.scene} />}
     </group>
   )
 }
@@ -47,3 +53,4 @@ export default function Room1() {
 useGLTF.preload('/alon_house/rooms/room_completed-v1.glb?v=2')
 useGLTF.preload('/alon_house/rooms/techo_rooms-v2.glb?v=2')
 useGLTF.preload('/alon_house/rooms_physics.glb?v=2')
+useGLTF.preload('/alon_house/rooms/fix_bug_1.glb')
