@@ -219,7 +219,8 @@ export const useCameraControls = () => {
     // Pointer-lock on click, via the shared helper that handles Chromium's
     // silent post-ESC cooldown so one click is always enough.
     const onClick = () => {
-      if (chatActive || lobbyVisible || cinematicMode) return
+      // Read from getState() to avoid stale closures after Alt+Tab / focus loss
+      if (useKeyboardStore.getState().chatActive || useMultiplayerStore.getState().lobbyVisible || cinematicMode) return
       requestPointerLockSafe(canvas)
     }
     canvas.addEventListener('click', onClick)
@@ -237,7 +238,7 @@ export const useCameraControls = () => {
     let tracking = false
     const TOUCH_SENSITIVITY = MOUSE_SENSITIVITY * 1.3 // slightly punchier on phones
     const onTouchStart = (e: TouchEvent) => {
-      if (chatActive || lobbyVisible || cinematicMode) return
+      if (useKeyboardStore.getState().chatActive || useMultiplayerStore.getState().lobbyVisible || cinematicMode) return
       if (e.touches.length !== 1) { tracking = false; return }
       // Ignore touches that originated on UI elements (buttons, bars, etc.)
       const t = e.touches[0]
@@ -250,7 +251,7 @@ export const useCameraControls = () => {
     const onTouchMove = (e: TouchEvent) => {
       if (!tracking) return
       if (e.touches.length !== 1) { tracking = false; return }
-      if (chatActive || lobbyVisible || cinematicMode) return
+      if (useKeyboardStore.getState().chatActive || useMultiplayerStore.getState().lobbyVisible || cinematicMode) return
       const t = e.touches[0]
       const dx = t.clientX - lastTouchX
       const dy = t.clientY - lastTouchY
@@ -281,7 +282,7 @@ export const useCameraControls = () => {
       canvas.removeEventListener('touchend',   onTouchEnd)
       canvas.removeEventListener('touchcancel', onTouchEnd)
     }
-  }, [gl, cinematicMode, chatActive, lobbyVisible])
+  }, [gl, cinematicMode])
 
   // Release pointer lock when chat or lobby opens
   useEffect(() => {
@@ -304,7 +305,10 @@ export const useCameraControls = () => {
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     const el = document.activeElement as any
     const typing = !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
-    if (typing || chatActive || lobbyVisible) return
+    // Read from getState() to avoid stale closures after Alt+Tab / focus loss
+    const isChatActive = useKeyboardStore.getState().chatActive
+    const isLobbyOpen = useMultiplayerStore.getState().lobbyVisible
+    if (typing || isChatActive || isLobbyOpen) return
 
     const key = event.key.toLowerCase()
     // F9: Toggle cinematic free camera (handled by CinematicCamera.tsx)
@@ -372,12 +376,13 @@ export const useCameraControls = () => {
       }
     }
 
-  }, [addPressedKey, chatActive, lobbyVisible, setCurrentAnimation, activeSkinId])
+  }, [addPressedKey, setCurrentAnimation, activeSkinId])
 
   const handleKeyUp = useCallback((event: KeyboardEvent) => {
     const el = document.activeElement as any
     const typing = !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
-    if (typing || chatActive) return
+    // Read from getState() to avoid stale closures after Alt+Tab / focus loss
+    if (typing || useKeyboardStore.getState().chatActive) return
 
     const key = event.key.toLowerCase()
     if (['w', 'a', 's', 'd', 'e', 'q', '1', '2', '3', '4', '5', '6', '7', '8'].includes(key)) {
@@ -393,7 +398,7 @@ export const useCameraControls = () => {
       event.preventDefault()
       removePressedKey(' ')
     }
-  }, [removePressedKey, chatActive])
+  }, [removePressedKey])
 
   useEffect(() => {
     // Clear pressed keys only when focus moves to a REAL text input
@@ -466,6 +471,25 @@ export const useCameraControls = () => {
       if (document.hidden) onBlur()
     }
 
+    // Defensive reset when the window REGAINS focus (Alt+Tab back, click
+    // back from another app on ultra-wide, etc.). Blur any HUD element that
+    // kept focus across the switch so handleKeyDown never early-returns due
+    // to a stale activeElement, and wipe pressedKeys for good measure.
+    const onFocus = () => {
+      const el = document.activeElement as HTMLElement | null
+      if (el && el !== document.body && typeof el.blur === 'function') {
+        const tag = el.tagName
+        const isRealInput = tag === 'INPUT' || tag === 'TEXTAREA' || (el as any).isContentEditable
+        if (!isRealInput) {
+          try { el.blur() } catch {}
+        }
+      }
+      setPressedKeys(new Set())
+      import('../lib/cursorIntent').then(({ cursorIntent }) => {
+        cursorIntent.intentionalUnlock = false
+      }).catch(() => {})
+    }
+
     // =============================================
     // POINTER-LOCK RE-ACQUIRE GUARD
     //
@@ -508,11 +532,13 @@ export const useCameraControls = () => {
 
     window.addEventListener('keydown', onKey)
     window.addEventListener('blur', onBlur)
+    window.addEventListener('focus', onFocus)
     document.addEventListener('visibilitychange', onVisibility)
     document.addEventListener('pointerlockchange', onPointerLockChange)
     return () => {
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('blur', onBlur)
+      window.removeEventListener('focus', onFocus)
       document.removeEventListener('visibilitychange', onVisibility)
       document.removeEventListener('pointerlockchange', onPointerLockChange)
     }
