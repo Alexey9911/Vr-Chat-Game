@@ -4,8 +4,8 @@ export default function Document() {
   return (
     <Html lang="es">
       <Head>
-        <link rel="icon" type="image/svg+xml" href="/favicon-alon.svg" />
-        <link rel="icon" type="image/png" href="/alon_house/bacgroundImage.png" />
+        <link rel="icon" type="image/png" href="/favicon/eDKaxFdg_400x400.png" />
+        <link rel="apple-touch-icon" href="/favicon/eDKaxFdg_400x400.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

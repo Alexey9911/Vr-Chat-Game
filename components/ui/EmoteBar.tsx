@@ -1,6 +1,7 @@
 import React from 'react'
 import { useMultiplayerStore } from '../../lib/multiplayerStore'
 import { useSkinStore } from '../../lib/skins/skinStore'
+import { useIsMobile } from '../../hooks/useIsMobile'
 
 // Emote keys per skin — matches useCameraControls animMap exactly
 const SKIN_EMOTE_KEYS: Record<string, number[]> = {
@@ -26,6 +27,7 @@ function getEmoteKeys(skinId: string | null): number[] {
 export default function EmoteBar() {
   const { isConnected } = useMultiplayerStore()
   const { activeSkinId } = useSkinStore()
+  const isMobile = useIsMobile()
 
   if (!isConnected) return null
 
@@ -40,7 +42,9 @@ export default function EmoteBar() {
           onClick={() => triggerEmote(k)}
           title={`Emote ${index + 1} (${k})`}
         >
-          <span className="emote-bar-label">E{index + 1}</span>
+          <span className="emote-bar-label">
+            {isMobile ? `E${index + 1}` : `Emote ${index + 1}`}
+          </span>
         </button>
       ))}
     </div>
