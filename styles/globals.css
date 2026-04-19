@@ -411,6 +411,17 @@ a {
   opacity: 0;
   pointer-events: none;
 }
+/* Force every descendant (including the r3f skin-preview <canvas> that
+   sits dead-center of the screen) to stop intercepting pointer events
+   while the lobby is hidden. Without `!important` + the universal
+   selector, the skin preview canvas was still capturing clicks in the
+   middle of the viewport — the user could only lock pointer by clicking
+   the canvas edges, never the center. The descendant canvas has its own
+   inline styles from @react-three/fiber which would otherwise defeat
+   the parent's `pointer-events: none`. */
+.lobby-overlay.is-hidden * {
+  pointer-events: none !important;
+}
 .lobby-overlay.is-visible {
   opacity: 1;
   pointer-events: auto;

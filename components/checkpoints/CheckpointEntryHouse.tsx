@@ -15,15 +15,12 @@ const OX = 190.12, OY = 1.1857, OZ = -88.67
 // Blender (from checkpoint_entry_house.glb / node checkpoint_door_house_entry): (-186.10, 11.36, 96.25)
 const CHECKPOINT_WORLD: [number, number, number] = [-186.10 + OX, 11.36 + OY, 96.25 + OZ]
 
-// Where to teleport when entering the house. Y derived from the
-// reference plane in position_Y_rooms.glb (ROOM_FLOOR_BLENDER_Y),
-// lifted by HouseScene.OY (1.1857) and ROOM_Y_OFFSET so it matches
-// the ground clamp exactly — player lands ON the floor, no drop.
-const INTERIOR_POS = new THREE.Vector3(
-  72.96,
-  ROOM_FLOOR_BLENDER_Y + 1.1857 + ROOM_Y_OFFSET + EYE_HEIGHT,
-  3.66,
-)
+// Where to teleport when entering the house. Raw world coordinates
+// sourced from the in-game COORDS HUD at the exact desired spawn spot
+// (slightly further into the rooms than the previous auto-computed
+// floor pose). The ground raycast will snap Y to the actual floor on
+// the first frame if this is a touch above/below.
+const INTERIOR_POS = new THREE.Vector3(75.90, 504.73, 3.66)
 // teleport receives orbit-yaw (camera) which is player-facing + π,
 // so to *display* 90° we pass -90° (-π/2 rad).
 const INTERIOR_ROT = -Math.PI / 2 // displayed facing = 90°

@@ -668,17 +668,58 @@ export const useCameraControls = () => {
         }
 
         if (!didStepUp) {
-          // Regular wall (or airborne contact) — slide along its normal.
-          // Crucially, keep velocityY untouched so gravity / jump arc are
-          // preserved while the lateral component is cancelled on the
-          // wall axis.
           const normal = hit.face?.normal
           if (normal && hit.object) {
             const worldNormal = normal.clone().transformDirection((hit.object as any).matrixWorld)
-            const slideVel = velocity.current.clone().sub(
-              worldNormal.clone().multiplyScalar(velocity.current.dot(worldNormal))
-            )
-            velocity.current.copy(slideVel.multiplyScalar(0.9))
+            // Blender's `solidify` modifier produces inner + outer shells.
+            // Depending on which face the ray hits first, worldNormal may
+            // point IN THE SAME DIRECTION as the player's movement (i.e.
+            // it's a back-face). Using it directly would slide the player
+            // INTO the wall. Flip it so the normal always faces the ray
+            // origin — the "coming-from" side of the contact.
+            if (worldNormal.dot(moveDir) > 0) worldNormal.multiplyScalar(-1)
+
+            // Slope / ramp handling: if the contact normal points
+            // sufficiently upward, it's a walkable incline (a stair
+            // authored as a ramp, a sloped path, CTRL+J'd geometry that
+            // replaced discrete steps with a tilted face, …). Instead of
+            // sliding off it like a wall, cast DOWN from a point just
+            // past the hit to find where the ramp surface sits and snap
+            // the player's Y onto it — same effect as step-up but works
+            // for continuous slopes instead of discrete treads.
+            const SLOPE_Y_MIN = 0.5 // ≈ up to 60° inclines count as walkable
+            if (isOnGround.current && worldNormal.y >= SLOPE_Y_MIN) {
+              const probeOrigin = playerPos.current.clone()
+                .add(moveDir.clone().multiplyScalar(hit.distance + 0.5))
+              probeOrigin.y += STEP_HEIGHT
+              groundRaycaster.current.set(probeOrigin, DOWN_VEC)
+              groundRaycaster.current.far = STEP_HEIGHT * 2
+              const slopeHits = groundRaycaster.current.intersectObjects(collisionMeshes, false)
+              const feetY = playerPos.current.y - EYE_HEIGHT
+              if (slopeHits.length > 0) {
+                const topY = slopeHits[0].point.y
+                const dh = topY - feetY
+                // Accept any rise within STEP_HEIGHT (going up) or any
+                // drop (going down a ramp). Snap feet onto the surface.
+                if (dh <= STEP_HEIGHT) {
+                  playerPos.current.y = topY + EYE_HEIGHT
+                  velocityY.current = 0
+                  isOnGround.current = true
+                  didStepUp = true
+                }
+              }
+            }
+
+            if (!didStepUp) {
+              // Regular wall (or airborne contact) — slide along its
+              // normal. Keep velocityY untouched so gravity / jump arc
+              // are preserved while only the lateral component is
+              // cancelled on the wall axis.
+              const slideVel = velocity.current.clone().sub(
+                worldNormal.clone().multiplyScalar(velocity.current.dot(worldNormal))
+              )
+              velocity.current.copy(slideVel.multiplyScalar(0.9))
+            }
           }
         }
       }

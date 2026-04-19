@@ -29,6 +29,22 @@ export default function Room1() {
     physicsGltf.scene.traverse((child: any) => {
       if (!child.isMesh) return
       child.visible = false
+      // Force DoubleSide + refresh bounds for the same reason as
+      // RoomsObjectsCollision: Blender's solidify modifier produces an
+      // inner AND outer shell — depending on which side the raycast
+      // hits first, the face normal may point the wrong way and the
+      // slide response can push the player INTO the wall instead of
+      // along it. DoubleSide makes the hit symmetric; the slide code
+      // in useCameraControls additionally flips any backface normal
+      // so the response is always correct.
+      if (child.material) {
+        child.material = child.material.clone()
+        child.material.side = THREE.DoubleSide
+      }
+      if (child.geometry) {
+        child.geometry.computeBoundingBox?.()
+        child.geometry.computeBoundingSphere?.()
+      }
       child.updateMatrixWorld(true)
       const id = `rooms_phys_${child.uuid}`
       registerCollisionMesh(id, child)
