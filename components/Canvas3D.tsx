@@ -78,8 +78,18 @@ const Canvas3D: React.FC<{ loadingOverlayEnabled?: boolean; forceHidden?: boolea
         >
           {/* HDRI sky + live colour/tonemap tuning via leva. Renders the
               <Environment> internally so `environmentIntensity` and
-              `backgroundIntensity` can be tweaked without a re-mount. */}
-          <ColorControls />
+              `backgroundIntensity` can be tweaked without a re-mount.
+              WRAPPED in its own Suspense (fallback={null}) so that when
+              drei's <Environment> suspends while loading a new HDR
+              (sunset↔night↔warehouse switch), the suspension is contained
+              here instead of bubbling up and unmounting <Scene3D>. Without
+              this isolation, changing the environment briefly remounted
+              the whole scene → collision meshes disappeared for a frame,
+              the ground-raycast failed, and useCameraControls snapped the
+              player back to `lastSafePos` / spawn and left movement dead. */}
+          <Suspense fallback={null}>
+            <ColorControls />
+          </Suspense>
           
           {/* Camera Controls */}
           <CameraController />

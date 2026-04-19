@@ -234,9 +234,52 @@ function ensureContainer(): HTMLDivElement {
     containerEl.id = 'yt-player-container'
     // Behind the game canvas, visible to browser rendering pipeline but not to user
     containerEl.style.cssText = 'position:fixed;left:0;top:0;width:480px;height:270px;z-index:-1;opacity:0.01;pointer-events:none;overflow:hidden;'
+    // FIX — prevent keyboard focus from ever landing on the iframe.
+    // Without this, after Alt+Tab back (or any browser focus restore) the
+    // cross-origin YouTube iframe could silently capture ALL keydown events:
+    // WASD/Shift/Space would go to YouTube and never reach the game window,
+    // leaving the player unable to move while the mouse still orbited the
+    // camera. tabindex="-1" + aria-hidden keep the iframe out of focus order.
+    containerEl.tabIndex = -1
+    containerEl.setAttribute('aria-hidden', 'true')
     document.body.appendChild(containerEl)
+    installIframeFocusGuard()
   }
   return containerEl
+}
+
+// Defensive guard — if, despite tabindex=-1, any iframe inside our YT
+// container ever becomes the active element (some browsers restore focus
+// to the last-focused iframe after window.focus), immediately blur it and
+// return focus to <body> so the game's window-level key listeners catch
+// the player's WASD again.
+let iframeFocusGuardInstalled = false
+function installIframeFocusGuard(): void {
+  if (iframeFocusGuardInstalled || typeof document === 'undefined') return
+  iframeFocusGuardInstalled = true
+  const onFocusIn = (e: FocusEvent) => {
+    const target = e.target as HTMLElement | null
+    if (!target) return
+    if (target.tagName !== 'IFRAME') return
+    // Only handle iframes inside our YT container.
+    if (!containerEl || !containerEl.contains(target)) return
+    try { (target as HTMLIFrameElement).blur() } catch {}
+    try { (document.body as any).focus?.() } catch {}
+  }
+  document.addEventListener('focusin', onFocusIn, true)
+  // Also mark every iframe YouTube adds as non-tabbable.
+  try {
+    const mo = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        m.addedNodes.forEach((n) => {
+          if ((n as HTMLElement).tagName === 'IFRAME') {
+            try { (n as HTMLIFrameElement).tabIndex = -1 } catch {}
+          }
+        })
+      }
+    })
+    if (containerEl) mo.observe(containerEl, { childList: true, subtree: true })
+  } catch {}
 }
 
 function createPlayerDiv(): string {
