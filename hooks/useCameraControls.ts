@@ -466,15 +466,57 @@ export const useCameraControls = () => {
       if (document.hidden) onBlur()
     }
 
+    // =============================================
+    // POINTER-LOCK RE-ACQUIRE GUARD
+    //
+    // Edge case reported on ultra-wide monitors: the user never Alt+Tabs,
+    // they just click OUT of the browser onto another app running on the
+    // same screen, then click back onto the canvas. Camera works (pointer
+    // lock succeeds) but WASD is dead.
+    //
+    // Root cause: when focus left the browser, `window.blur` cleared
+    // pressedKeys correctly, but `document.activeElement` was left on
+    // whatever HUD button / element had focus at the moment of the switch
+    // (clicking the canvas does NOT move focus — the canvas is not
+    // focusable). The handleKeyDown early-return (`typing || chatActive
+    // || lobbyVisible`) is narrow enough on paper, but the stuck focus +
+    // any stale `cursorIntent` / `chatActive` race was leaving WASD
+    // unresponsive on the first click back.
+    //
+    // Fix: every time pointer-lock is (re)acquired on OUR canvas, run the
+    // same defensive reset as `onBlur` — blur any focused HUD element so
+    // focus returns to <body>, wipe pressedKeys, and reset cursorIntent.
+    // This is the exact mirror of the Tab / Alt-Tab guard above, but for
+    // the "click-away-to-another-app" return path.
+    // =============================================
+    const onPointerLockChange = () => {
+      const canvas = gl.domElement
+      if (document.pointerLockElement !== canvas) return
+      const el = document.activeElement as HTMLElement | null
+      if (el && el !== document.body && typeof el.blur === 'function') {
+        const tag = el.tagName
+        const isRealInput = tag === 'INPUT' || tag === 'TEXTAREA' || (el as any).isContentEditable
+        if (!isRealInput) {
+          try { el.blur() } catch {}
+        }
+      }
+      setPressedKeys(new Set())
+      import('../lib/cursorIntent').then(({ cursorIntent }) => {
+        cursorIntent.intentionalUnlock = false
+      }).catch(() => {})
+    }
+
     window.addEventListener('keydown', onKey)
     window.addEventListener('blur', onBlur)
     document.addEventListener('visibilitychange', onVisibility)
+    document.addEventListener('pointerlockchange', onPointerLockChange)
     return () => {
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('blur', onBlur)
       document.removeEventListener('visibilitychange', onVisibility)
+      document.removeEventListener('pointerlockchange', onPointerLockChange)
     }
-  }, [setPressedKeys])
+  }, [setPressedKeys, gl])
 
   // Keyboard event handlers
   useEffect(() => {

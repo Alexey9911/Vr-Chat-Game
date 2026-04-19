@@ -800,7 +800,7 @@ export default function LobbyScreen() {
       {/* Top Navbar */}
       <div className="lobby-top-bar">
         <div className="lobby-brand">
-          <h1 className="lobby-title">$</h1>
+          <h1 className="lobby-title">$alonverse</h1>
           <p className="lobby-subtitle-concept">3D SOCIAL WORLD</p>
         </div>
         <div className="lobby-nav-tabs">
@@ -828,7 +828,7 @@ export default function LobbyScreen() {
                  <div className="level-info">
                    <div className="level-shield">🌐</div>
                    <div className="level-text">
-                     <span className="lvl-big"></span>
+                     <span className="lvl-big">alonverse</span>
                      <span className="xp-text">LOBBY 1</span>
                    </div>
                  </div>
@@ -985,7 +985,7 @@ export default function LobbyScreen() {
                <div className="play-section play-section--compact">
                   <div className="game-mode">
                     <span className="mode-title">PLAYING IN</span>
-                    <span className="mode-name"></span>
+                    <span className="mode-name">alonverse</span>
                   </div>
                </div>
             </div>

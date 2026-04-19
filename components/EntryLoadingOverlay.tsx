@@ -45,9 +45,9 @@ export default function EntryLoadingOverlay({
   return (
     <div className="loading" style={{ position: 'fixed', inset: 0, transform: 'none', top: 0, left: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 99999, background: 'linear-gradient(135deg, #00f2fe 0%, #10b981 100%)' }}>
       <img
-        src="/elonkiss.png"
+        src="/alon_house/bacgroundImage.png"
         alt="Loading AlonHouse..."
-        style={{ width: 400, height: 400, objectFit: 'contain', marginBottom: 30, animation: 'simpleFade 1.5s infinite ease-in-out', filter: 'drop-shadow(0 0 20px rgba(255, 255, 255, 0.4))' }}
+        style={{ width: 400, height: 400, objectFit: 'cover', marginBottom: 30, animation: 'simpleFade 1.5s infinite ease-in-out', borderRadius: 16, filter: 'drop-shadow(0 0 20px rgba(255, 255, 255, 0.4))' }}
       />
       <div style={{ color: '#ffffff', fontWeight: 900, fontSize: 54, letterSpacing: 3, textTransform: 'uppercase', textAlign: 'center', fontFamily: 'inherit', textShadow: '0 4px 10px rgba(0, 0, 0, 0.15)' }}>
         loading

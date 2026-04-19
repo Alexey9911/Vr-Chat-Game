@@ -4,10 +4,8 @@ export default function Document() {
   return (
     <Html lang="es">
       <Head>
-        {/* Favicon removed per user request — using browser default (empty) for now.
-            `data:,` short-circuits the browser's automatic /favicon.ico request so we
-            don't get a 404 spam in the console. */}
-        <link rel="icon" href="data:," />
+        <link rel="icon" type="image/svg+xml" href="/favicon-alon.svg" />
+        <link rel="icon" type="image/png" href="/alon_house/bacgroundImage.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
