@@ -1153,7 +1153,7 @@ export default function LobbyScreen() {
                 TWITTER
               </button>
             </a>
-            <a href="https://pump.fun/coin/4kCzTiCPBDqCE3JR7g4haoW6Lqu6Q719HuBRHvfppump" target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+            <a href="https://pump.fun" target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
               <button className="news-btn pulse-effect" style={{ background: '#10b981', color: 'white', border: '1px solid rgba(255,255,255,0.3)', boxShadow: '0 0 15px rgba(16, 185, 129, 0.4)' }}>
                 <img src="/icons/pumpfun.png" alt="PumpFun" className="news-icon" /> 
                 PUMP.FUN
