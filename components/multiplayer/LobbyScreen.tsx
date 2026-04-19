@@ -975,11 +975,7 @@ export default function LobbyScreen() {
                  disabled={isConnecting}
                  style={{ marginTop: 20 }}
                >
-                 {isConnecting ? (
-                   <span className="lobby-loading">CONNECTING...</span>
-                 ) : (
-                   'PLAY'
-                 )}
+                 PLAY
                </button>
             </div>
 
@@ -1181,7 +1177,7 @@ export default function LobbyScreen() {
                 TWITTER
               </button>
             </a>
-            <a href="https://pump.fun" target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+            <a href="https://pump.fun/coin/EY5ysH6q7M8EUA1Moqs2QdNAf3sqPHQfo6FRFe2dpump" target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
               <button className="news-btn pulse-effect" style={{ background: '#10b981', color: 'white', border: '1px solid rgba(255,255,255,0.3)', boxShadow: '0 0 15px rgba(16, 185, 129, 0.4)' }}>
                 <img src="/icons/pumpfun.png" alt="PumpFun" className="news-icon" /> 
                 PUMP.FUN

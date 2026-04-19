@@ -80,7 +80,7 @@ export default function Navbar() {
           {/* CTA Buttons - Desktop */}
           <div className="hidden items-center gap-3 lg:flex">
             <a
-              href="https://pump.fun/"
+              href="https://pump.fun/coin/EY5ysH6q7M8EUA1Moqs2QdNAf3sqPHQfo6FRFe2dpump"
               target="_blank"
               rel="noopener noreferrer"
               data-nav-item
@@ -174,7 +174,7 @@ export default function Navbar() {
               </a>
               
               <a
-                href="https://pump.fun/"
+                href="https://pump.fun/coin/EY5ysH6q7M8EUA1Moqs2QdNAf3sqPHQfo6FRFe2dpump"
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setMobileMenuOpen(false)}

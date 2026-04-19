@@ -89,7 +89,7 @@ const Navbar: React.FC = () => {
         pointerEvents: 'auto',
       }}
     >
-      <IconLink href="https://pump.fun" src="/icons/pumpfun.png" alt="Pump Fun" />
+      <IconLink href="https://pump.fun/coin/EY5ysH6q7M8EUA1Moqs2QdNAf3sqPHQfo6FRFe2dpump" src="/icons/pumpfun.png" alt="Pump Fun" />
       <IconLink href="https://x.com/a1onverse" src="/icons/twitter.png" alt="Twitter" />
     </nav>
   );
