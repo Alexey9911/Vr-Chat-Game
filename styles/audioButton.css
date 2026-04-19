@@ -12,7 +12,14 @@
   right: 250px;
   z-index: 1500;
   display: grid;
-  grid-template-columns: repeat(2, 74px);
+  /* 3 columns × 3 rows keeps the natural content height close to the
+     WASD .controls-hud; AudioButton.tsx then syncs exact height via JS
+     and `align-content: center` evenly distributes any residual gap so
+     buttons stay vertically centred inside the forced height. */
+  grid-template-columns: repeat(3, 74px);
+  grid-auto-rows: 74px;
+  align-content: center;
+  justify-content: center;
   gap: 10px;
   padding: 14px;
   background: rgba(15, 15, 20, 0.55);
@@ -412,6 +419,8 @@
     right: 8px;
     bottom: 8px;
     grid-template-columns: repeat(2, 50px);
+    grid-auto-rows: 50px;
+    height: auto;           /* ignore JS-synced desktop height */
     gap: 6px;
     padding: 10px;
     border-radius: 12px;

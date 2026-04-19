@@ -65,6 +65,44 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
 
   const [isYouTubePlaying, setIsYouTubePlaying] = useState(false)
   const [isCursorFree, setIsCursorFree] = useState(false)
+  const hudPanelRef = useRef<HTMLDivElement | null>(null)
+
+  // Sync the .hud-panel vertical size with the WASD .controls-hud so both
+  // bottoms AND tops line up. Purely visual — user complained the column
+  // HUD was "ligeramente más alto" than the WASD HUD. A ResizeObserver on
+  // the controls-hud keeps them matched even as the WASD panel grows /
+  // shrinks (SHIFT row, hints grid, responsive tweaks, …).
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const panel = hudPanelRef.current
+    if (!panel) return
+
+    const sync = () => {
+      const wasd = document.querySelector('.controls-hud') as HTMLElement | null
+      if (!wasd) return
+      const h = wasd.getBoundingClientRect().height
+      if (h > 0) panel.style.height = `${h}px`
+    }
+
+    // Initial sync once both HUDs are in the DOM.
+    const raf = requestAnimationFrame(sync)
+
+    // React to WASD HUD growing (SHIFT / hints layout, responsive rules).
+    let ro: ResizeObserver | null = null
+    const wasd = document.querySelector('.controls-hud') as HTMLElement | null
+    if (wasd && typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(sync)
+      ro.observe(wasd)
+    }
+    // Fallback: window resize always re-measures.
+    window.addEventListener('resize', sync)
+
+    return () => {
+      cancelAnimationFrame(raf)
+      if (ro) ro.disconnect()
+      window.removeEventListener('resize', sync)
+    }
+  }, [isConnected])
 
   // ESC toggles the pointer-lock (cursor lock/free). T is no longer used.
   //
@@ -236,7 +274,7 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
 
   return (
     <>
-    <div className="hud-panel">
+    <div className="hud-panel" ref={hudPanelRef}>
       {/* CURSOR / ESC STATE */}
       <button
         tabIndex={-1}
