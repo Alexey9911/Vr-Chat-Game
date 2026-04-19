@@ -162,13 +162,33 @@ export default function Scene3D({ containerRef }) {
       {/* ============================================= */}
       {/* MULTIPLAYER: Remote Player Avatars */}
       {/* ============================================= */}
-      {Array.from(remotePlayers.values()).map((player) => (
-        <RemotePlayerAvatar
-          key={player.id}
-          player={player}
-          isLocal={player.id === localPlayerId}
-        />
-      ))}
+      {/* FIX — Only render peers who have actually CLICKED PLAY. Connection to
+          the PlayroomKit room happens on page load (insertCoin inside
+          LobbyScreen.initBackgroundConnection), NOT when the user clicks Play.
+          So every peer who just opened the tab — even if they never finished
+          the lobby flow — shows up in the remotePlayers map with no `pdata`
+          (empty name), no `pos` (undefined → defaults to spawn), and the
+          fallback 'alon' skin. That produced a pile of ghost 'alon' avatars
+          stacked at the spawn point that the user thought were real players.
+          A peer is considered "in-game" once it has written BOTH `pdata.name`
+          (set in handlePlayClick) AND `pos` (set by useCameraControls, which
+          only starts after Play). */}
+      {Array.from(remotePlayers.values())
+        .filter((player) => {
+          // Always render the local player (for third-person cam / self-avatar).
+          if (player.id === localPlayerId) return true
+          // Hide peers who haven't clicked Play yet.
+          if (!player.name) return false
+          if (!player.position) return false
+          return true
+        })
+        .map((player) => (
+          <RemotePlayerAvatar
+            key={player.id}
+            player={player}
+            isLocal={player.id === localPlayerId}
+          />
+        ))}
     </>
   );
 }
