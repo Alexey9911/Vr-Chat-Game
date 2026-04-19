@@ -579,6 +579,13 @@ export default function LobbyScreen() {
         if (state.id === pk.myPlayer()?.id) return
         
         const seenChatTimestamps = new Set<number>()
+        // Track the currently-scheduled chat-bubble-clear timer per player.
+        // Previously each message scheduled its own setTimeout without
+        // cancelling the previous one — so if msg A (scheduled to clear at
+        // T=5) was followed by msg B at T=3 (clear at T=8), A's timer still
+        // fired at T=5 and hid B's bubble prematurely. This was especially
+        // noticeable for GIFs because they're usually sent rapid-fire.
+        let chatClearTimer: ReturnType<typeof setTimeout> | null = null
 
         // FIX — Always create remote entry immediately, even without profile.
         // Guarantees avatars show up right when a player joins. Profile data is
@@ -717,9 +724,14 @@ export default function LobbyScreen() {
                 text: chatData.text,
                 timestamp: chatData.timestamp,
               })
-              setTimeout(() => {
+              // Cancel any pending clear from a previous message so it
+              // doesn't fire early and hide this (newer) bubble. Extended
+              // to 8s so GIFs/images have more time to load AND be read.
+              if (chatClearTimer) clearTimeout(chatClearTimer)
+              chatClearTimer = setTimeout(() => {
                 updateRemotePlayer(state.id, { chatMessage: null })
-              }, 5000)
+                chatClearTimer = null
+              }, 8000)
             }
           }
         }, 100) // 10 FPS sync

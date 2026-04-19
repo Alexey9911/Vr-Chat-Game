@@ -64,6 +64,12 @@ export default function ChatInput() {
   const historyRef = useRef<HTMLDivElement>(null)
   // Sentinel at the bottom of the message list — scrollIntoView is more reliable than scrollTop in Firefox
   const bottomRef = useRef<HTMLDivElement>(null)
+  // Timer that hides the local player's 3D chat bubble. Must be cancelled
+  // every time we send a NEW message — otherwise a previous message's
+  // 8s timer fires early and wipes our newer bubble (especially noticeable
+  // when spamming GIFs: second GIF disappeared almost instantly because
+  // the first GIF's timer was still armed).
+  const chatClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   // Track whether user scrolled up manually — use ref, NOT state, to avoid render loops
   const userScrolledUp = useRef(false)
   // Keep latest isOpen for keydown handler without stale closures
@@ -260,7 +266,14 @@ export default function ChatInput() {
     }
 
     updateRemotePlayer(me.id, { chatMessage: chatData.text })
-    setTimeout(() => updateRemotePlayer(me.id, { chatMessage: null }), 5000)
+    // Cancel any pending clear from the previous message — without this,
+    // rapidly-sent GIFs/messages would get hidden after only 1–2s because
+    // the OLDER message's 8s timer fired while the NEW bubble was showing.
+    if (chatClearTimerRef.current) clearTimeout(chatClearTimerRef.current)
+    chatClearTimerRef.current = setTimeout(() => {
+      updateRemotePlayer(me.id, { chatMessage: null })
+      chatClearTimerRef.current = null
+    }, 8000)
 
     setText('')
     setGifUrls([])

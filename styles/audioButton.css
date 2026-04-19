@@ -411,42 +411,52 @@
   height: 18px;
 }
 
-/* Responsive — mobile */
+/* Responsive — mobile
+   ==================================================================
+   Mobile layout is split into TWO vertical stacks on each screen edge:
+   • LEFT side (bottom→top): GIFs column → Skins + Emotes side-by-side
+   • RIGHT side (bottom→top): WASD + chat-btn → hud-panel (ESC/M/YT/…)
+   The panels on the left are narrow and the WASD stays flush to the
+   bottom-right corner so thumbs can reach everything comfortably.
+   ================================================================== */
 @media (max-width: 768px) {
+  /* HUD panel — moved WAY up so it sits ABOVE the WASD arrows instead
+     of below them. With 40px cells (down from 50) the panel is ~170px
+     tall; at bottom:270 its top edge is ~440 from the screen bottom,
+     comfortably above the 234px-tall TouchControls at bottom:16. */
   .hud-panel {
-    /* On mobile there's no WASD controls-hud on the right (touch arrows
-       live on the left), so the panel can hug the right edge again. */
     right: 8px;
-    bottom: 8px;
-    grid-template-columns: repeat(2, 50px);
-    grid-auto-rows: 50px;
-    height: auto;           /* ignore JS-synced desktop height */
-    gap: 6px;
-    padding: 10px;
-    border-radius: 12px;
-  }
-
-  .hud-btn {
-    width: 50px;
-    height: 50px;
+    bottom: 270px;
+    grid-template-columns: repeat(2, 40px);
+    grid-auto-rows: 40px;
+    height: auto;
+    gap: 5px;
+    padding: 8px;
     border-radius: 10px;
   }
 
-  /* Mobile skin bar: VERTICAL on the LEFT side, mirror of the right-side
-     HUD panel. Centered vertically, short numeric labels (1, 2, 3…) so it
-     stays narrow and doesn't cover the chat or the arrow controls. */
+  .hud-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+  }
+
+  /* Skin bar — VERTICAL at left edge, smaller (38px) items. No longer
+     centered vertically (which stretched across the whole screen); now
+     anchored from the top so there's clean space below for the GIF
+     column and above for the top-bar / players-list. */
   .skin-bar {
     position: fixed;
-    top: 50%;
-    left: 8px;
+    top: 100px; /* below instructions (top:10) + players-list header */
+    left: 4px;
     bottom: auto;
     right: auto;
-    transform: translateY(-50%);
+    transform: none;
     flex-direction: column;
-    gap: 6px;
-    padding: 8px;
+    gap: 5px;
+    padding: 6px 4px;
     max-width: none;
-    max-height: 70vh;
+    max-height: 40vh;
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: none;
@@ -455,64 +465,82 @@
     border-right: 4px solid #10b981;
   }
 
-  .skin-bar::-webkit-scrollbar {
-    display: none;
-  }
+  .skin-bar::-webkit-scrollbar { display: none; }
 
   .skin-bar-item {
-    width: 44px;
-    height: 44px;
+    width: 38px;
+    height: 38px;
     padding: 0;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 900;
     display: flex;
     align-items: center;
     justify-content: center;
     clip-path: none;
-    border-radius: 8px;
+    border-radius: 7px;
     flex-shrink: 0;
   }
 
-  /* Hide the skin name, show the number badge instead. */
   .skin-bar .skin-bar-label { display: none; }
   .skin-bar .skin-bar-index { display: block; }
 
+  /* Emote bar — CONVERTED to vertical column and positioned next to
+     the skin bar (right of it) so the user can tap dances with the
+     left thumb. Per-skin emotes already handled in <EmoteBar/>. */
   .emote-bar {
-    bottom: 10px;
+    position: fixed;
+    top: 100px;
+    left: 54px; /* skin-bar width (38) + paddings/borders (~16) = 54 */
+    right: auto;
+    bottom: auto;
+    transform: none;
+    flex-direction: column;
     gap: 5px;
-    padding: 6px 8px;
-    max-width: 90vw;
-    overflow-x: auto;
+    padding: 6px 4px;
+    max-width: none;
+    max-height: 40vh;
+    overflow-y: auto;
+    overflow-x: hidden;
     scrollbar-width: none;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(6px);
+    border-radius: 10px;
+    border-left: 4px solid #f59e0b; /* amber accent to differentiate from skin-bar */
   }
 
-  .emote-bar::-webkit-scrollbar {
-    display: none;
-  }
+  .emote-bar::-webkit-scrollbar { display: none; }
 
   .emote-bar-item {
-    padding: 5px 8px;
-    gap: 3px;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    gap: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 7px;
+    flex-shrink: 0;
   }
 
+  /* Emote icons hidden on mobile — we show a numeric label instead
+     (E1, E2, E3…) so each button is compact + instantly recognisable. */
+  .emote-bar-icon { display: none; }
   .emote-bar-label {
-    font-size: 8px;
-  }
-
-  .emote-bar-icon svg {
-    width: 16px;
-    height: 16px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+    text-align: center;
   }
 
   .hud-btn-label {
-    font-size: 16px;
-  }
-
-  .hud-btn--view .hud-btn-label {
     font-size: 13px;
   }
 
+  .hud-btn--view .hud-btn-label {
+    font-size: 11px;
+  }
+
   .hud-btn--emote .hud-btn-label {
-    font-size: 18px;
+    font-size: 15px;
   }
 }

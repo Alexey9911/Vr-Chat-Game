@@ -37,11 +37,10 @@ const TouchControls: React.FC = () => {
       style={{
         position: 'fixed',
         right: 12,
-        // Raised from bottom: 16 → 140 so WASD buttons sit ABOVE the
-        // function-icons panel (`.hud-panel` @ bottom:8 / ~120px tall on
-        // mobile), preventing the overlap that blocked taps on both
-        // controls simultaneously.
-        bottom: 140,
+        // Bottom-right corner as user requested. The `.hud-panel` function
+        // icons no longer sit at bottom:8 on mobile — they moved up to
+        // bottom:270 (CSS), so WASD can sit flush to the bottom again.
+        bottom: 16,
         zIndex: 2000,
         display: 'flex',
         flexDirection: 'column',

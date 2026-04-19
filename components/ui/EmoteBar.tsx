@@ -40,7 +40,7 @@ export default function EmoteBar() {
           onClick={() => triggerEmote(k)}
           title={`Emote ${index + 1} (${k})`}
         >
-          <span className="emote-bar-label">Emote {index + 1}</span>
+          <span className="emote-bar-label">E{index + 1}</span>
         </button>
       ))}
     </div>

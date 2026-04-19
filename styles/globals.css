@@ -2945,11 +2945,32 @@ a {
     font-size: 11px;
   }
 
-  /* GIF bar row: narrow left side */
+  /* GIF bar row → VERTICAL column on mobile, bottom-left corner.
+     Sits flush to the left edge below the skin/emote columns (which
+     start at top:100 and reach ~40vh). Each GIF is 38px so a column
+     of 3 GIFs + MORE = ~180px tall. */
   .gif-bar-row {
-    left: 8px;
+    left: 4px;
     bottom: 12px;
+    flex-direction: column;
+    gap: 5px;
+    align-items: stretch;
   }
+  .gif-bar-item {
+    width: 40px;
+    height: 40px;
+    padding: 3px;
+    border-radius: 7px;
+  }
+  .gif-bar-more-btn {
+    padding: 6px 4px;
+    margin-left: 0;
+    flex-direction: column;
+    gap: 2px;
+    width: 40px;
+  }
+  .gif-bar-more-icon { font-size: 14px; }
+  .gif-bar-more-text { font-size: 9px; letter-spacing: 0; }
 
   /* Hint text smaller */
   .chat-hint {
