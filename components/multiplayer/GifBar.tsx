@@ -19,16 +19,26 @@ export default function GifBar({ onGifSelect, onOpenPicker }: GifBarProps) {
           onClick={() => onGifSelect(emote)}
           title={emote.name}
         >
-          <img
-            src={emote.url}
-            alt={emote.name}
-            className="gif-bar-img"
-            loading="lazy"
-            onError={(e) => {
-              // console.error(`Failed to load GIF: ${emote.url}`)
-              e.currentTarget.style.display = 'none'
-            }}
-          />
+          {emote.type === 'video' ? (
+            <video
+              src={emote.url}
+              className="gif-bar-img"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          ) : (
+            <img
+              src={emote.url}
+              alt={emote.name}
+              className="gif-bar-img"
+              loading="lazy"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none'
+              }}
+            />
+          )}
         </button>
       ))}
 
