@@ -555,20 +555,20 @@ export default function LobbyScreen() {
         
         const seenChatTimestamps = new Set<number>()
 
-        // CRITICAL FIX: Don't create player entry until profile is ready
+        // FIX — Always create remote entry immediately, even without profile.
+        // Guarantees avatars show up right when a player joins. Profile data is
+        // upgraded in the polling interval as it becomes available. Without
+        // this, heavy-scene main-thread stalls could race the pdata/pos writes
+        // and the player would never appear in the world.
         const initialProfile = state.getState('pdata')
-        
-        if (initialProfile?.name) {
-          updateRemotePlayer(state.id, {
-            id: state.id,
-            name: initialProfile.name,
-            color: initialProfile.color || '#4a9eff',
-            skinId: initialProfile.skinId || 'alon',
-            isAdmin: initialProfile.isAdmin || false,
-            colors: initialProfile.colors || { primary: initialProfile.color || '#4a9eff' },
-          })
-        } else {
-        }
+        updateRemotePlayer(state.id, {
+          id: state.id,
+          name: initialProfile?.name || '',
+          color: initialProfile?.color || '#4a9eff',
+          skinId: initialProfile?.skinId || 'alon',
+          isAdmin: initialProfile?.isAdmin || false,
+          colors: initialProfile?.colors || { primary: initialProfile?.color || '#4a9eff' },
+        })
 
         // Track music sync state to prevent duplicate plays
         const musicSyncedFor = new Set<string>()
@@ -596,35 +596,49 @@ export default function LobbyScreen() {
           const isYouTubePlaying = state.getState('isYouTubePlaying')
           const youtubeData = state.getState('youtubeData')
 
+          // FIX — Decouple profile/flag updates from `pos`. Previously, if a
+          // remote player hadn't written 'pos' yet (racy during heavy-scene
+          // loading) we'd skip updating name/skin/music/mic flags entirely —
+          // causing the avatar to remain a nameless placeholder and music/mic
+          // indicators to be stuck OFF.
+          const update: any = {}
           if (pos) {
-            const update: any = {
-              position: pos,
-              rotationY: rotY || 0,
-              animation: anim || null,
-            }
-            if (profile && profile.name) {
-              update.name = profile.name
-              update.color = profile.color || '#4a9eff'
-              update.skinId = profile.skinId
-              update.isAdmin = profile.isAdmin || false
-              update.colors = profile.colors
-              update.isMusicPlaying = isMusicPlaying || false
-              update.isYouTubePlaying = isYouTubePlaying || false
-              update.youtubeVideoId = youtubeData?.videoId || undefined
-              update.isMicActive = state.getState('isMicActive') || false
-            }
-            updateRemotePlayer(state.id, update)
+            update.position = pos
+            update.rotationY = rotY || 0
+            update.animation = anim || null
           }
+          if (profile && profile.name) {
+            update.name = profile.name
+            update.color = profile.color || '#4a9eff'
+            update.skinId = profile.skinId
+            update.isAdmin = profile.isAdmin || false
+            update.colors = profile.colors
+          }
+          // Flags are safe to update independently — defaults are falsy so they
+          // don't corrupt anything if the remote hasn't set them yet.
+          update.isMusicPlaying = isMusicPlaying || false
+          update.isYouTubePlaying = isYouTubePlaying || false
+          update.youtubeVideoId = youtubeData?.videoId || undefined
+          update.isMicActive = state.getState('isMicActive') || false
+
+          updateRemotePlayer(state.id, update)
           
-          // Sync music ONCE when new player joins and music is playing
+          // Sync music ONCE when new player joins and music is playing.
+          // FIX — If the play call throws (main-thread stall during heavy
+          // scene, autoplay block, etc.) we REMOVE the sync key so the next
+          // tick retries. Previously a silent failure left the key in the set
+          // and the remote's music was never heard.
           if (isMusicPlaying && musicData && musicData.skinId) {
             wasMusicPlaying = true
             const syncKey = `${state.id}-${musicData.skinId}-${musicData.startTime}`
-            if (!musicSyncedFor.has(syncKey)) {
+            if (!musicSyncedFor.has(syncKey) && musicMod) {
               musicSyncedFor.add(syncKey)
               const elapsed = Date.now() - (musicData.startTime || 0)
-              if (musicMod) {
+              try {
                 musicMod.playMusicForPlayer(state.id, musicData.skinId, elapsed / 1000)
+              } catch (err) {
+                musicSyncedFor.delete(syncKey)
+                console.warn('[Music Sync] failed, will retry next tick:', err)
               }
             }
           } else if (!isMusicPlaying) {
@@ -637,16 +651,23 @@ export default function LobbyScreen() {
             musicSyncedFor.clear()
           }
 
-          // Sync YouTube music ONCE when remote player is playing
+          // Sync YouTube music ONCE when remote player is playing.
+          // FIX — playYouTubeForPlayer returns a Promise that can reject
+          // (timeout, embed restrictions, iframe API not ready, etc.). Without
+          // a catch, the rejection is swallowed and the syncKey stays set
+          // forever → the remote's YT is never played on our side. Now on
+          // failure we drop the key so the next tick retries automatically.
           if (isYouTubePlaying && youtubeData && youtubeData.videoId) {
             wasYouTubePlaying = true
             const ytSyncKey = `${state.id}-${youtubeData.videoId}-${youtubeData.startTime}`
-            if (!ytSyncedFor.has(ytSyncKey)) {
+            if (!ytSyncedFor.has(ytSyncKey) && ytMod) {
               ytSyncedFor.add(ytSyncKey)
               const elapsed = Date.now() - (youtubeData.startTime || 0)
-              if (ytMod) {
-                ytMod.playYouTubeForPlayer(state.id, youtubeData.videoId, elapsed / 1000)
-              }
+              Promise.resolve(ytMod.playYouTubeForPlayer(state.id, youtubeData.videoId, elapsed / 1000))
+                .catch((err: any) => {
+                  ytSyncedFor.delete(ytSyncKey)
+                  console.warn('[YT Sync] failed, will retry next tick:', err?.message || err)
+                })
             }
           } else if (!isYouTubePlaying) {
             if (wasYouTubePlaying) {
@@ -678,12 +699,17 @@ export default function LobbyScreen() {
           }
         }, 100) // 10 FPS sync
 
-        // When a new player joins, always create voice peer connection (receive-only if no mic)
+        // When a new player joins, always create voice peer connection
+        // (receive-only if no mic). FIX — catch any error so it doesn't
+        // bubble up as unhandled rejection; the peer will auto-retry on the
+        // next user V-press via the `addLocalTrackToExistingPeers` path.
         import('../../lib/audio/voiceChatSystem').then((vc) => {
           if (!vc.hasPeer(state.id)) {
-            vc.createOffer(state.id)
+            Promise.resolve(vc.createOffer(state.id)).catch((err: any) => {
+              console.warn('[Voice] initial createOffer failed:', err?.message || err)
+            })
           }
-        })
+        }).catch(() => {})
 
         state.onQuit(() => {
           clearInterval(posInterval)
