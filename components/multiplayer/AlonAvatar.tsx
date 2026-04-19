@@ -20,6 +20,7 @@ export default function AlonAvatar({ animation }: { animation?: string | null })
   const animationMap: { [key: string]: string } = useMemo(() => ({
     'Idle': 'Breakdance_1990',       // Rest pose (no movement)
     'Run': 'Hip_Hop_Dance_3',       // Movement animation (walking)
+    'Sprint': 'Fall1',               // Sprint clip confirmed by user (2026-04-18)
     'Punch': 'Boom_Dance',           // Emote 1 (key 2)
     'Yes': 'Idle_3',                 // Emote 2 (key 3)
     'Wave': 'Running',               // Emote 3 (key 4)

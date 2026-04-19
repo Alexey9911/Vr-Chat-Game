@@ -1,16 +1,24 @@
 import RemotePlayerAvatar from "./multiplayer/RemotePlayerAvatar";
 import HouseScene from "./HouseScene";
+import VallasObject from "./VallasObject";
+import VallasTexts from "./VallasTexts";
 import HouseExteriorCollision from "./HouseExteriorCollision";
 import CarsCollision from "./CarsCollision";
 import OrangiePathNPC from "./OrangiePathNPC";
 import HouseAirdrops from "./HouseAirdrops";
 import CheckpointEntryHouse from "./checkpoints/CheckpointEntryHouse";
 import CheckpointExitHouse from "./checkpoints/CheckpointExitHouse";
+import CheckpointRoomsToBalcony from "./checkpoints/CheckpointRoomsToBalcony";
+import CheckpointBalconyToRooms from "./checkpoints/CheckpointBalconyToRooms";
+import HouseBalconyCollision from "./HouseBalconyCollision";
 import Room1 from "./rooms/Room1";
 import RoomLabels from "./rooms/RoomLabels";
 import RoomMusic from "./rooms/RoomMusic";
 import RoomDancer from "./rooms/RoomDancer";
 import RoomGirl from "./rooms/RoomGirl";
+import RoomIndians from "./rooms/RoomIndians";
+import RoomCows from "./rooms/RoomCows";
+import RoomsObjectsCollision from "./rooms/RoomsObjectsCollision";
 
 import React, { Suspense } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
@@ -73,6 +81,10 @@ export default function Scene3D({ containerRef }) {
 
       {/* House scene from Blender (exterior + cars + decoration + dance + floating texts) */}
       <HouseScene />
+      <Suspense fallback={null}>
+        <VallasObject />
+      </Suspense>
+      <VallasTexts />
 
       {/* Invisible collision meshes for exterior (casa + jardin w/ door hole + street perimeter) */}
       <Suspense fallback={null}>
@@ -84,11 +96,22 @@ export default function Scene3D({ containerRef }) {
         <CarsCollision />
       </Suspense>
 
+      {/* Invisible collision slab for the exterior balcony (Plane.011).
+          Thickened internally so sprinting players can't tunnel through. */}
+      <Suspense fallback={null}>
+        <HouseBalconyCollision />
+      </Suspense>
+
       {/* Checkpoint + Interior rooms + NPCs — same Blender scene offset as HouseScene */}
       <group position={[190.12, 1.1857, -88.67]}>
         <Suspense fallback={null}>
           <CheckpointEntryHouse />
           <CheckpointExitHouse />
+          {/* Rooms → balcony (c3). Visual mounted with ROOM_Y_OFFSET lift
+              internally; trigger uses world coords from localPlayerLive. */}
+          <CheckpointRoomsToBalcony />
+          {/* Balcony → rooms (c4). Lives in the exterior Y range, so no lift. */}
+          <CheckpointBalconyToRooms />
         </Suspense>
         <Suspense fallback={null}>
           <Room1 />
@@ -104,6 +127,15 @@ export default function Scene3D({ containerRef }) {
         </Suspense>
         <Suspense fallback={null}>
           <RoomGirl />
+        </Suspense>
+        <Suspense fallback={null}>
+          <RoomIndians />
+        </Suspense>
+        <Suspense fallback={null}>
+          <RoomCows />
+        </Suspense>
+        <Suspense fallback={null}>
+          <RoomsObjectsCollision />
         </Suspense>
         <Suspense fallback={null}>
           <OrangiePathNPC />

@@ -11,9 +11,9 @@ import { registerCollisionMesh, unregisterCollisionMesh } from '../../lib/collis
 // rooms_physics now has solidified thick walls in Blender, so no
 // DoubleSide / material gymnastics needed.
 export default function Room1() {
-  const gltf = useGLTF('/alon_house/rooms/room_completed-v1.glb')
+  const gltf = useGLTF('/alon_house/rooms/room_completed-v1.glb?v=2')
   const ceilingGltf = useGLTF('/alon_house/rooms/techo_rooms-v2.glb?v=2')
-  const physicsGltf = useGLTF('/alon_house/rooms_physics.glb')
+  const physicsGltf = useGLTF('/alon_house/rooms_physics.glb?v=2')
   const groupRef = useRef<THREE.Group>(null)
 
   useEffect(() => {
@@ -44,6 +44,6 @@ export default function Room1() {
   )
 }
 
-useGLTF.preload('/alon_house/rooms/room_completed-v1.glb')
+useGLTF.preload('/alon_house/rooms/room_completed-v1.glb?v=2')
 useGLTF.preload('/alon_house/rooms/techo_rooms-v2.glb?v=2')
-useGLTF.preload('/alon_house/rooms_physics.glb')
+useGLTF.preload('/alon_house/rooms_physics.glb?v=2')

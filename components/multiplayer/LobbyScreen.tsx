@@ -820,12 +820,24 @@ export default function LobbyScreen() {
 
             {/* Center - Characters & Nickname */}
             <div className="lobby-center-panel">
-               {/* Logo / PFP in center - positioned above nickname */}
-               <img 
-                  src="/avatar.png" 
-                  alt="" 
-                  style={{ width: '360px', height: '360px', objectFit: 'contain', marginBottom: '10px', filter: 'drop-shadow(0 0 15px rgba(74,222,128,0.6))' }} 
-                />
+               {/* Live 3D skin preview replacing the old static avatar.png.
+                   Identical pattern to CustomizationTab (SkinPreviewCanvas +
+                   ‹ / › arrows) but inlined here so it's the first thing the
+                   player sees. State flows through useSkinStore, so any change
+                   here is immediately reflected in:
+                     - CustomizationTab (same store)
+                     - SkinBar (bottom in-game HUD)
+                     - SkinsModal (C key in-game)
+                     - Playroom `pdata.skinId` → remote avatars
+                   No duplicated logic: `applyLobbySkin` mirrors CustomizationTab.applyProfile. */}
+               <LobbyCenterSkinPicker
+                 selectedSkinIndex={selectedSkinIndex}
+                 colorsBySkinId={colorsBySkinId}
+                 setSelectedSkinIndex={setSelectedSkinIndex}
+                 setActiveSkinId={setActiveSkinId}
+                 setSkinLoaded={setSkinLoaded}
+                 playroomRef={playroomRef}
+               />
 
                {/* Mobile-only skin picker */}
                <div className="info-box mobile-skin-picker" style={{display: 'none', marginBottom: '15px'}}>
@@ -1179,6 +1191,166 @@ function MicPermissionRow() {
           </button>
         </div>
       )}
+    </div>
+  )
+}
+
+// ───────────────────────────────────────────────────────────────────
+// LOBBY CENTER SKIN PICKER — 3D preview + arrows shown in the middle
+// panel of the lobby (replaces the old /avatar.png static image).
+// Shares state with CustomizationTab / SkinsModal / SkinBar via
+// useSkinStore, and pushes skin changes to Playroom via the same
+// profile-update path used by CustomizationTab.applyProfile.
+// ───────────────────────────────────────────────────────────────────
+type LobbyCenterSkinPickerProps = {
+  selectedSkinIndex: number
+  colorsBySkinId: Record<string, SkinColors | undefined>
+  setSelectedSkinIndex: (i: number) => void
+  setActiveSkinId: (id: string) => void
+  setSkinLoaded: (id: string, loaded: boolean) => void
+  playroomRef: React.MutableRefObject<any>
+}
+
+function LobbyCenterSkinPicker(props: LobbyCenterSkinPickerProps) {
+  const {
+    selectedSkinIndex, colorsBySkinId,
+    setSelectedSkinIndex, setActiveSkinId, setSkinLoaded,
+    playroomRef,
+  } = props
+
+  const skin = SKINS[selectedSkinIndex] ?? SKINS[0]
+  const colors = colorsBySkinId[skin.id]
+  // Live load state for the currently-shown skin — used to render the
+  // spinner overlay while the KTX2 GLB is still downloading/decoding.
+  // Re-uses the exact same flag SkinsModal does, so the two UIs agree.
+  const isSkinLoaded = useSkinStore((s) => !!s.loadBySkinId[skin.id]?.loaded)
+
+  // Prefetch prev + next skins so arrow clicks are instant.
+  const neighborUrls = React.useMemo(() => {
+    const n = SKINS.length
+    if (n <= 1) return [] as string[]
+    const prev = SKINS[(selectedSkinIndex - 1 + n) % n]
+    const next = SKINS[(selectedSkinIndex + 1) % n]
+    const urls = [prev.assets.modelUrl, next.assets.modelUrl]
+    prev.assets.lodModelUrls?.forEach((u) => urls.push(u))
+    next.assets.lodModelUrls?.forEach((u) => urls.push(u))
+    return Array.from(new Set(urls))
+  }, [selectedSkinIndex])
+
+  function applyLobbySkin(nextIndex: number) {
+    const pk = playroomRef.current
+    const me = pk?.myPlayer?.()
+    const nextSkin = SKINS[nextIndex] ?? SKINS[0]
+    const nextColors = colorsBySkinId[nextSkin.id]
+
+    setSelectedSkinIndex(nextIndex)
+    setActiveSkinId(nextSkin.id)
+
+    if (me) {
+      const prev = me.getState('pdata') || {}
+      const color = nextColors?.primary ?? prev.color ?? '#4a9eff'
+      me.setState('pdata', { ...prev, skinId: nextSkin.id, colors: nextColors ?? prev.colors, color }, true)
+      const { localPlayerId, updateRemotePlayer } = useMultiplayerStore.getState()
+      if (localPlayerId) {
+        updateRemotePlayer(localPlayerId, { skinId: nextSkin.id, colors: nextColors ?? prev.colors, color })
+      }
+    }
+  }
+
+  function onPrev() {
+    const n = SKINS.length
+    if (n <= 1) return
+    applyLobbySkin((selectedSkinIndex - 1 + n) % n)
+  }
+  function onNext() {
+    const n = SKINS.length
+    if (n <= 1) return
+    applyLobbySkin((selectedSkinIndex + 1) % n)
+  }
+
+  return (
+    <div
+      style={{
+        position: 'relative',
+        width: 360,
+        height: 400,
+        marginBottom: 10,
+        // Soft green glow to echo the old avatar.png drop-shadow.
+        filter: 'drop-shadow(0 0 15px rgba(74,222,128,0.35))',
+      }}
+    >
+      {/* Transparent 3D preview — same component used by the Customization
+          tab and the in-game SkinsModal, so animations / camera framing
+          are guaranteed to match. `key={skin.id}` forces a clean re-mount
+          between skins (no leftover animation actions or mixer state). */}
+      <div style={{ position: 'absolute', inset: 0 }}>
+        <SkinPreviewCanvas
+          key={skin.id}
+          skin={skin}
+          colors={colors}
+          neighborUrls={neighborUrls}
+          transparent
+          onLoaded={() => setSkinLoaded(skin.id, true)}
+        />
+      </div>
+
+      {/* Loading spinner until the active skin's GLB finishes decoding.
+          Without this the lobby briefly shows an empty frame where the
+          old static avatar.png used to be — now replaced by a clean
+          centered spinner until `onLoaded` flips the store flag. */}
+      {!isSkinLoaded && (
+        <div style={{
+          position: 'absolute', inset: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          pointerEvents: 'none', zIndex: 2,
+        }}>
+          <div className="spinner" style={{ width: 48, height: 48 }} />
+        </div>
+      )}
+
+      {/* Left / right arrows — big, centered, readable. */}
+      <button
+        type="button"
+        onClick={onPrev}
+        disabled={SKINS.length <= 1}
+        aria-label="Previous skin"
+        style={{
+          position: 'absolute', left: -6, top: '50%', transform: 'translateY(-50%)',
+          width: 56, height: 56, borderRadius: '50%',
+          background: 'rgba(0,0,0,0.55)',
+          border: '2px solid rgba(255,255,255,0.35)',
+          color: '#fff', fontSize: 30, lineHeight: '1', cursor: 'pointer',
+          zIndex: 3, padding: 0,
+        }}
+      >‹</button>
+      <button
+        type="button"
+        onClick={onNext}
+        disabled={SKINS.length <= 1}
+        aria-label="Next skin"
+        style={{
+          position: 'absolute', right: -6, top: '50%', transform: 'translateY(-50%)',
+          width: 56, height: 56, borderRadius: '50%',
+          background: 'rgba(0,0,0,0.55)',
+          border: '2px solid rgba(255,255,255,0.35)',
+          color: '#fff', fontSize: 30, lineHeight: '1', cursor: 'pointer',
+          zIndex: 3, padding: 0,
+        }}
+      >›</button>
+
+      {/* Skin name + index counter — top so it's readable above the model. */}
+      <div style={{
+        position: 'absolute', top: 8, left: 0, right: 0,
+        textAlign: 'center', zIndex: 2, pointerEvents: 'none',
+        color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.85)',
+      }}>
+        <div style={{ fontSize: 11, letterSpacing: 2, opacity: 0.7 }}>
+          {selectedSkinIndex + 1} / {SKINS.length}
+        </div>
+        <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: 1 }}>
+          {skin.label}
+        </div>
+      </div>
     </div>
   )
 }

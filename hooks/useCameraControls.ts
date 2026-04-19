@@ -80,6 +80,12 @@ export const useCameraControls = () => {
   // Position throttling for network optimization
   const lastSentPos = useRef(new Vector3(SPAWN_X, EYE_HEIGHT, SPAWN_Z))
   const lastSentRotY = useRef(initFacing)
+  // Last movement animation pushed to Playroom ('Sprint' | 'Run' | null).
+  // We only setState when the value transitions to avoid network spam —
+  // idle → run → sprint flips are rare compared to the per-frame position
+  // updates. Emotes (currentEmote.current) always take priority, so while
+  // an emote is active we don't touch this.
+  const lastSentMoveAnim = useRef<string | null>(null)
   const POSITION_THRESHOLD = 0.08 // Only sync if moved >8cm
   const ROTATION_THRESHOLD = 0.04 // Only sync if rotated >2.3 degrees
   
@@ -456,7 +462,10 @@ export const useCameraControls = () => {
     // Right = perpendicular to forward on XZ plane
     const right = new Vector3(Math.cos(yaw), 0, -Math.sin(yaw))
     
-    const speed = moveSpeed.current * delta * 1.6
+    // SHIFT held while moving = sprint (1.75× speed). Matches the Sprint
+    // animation clip that RemotePlayerAvatar / avatar components play.
+    const sprinting = isKeyPressed('shift')
+    const speed = moveSpeed.current * delta * 1.6 * (sprinting ? 1.45 : 1)
     if (isKeyPressed('w')) velocity.current.add(forward.clone().multiplyScalar(speed))
     if (isKeyPressed('s')) velocity.current.add(forward.clone().multiplyScalar(-speed))
     if (isKeyPressed('a')) velocity.current.add(right.clone().multiplyScalar(-speed))
@@ -510,12 +519,20 @@ export const useCameraControls = () => {
     //           terrain collision mesh separately).
     const currentZone = useZoneStore.getState().currentZone
     const collisionMeshes = getCollisionMeshes()
+    // Balcony: fallback = Plane.011 center (Blender 32.48) + HouseScene.OY
+    // + EYE_HEIGHT. The ground raycast will override this whenever it hits
+    // the thickened balcony slab registered by HouseBalconyCollision.
     const fallbackFloorY = currentZone === 'interior'
       ? ROOM_FLOOR_BLENDER_Y + 1.1857 + ROOM_Y_OFFSET + EYE_HEIGHT
+      : currentZone === 'balcon'
+      ? 32.48 + 1.1857 + EYE_HEIGHT
       : EYE_HEIGHT
 
     let floorY = fallbackFloorY
-    if (currentZone === 'interior' && collisionMeshes.length > 0) {
+    // Ground raycast in 'interior' OR 'balcon' — both rely on registered
+    // collision meshes (rooms_physics / balcony Plane.011) to find the
+    // floor dynamically. Exterior keeps its flat-ground fallback.
+    if (currentZone !== 'exterior' && collisionMeshes.length > 0) {
       // Cast from ~STEP_HEIGHT above the player's eyes straight down.
       // Starting above the eye guarantees we hit floor geometry even
       // when the player is standing right on it.
@@ -582,6 +599,26 @@ export const useCameraControls = () => {
     }
     
     playerPos.current.add(velocity.current)
+
+    // Sync movement animation ('Sprint' | 'Run' | null) to Playroom so
+    // remote clients can render the correct clip. Only fires on state
+    // transitions (idle↔run↔sprint). Skipped while an emote is active —
+    // emotes own `setState('animation', ...)` until the player moves,
+    // and the block below clears them.
+    if (currentEmote.current === null) {
+      const moving = velocity.current.lengthSq() > 0.001
+      const desiredMoveAnim: string | null = moving ? (sprinting ? 'Sprint' : 'Run') : null
+      if (desiredMoveAnim !== lastSentMoveAnim.current) {
+        lastSentMoveAnim.current = desiredMoveAnim
+        if (playroomRef.current?.myPlayer?.()) {
+          playroomRef.current.myPlayer().setState('animation', desiredMoveAnim, true)
+          const { localPlayerId, updateRemotePlayer } = useMultiplayerStore.getState()
+          if (localPlayerId) {
+            updateRemotePlayer(localPlayerId, { animation: desiredMoveAnim })
+          }
+        }
+      }
+    }
 
     // Clear emote if player starts moving
     if (velocity.current.lengthSq() > 0.001 && currentEmote.current !== null) {

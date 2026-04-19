@@ -74,6 +74,13 @@ const KeyboardHUD: React.FC = () => {
         <KeyButton keyCode="d" label="D" />
       </div>
 
+      {/* SHIFT key (full width) — highlights yellow when held for sprint */}
+      <div style={{ marginTop: 6 }}>
+        <div className={`key-button key-space key-shift ${ isKeyPressed('shift') ? 'pressed' : '' }`}>
+          SHIFT · Run
+        </div>
+      </div>
+
       {/* Space key (full width) */}
       <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
         <div className={`key-button key-space ${ isKeyPressed(' ') ? 'pressed' : '' }`}>

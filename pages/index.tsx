@@ -8,6 +8,7 @@ import { useIsMobile } from '../hooks/useIsMobile'
 import CASection from '../components/CASection'
 import CoordsDebug from '../components/CoordsDebug'
 import EntryLoadingOverlay from '../components/EntryLoadingOverlay'
+import AssetPreloader from '../components/AssetPreloader'
 import { useMultiplayerStore } from '../lib/multiplayerStore'
 import Navbar from '../components/Navbar'
 import CinematicHUD from '../components/CinematicHUD'
@@ -100,9 +101,21 @@ function HomePage() {
       <main>
         {isClient && (
           <>
+            {/* Kick off every critical GLB download in parallel with the
+                Canvas3D mount. Registering preloads with drei's loader
+                means their bytes count toward useProgress → the threshold
+                in EntryLoadingOverlay now genuinely waits for them.
+                Unmounts once the lobby is ready (all caches warm). */}
+            {!readyForLobby && <AssetPreloader />}
+
             {!readyForLobby && (
               <EntryLoadingOverlay
-                threshold={70}
+                // 95% instead of the old 70% — lobby only appears when the
+                // heavy GLBs (rooms, skins, balcony, checkpoints) are fully
+                // downloaded. Previously dismissing at 70% caused the
+                // nickname input to jank while the remaining assets
+                // streamed in mid-typing.
+                threshold={90}
                 minDurationMs={1500}
                 onReady={() => setReadyForLobby(true)}
               />

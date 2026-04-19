@@ -1481,6 +1481,15 @@ a {
 /* =============================================
    SPACE key button in HUD
    ============================================= */
+/* Shift-key variant: highlights yellow instead of green when held,
+   to visually reinforce the "run" verb (gold = speed boost). */
+.key-button.key-shift.pressed {
+  background: #f1c40f;
+  border-color: #fff;
+  color: #111;
+  box-shadow: 0 0 15px rgba(241, 196, 15, 0.7);
+}
+
 .key-space {
   width: 100%;
   padding: 0 12px;

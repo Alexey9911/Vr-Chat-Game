@@ -524,3 +524,36 @@ Una sola fórmula Y para TODO: `blenderY + ROOM_Y_OFFSET` (y opcionalmente `+ EY
 4. Correr el one-liner de node para extraer transforms (ver comando en la sección de labels arriba).
 5. Pegar coords en `RoomLabels.tsx`. Sumar `ROOM_Y_OFFSET` está implícito en el componente.
 6. Si tiene música propia: extender `RoomMusic` a un array de tracks con sus planes.
+
+
+---
+
+## Sesión 2026-04-18 — Vallas, labels estáticos, loading screen fixes
+
+### Hecho
+
+- **Vallas exterior** (`@components/VallasObject.tsx`, `@components/VallasTexts.tsx`): objeto `vallas_objecto.glb` + 4 carteles (`POOR/RICH TRENCHER`, `EXTRACTION GOD`, `POOR FAG…`). Texto negro, sin outline, yaw-only (`-π/2` face +X). Se descartó el quaternion del GLB porque acostaba los planos.
+- **RoomLabels staticBob + rotY** (`@components/rooms/RoomLabels.tsx`): `PumpFun Support` (rotY=π por espejado), `Jewish Room` (Y subido 337.74→340.86), `Only Staff` → todos sin billboard, solo bob Y. Billboard sigue por default para los demás.
+- **RoomsObjectsCollision** (`@components/rooms/RoomsObjectsCollision.tsx`): carga `collisions_rooms_objects.glb` con `registerCollisionMesh` (mismo patrón que Room1). Muebles de rooms bloquean al jugador.
+- **CP4 → rooms** (`@components/checkpoints/CheckpointBalconyToRooms.tsx`): destino WORLD coords (148.67, 504.73, 8.18) + rot 86°. Sin derivar de `ROOM_FLOOR_BLENDER_Y`, coords hardcoded del HUD.
+- **CP3 landing** movido +15 en X (antes +3) → sale del trigger radius de CP4 y evita el bounce inmediato.
+- **Scene3D parsing corruptions** arregladas 2 veces (edits concurrentes dejaban `)` y `}` sobrantes).
+
+### Aprendido (añadir al toolkit)
+
+- **KTX2 GLB + `useGLTF.preload` = error**. `setKTX2Loader must be called before loading KTX2 textures`. Los `*_ktx2.glb` SOLO se cargan vía `useGLTFKtx2` (que registra el decoder). El preloader centralizado debe filtrarlos.
+- **AssetPreloader minimalista gana**. Solo los 4 GLBs > 3 MB no-KTX2 (`girl-v1`, `room_completed-v1`, `house_scene-v1`, `alon_house-v1`). Incluir más hace ruido en la barra sin beneficio.
+- **Time-based conditions dentro de `useEffect` con deps reactivas = stuck forever bug**. Ejemplo: `EntryLoadingOverlay` esperaba "250 ms idle" dentro de un effect cuyas deps paraban de cambiar al llegar a 100%. Fix definitivo: `setInterval` polling (100–200 ms), lee el store con `useProgress.getState()` cada tick. Nunca confiar en que React va a re-renderizar justo cuando expira un timer.
+- **Planos de Blender (para carteles) salen tumbados**. La quaternion cruda del GLB deja el normal apuntando +Y. Si el diseño necesita texto "parado", ignorar la quaternion y usar yaw constante calculado por el eje del prop (fence line = eje Z → yaw `-π/2` para mirar +X). Mismo patrón que `yawOnlyQuat` en airdrops pero aún más simple cuando toda la fila comparte orientación.
+- **Overlap de checkpoints ping-pong**: si el destino de CP_A cae dentro del `TRIGGER_DISTANCE` de CP_B (mismo zone), el cooldown solo (600–1100 ms) no alcanza — el jugador vuelve a triggerar al expirar. Regla: **destino ≥ 2× TRIGGER_DISTANCE** del otro checkpoint, o implementar zone-change cooldown.
+- **Cuándo NO usar el mesh visual completo como collider**: costo de raycast (triángulos × frames), geometría no-manifold, pivots inconsistentes, VRAM duplicada, tunneling en sprint. Usar cubos/Solidify para estáticos; mesh real solo para terreno irregular o con `three-mesh-bvh`.
+- **Edits concurrentes sobre el mismo archivo corrompen** (race entre varias llamadas a `edit` en paralelo → queda `}` duplicado o líneas mezcladas). Para un mismo archivo siempre `multi_edit` o secuencial, nunca en paralelo.
+
+### Pendientes
+
+- [ ] **CP4 → rooms: rot exacta**. Actualmente 86° placeholder (flip del 266° inicial). Usuario va a pasar el ángulo final viendo el HUD.
+- [ ] **CP3 → balcony: destino real**. Pusimos `+15 X` provisional para romper overlap con CP4. Usuario va a pasar coords exactas donde querés aparecer al salir al balcón.
+- [ ] **Caída del balcón**: el jugador aún puede caerse por los bordes. Falta GLB de colisión del balcón (paredes invisibles) o definir cubos manuales. Esperar GLB del usuario.
+- [ ] **InstancedMesh bug pendiente**: `HouseAirdrops` (y potencialmente clones futuros con matrices bakeadas de meshopt) — recordar consultar la sesión del 2026-04-17 donde se solucionó con `geometry.applyMatrix4(src.matrix)` antes de resetear transform. Si aparece otra vez el síntoma "mesh colapsa al origen / traspasa suelo" → revisar esa lección antes de inventar nada.
+- [ ] Limpiar `ElonMuskChibiAvatar.tsx`, `TrumpSkinAvatar.tsx`, `ElonAvatar.tsx`, `Ai16zAvatar.tsx` si no vuelven.
+

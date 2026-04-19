@@ -93,8 +93,16 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
     }
   })
 
-  // Determine animation: Prioritize custom emote state from Playroom, fallback to movement
-  const animation = player.animation || (isMoving.current ? 'Run' : 'Idle')
+  // Determine animation: Prioritize custom emote state from Playroom, fallback to movement.
+  // For the LOCAL player we also consult the live shift-key state so SHIFT + WASD
+  // becomes 'Sprint' without waiting for a network round-trip. Remote players will
+  // receive 'Sprint'/'Run' directly via `player.animation` (pushed from useCameraControls
+  // whenever the movement state changes).
+  let derivedMoveAnim = isMoving.current ? 'Run' : 'Idle'
+  if (isLocal && isMoving.current && isKeyPressed('shift')) {
+    derivedMoveAnim = 'Sprint'
+  }
+  const animation = player.animation || derivedMoveAnim
 
   // Scale for all skins to match new map size
   const isAlonSkin = player.skinId === 'alon'

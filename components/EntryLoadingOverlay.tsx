@@ -9,10 +9,10 @@ type Props = {
 
 export default function EntryLoadingOverlay({
   onReady,
-  threshold = 70,
+  threshold = 90,
   minDurationMs = 1500,
 }: Props) {
-  const { progress, active } = useProgress()
+  const { progress } = useProgress()
   const [stableProgress, setStableProgress] = React.useState(0)
   const startedAt = React.useRef<number | null>(null)
   const fired = React.useRef(false)
@@ -22,16 +22,25 @@ export default function EntryLoadingOverlay({
     setStableProgress((p) => Math.max(p, Math.round(progress)))
   }, [progress])
 
+  // Simple rule: dismiss when progress ≥ threshold AND minimum splash
+  // duration has elapsed. No idle-window / no active flag — both caused
+  // subtle stuck-at-100% bugs (the progress manager never re-renders
+  // this component after the last asset finishes, so effects with
+  // time-based checks never re-fire). Polling at 5 Hz is cheap and
+  // bulletproof: the interval fires regardless of React state changes.
   React.useEffect(() => {
     if (fired.current) return
-    const t = startedAt.current ?? performance.now()
-    const elapsed = performance.now() - t
-    const ready = stableProgress >= threshold && elapsed >= minDurationMs
-    if (ready || (!active && stableProgress >= threshold)) {
-      fired.current = true
-      onReady()
-    }
-  }, [active, minDurationMs, onReady, stableProgress, threshold])
+    const id = window.setInterval(() => {
+      if (fired.current) return
+      const elapsed = performance.now() - (startedAt.current ?? performance.now())
+      if (stableProgress >= threshold && elapsed >= minDurationMs) {
+        fired.current = true
+        window.clearInterval(id)
+        onReady()
+      }
+    }, 200)
+    return () => window.clearInterval(id)
+  }, [minDurationMs, onReady, stableProgress, threshold])
 
   return (
     <div className="loading" style={{ position: 'fixed', inset: 0, transform: 'none', top: 0, left: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 99999, background: 'linear-gradient(135deg, #00f2fe 0%, #10b981 100%)' }}>
