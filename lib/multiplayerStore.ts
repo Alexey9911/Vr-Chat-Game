@@ -130,10 +130,21 @@ export const useMultiplayerStore = create<MultiplayerState>((set, get) => ({
 
   chatMessages: [],
   addChatMessage: (msg) =>
-    set((s) => ({
-      chatMessages: [...s.chatMessages.slice(-49), msg],
-    })),
-  setChatMessages: (msgs) => set({ chatMessages: msgs }),
+    set((s) => {
+      // Dedupe by id — onPlayerJoin can re-fire after tab re-focus / reconnect,
+      // which creates a fresh `seenChatTimestamps` Set in LobbyScreen polling
+      // and would otherwise re-add every persistent `chatMessage` state as a
+      // duplicate. Since id = `${timestamp}-${playerId}` is deterministic,
+      // checking here is the single source of truth.
+      if (s.chatMessages.some((m) => m.id === msg.id)) return s
+      return { chatMessages: [...s.chatMessages.slice(-49), msg] }
+    }),
+  setChatMessages: (msgs) => {
+    // Dedupe incoming history (backend may return repeated entries across retries)
+    const seen = new Set<string>()
+    const unique = msgs.filter((m) => (seen.has(m.id) ? false : (seen.add(m.id), true)))
+    set({ chatMessages: unique })
+  },
 
   // Multi-lobby
   currentLobby: null,

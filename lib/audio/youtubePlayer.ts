@@ -486,6 +486,31 @@ export function stopAllYouTube(): void {
   Array.from(activePlayers.keys()).forEach(stopYouTubeForPlayer)
 }
 
+// ─── Auto-cleanup on page unload ───────────────────────────────────────
+// Without this, a YouTube iframe that was playing when the user reloads
+// keeps a ghost audio context alive for a brief window (and on some
+// browsers, until GC), which manifested as "music keeps playing at full
+// volume even after I left the page". `pagehide` fires reliably on
+// tab-close, reload and bfcache; `beforeunload` is a belt-and-suspenders
+// for older browsers.
+if (typeof window !== 'undefined') {
+  const handleUnload = () => {
+    try {
+      activePlayers.forEach((entry) => {
+        try { entry.player?.stopVideo?.() } catch {}
+        try { entry.player?.destroy?.() } catch {}
+      })
+      activePlayers.clear()
+      if (globalVolumeSyncInterval) {
+        clearInterval(globalVolumeSyncInterval)
+        globalVolumeSyncInterval = null
+      }
+    } catch {}
+  }
+  window.addEventListener('pagehide', handleUnload)
+  window.addEventListener('beforeunload', handleUnload)
+}
+
 // ─── Local Player Convenience ─────────────────────────────────────────
 
 // Track the local player's current video for UI display

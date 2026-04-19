@@ -37,7 +37,11 @@ const TouchControls: React.FC = () => {
       style={{
         position: 'fixed',
         right: 12,
-        bottom: 16,
+        // Raised from bottom: 16 → 140 so WASD buttons sit ABOVE the
+        // function-icons panel (`.hud-panel` @ bottom:8 / ~120px tall on
+        // mobile), preventing the overlap that blocked taps on both
+        // controls simultaneously.
+        bottom: 140,
         zIndex: 2000,
         display: 'flex',
         flexDirection: 'column',
@@ -89,6 +93,27 @@ const TouchControls: React.FC = () => {
           onTouchEnd={handleTouchEnd("s")}
           onTouchCancel={handleTouchEnd("s")}
         >↓</button>
+      </div>
+
+      {/* CHAT button — mobile has no Enter key, so we expose a dedicated tap
+          that dispatches the `openChat` custom event listened to by ChatInput. */}
+      <div style={{ marginTop: 6 }}>
+        <button
+          tabIndex={-1}
+          onMouseDown={preventFocus}
+          onPointerDown={preventFocus}
+          onClick={() => window.dispatchEvent(new CustomEvent('openChat'))}
+          style={{
+            ...btnBase,
+            width: 56,
+            height: 44,
+            fontSize: 20,
+            background: '#10b98199',
+            borderColor: '#10b981',
+          }}
+          aria-label="Open chat"
+          title="Open chat"
+        >💬</button>
       </div>
     </div>
   );

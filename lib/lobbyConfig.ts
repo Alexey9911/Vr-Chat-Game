@@ -1,10 +1,16 @@
 /**
  * Multi-Lobby Configuration
  * Defines lobby settings and utilities for the multi-room system
- * Supports infinite lobbies: AlonHouse-1, AlonHouse-2, ... AlonHouse-N
+ * Supports infinite lobbies: alonverse-1, alonverse-2, ... alonverse-N
+ *
+ * NOTE: Prefix MUST match the backend (`lobby-api/main.ts :: LOBBY_PREFIX`).
+ * If they diverge, `findLobby()` returns e.g. `alonverse-1` but
+ * `getLobbyIndex()` can't parse it and always falls back to 1 — which is
+ * exactly the "when lobby 1 fills up everyone gets redirected to a weird
+ * URL / reload loop" bug.
  */
 
-export const LOBBY_PREFIX = 'AlonHouse'
+export const LOBBY_PREFIX = 'alonverse'
 export const MAX_PLAYERS_PER_LOBBY = 10
 
 // Dynamic lobby code type (no fixed limit)
@@ -30,7 +36,9 @@ export function generateLobbyCode(index: number): LobbyCode {
  * Returns 1 if the code is invalid
  */
 export function getLobbyIndex(code: string): number {
-  const match = code.match(/ALONVERSE-(\d+)/)
+  // Case-insensitive so legacy codes (AlonHouse-N, alonverse-N, ALONVERSE-N)
+  // all parse correctly during the transition.
+  const match = code.match(/(?:alonverse|alonhouse)-(\d+)/i)
   return match ? parseInt(match[1], 10) : 1
 }
 
@@ -42,10 +50,11 @@ export function getLobbyCodesUpTo(count: number): LobbyCode[] {
 }
 
 /**
- * Check if a lobby code is valid (matches AlonHouse-N pattern)
+ * Check if a lobby code is valid (matches alonverse-N pattern)
+ * Accepts legacy `AlonHouse-N` codes too so existing bookmarks still work.
  */
 export function isValidLobbyCode(code: string): code is LobbyCode {
-  return /^AlonHouse-\d+$/.test(code)
+  return /^(?:alonverse|alonhouse)-\d+$/i.test(code)
 }
 
 /**

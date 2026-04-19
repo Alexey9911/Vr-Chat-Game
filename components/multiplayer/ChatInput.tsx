@@ -199,6 +199,22 @@ export default function ChatInput() {
     // Stable — only re-registers when connection or setChatActive changes
   }, [isConnected, setChatActive]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── mobile trigger (TouchControls button + tap live-log) ───────────────
+  // Mobile has no physical Enter key — we expose a global custom event
+  // `openChat` that any UI (TouchControls, tapping the live-log, etc.)
+  // can dispatch to pop the chat open.
+  useEffect(() => {
+    if (!isConnected) return
+    const open = () => {
+      if (isOpenRef.current) return
+      setIsOpen(true)
+      setChatActive(true)
+      setTimeout(() => inputRef.current?.focus(), 30)
+    }
+    window.addEventListener('openChat', open)
+    return () => window.removeEventListener('openChat', open)
+  }, [isConnected, setChatActive])
+
   // ── helpers ───────────────────────────────────────────────────────────────
 
   const closeChat = () => {
@@ -433,9 +449,20 @@ export default function ChatInput() {
         </>
       )}
 
-      {/* ── HINT (only when closed) ── */}
+      {/* ── HINT (only when closed) ── tap-to-open for mobile */}
       {!isOpen && (
-        <div className="chat-hint">Press <strong>Enter</strong> to chat</div>
+        <div
+          className="chat-hint chat-hint--tappable"
+          role="button"
+          tabIndex={0}
+          onClick={() => {
+            setIsOpen(true)
+            setChatActive(true)
+            setTimeout(() => inputRef.current?.focus(), 30)
+          }}
+        >
+          Press <strong>Enter</strong> to chat <span className="chat-hint-mobile">· tap to open</span>
+        </div>
       )}
 
       {/* ── GIF BAR (always visible) ── */}

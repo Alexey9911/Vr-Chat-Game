@@ -267,19 +267,23 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
         )}
       </Billboard>
 
-      {/* CHAT BUBBLE — Nubesita blanca tipo Roblox */}
+      {/* CHAT BUBBLE — Nubesita blanca tipo Roblox
+          distanceFactor: bigger number = stays larger at distance (drei scales
+          by distanceFactor / cameraDistance). Bumped from 18 → 30 so the
+          bubble doesn't shrink to nothing when the player walks away. Inline
+          fontSize also bumped to match the new scale. */}
       {player.chatMessage && (
         <Billboard position-y={chatBillboardY}>
           <Html
             center
-            distanceFactor={18}
+            distanceFactor={30}
             zIndexRange={[0, 0]}
             style={{
               pointerEvents: 'none',
               userSelect: 'none',
             }}
           >
-            <div className={`chat-bubble-3d ${isLocal ? 'chat-bubble-3d--local' : ''}`} style={{ fontSize: '20px', padding: '12px 18px', maxWidth: '300px' }}>
+            <div className={`chat-bubble-3d ${isLocal ? 'chat-bubble-3d--local' : ''}`} style={{ fontSize: '28px', padding: '14px 22px', maxWidth: '380px' }}>
               {parseEmoteCodes(player.chatMessage).map((part, index) => {
                 if (part.type === 'emote') {
                   const emote = getEmoteById(part.content)
