@@ -1191,9 +1191,11 @@ a {
 .chat-live-log {
   display: flex;
   flex-direction: column;
+  justify-content: flex-end; /* newest msgs anchor to bottom, old ones clip above */
   gap: 4px;
   max-height: 150px;
   overflow-y: hidden;
+  pointer-events: auto; /* allow wheel scroll to pass through parent pointer-events:none */
   margin-bottom: 15px;
   mask-image: linear-gradient(to bottom, transparent, black 20%);
   -webkit-mask-image: linear-gradient(to bottom, transparent, black 20%);
@@ -1202,7 +1204,8 @@ a {
 /* chat-history-panel — dedicated scroll container when chat is open */
 .chat-history-panel {
   max-height: 260px;
-  overflow-y: auto;
+  min-height: 0; /* Firefox flex fix: allows flex child to shrink below content size */
+  overflow-y: scroll; /* 'scroll' instead of 'auto' — Firefox respects it more reliably */
   overflow-x: hidden;
   pointer-events: auto;
   background: rgba(15, 15, 15, 0.9);
@@ -1216,6 +1219,9 @@ a {
   box-shadow: 0 10px 30px rgba(0,0,0,0.6);
   margin-bottom: 8px;
   scroll-behavior: auto;
+  /* Firefox native scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
 }
 .chat-history-panel::-webkit-scrollbar {
   width: 4px;

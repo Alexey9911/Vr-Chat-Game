@@ -62,6 +62,8 @@ export default function ChatInput() {
   const inputRef = useRef<HTMLInputElement>(null)
   // This ref points to the SCROLLABLE history container (only exists when isOpen=true)
   const historyRef = useRef<HTMLDivElement>(null)
+  // Sentinel at the bottom of the message list — scrollIntoView is more reliable than scrollTop in Firefox
+  const bottomRef = useRef<HTMLDivElement>(null)
   // Track whether user scrolled up manually — use ref, NOT state, to avoid render loops
   const userScrolledUp = useRef(false)
   // Keep latest isOpen for keydown handler without stale closures
@@ -108,10 +110,11 @@ export default function ChatInput() {
 
   // ── scroll helpers ────────────────────────────────────────────────────────
 
-  /** Instantly snap history to the newest message */
+  /** Snap to newest message using sentinel — more reliable than scrollTop in Firefox */
   const scrollToBottom = useCallback(() => {
-    const el = historyRef.current
-    if (el) el.scrollTop = el.scrollHeight
+    requestAnimationFrame(() => {
+      bottomRef.current?.scrollIntoView({ block: 'end' })
+    })
   }, [])
 
   /** Called by the onScroll event on the history div */
@@ -124,24 +127,15 @@ export default function ChatInput() {
   }, [])
 
   /**
-   * When chat opens: reset the "paused" flag and scroll to bottom.
-   * We use a tiny timeout so that React has rendered chat-history before we scroll.
+   * Auto-scroll logic: scroll to bottom when chat opens or when new messages
+   * arrive and the user hasn't manually scrolled up.
    */
   useEffect(() => {
-    if (isOpen) {
-      userScrolledUp.current = false
-      setTimeout(scrollToBottom, 30)
+    if (!isOpen) return
+    if (!userScrolledUp.current) {
+      scrollToBottom()
     }
-  }, [isOpen, scrollToBottom])
-
-  /**
-   * When new messages arrive: auto-scroll ONLY if user hasn't scrolled up.
-   */
-  useEffect(() => {
-    if (isOpen && !userScrolledUp.current) {
-      setTimeout(scrollToBottom, 30)
-    }
-  }, [chatMessages, isOpen, scrollToBottom])
+  }, [isOpen, chatMessages, scrollToBottom])
 
   // ── keyboard handler (stable — uses refs so no stale closures) ────────────
   useEffect(() => {
@@ -256,9 +250,9 @@ export default function ChatInput() {
     setGifUrls([])
     setIsPickerOpen(false)
 
-    // After sending: always go to latest message
+    // After sending own message: always jump to latest
     userScrolledUp.current = false
-    setTimeout(scrollToBottom, 30)
+    scrollToBottom()
 
     // Close chat so player can move immediately
     closeChat()
@@ -364,6 +358,7 @@ export default function ChatInput() {
               </div>
             )
           })}
+          <div ref={bottomRef} style={{ height: 0, flexShrink: 0 }} />
         </div>
       )}
 
