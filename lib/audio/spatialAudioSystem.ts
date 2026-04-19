@@ -109,18 +109,29 @@ export function getActiveAudioPositions(
     // YouTube ghost audio keys are __youtube_${playerId}__, skin music keys are just playerId
     const isYouTubeKey = key.startsWith('__youtube_') && key.endsWith('__')
     const playerId = isYouTubeKey ? key.slice('__youtube_'.length, -2) : key
-    
+
     const player = playerMap.get(playerId)
     if (!player || !player.position) return
-    
-    // Skin music or YouTube music — either is valid
-    const hasActiveAudio = isYouTubeKey ? player.isYouTubePlaying : player.isMusicPlaying
-    if (hasActiveAudio) {
-      result.set(key, {
-        audio,
-        position: { x: player.position.x, z: player.position.z }
-      })
-    }
+
+    // FIX — The mere presence of an audio element in `activeAudioInstances`
+    // means that playback is live on THIS client right now. Previously we
+    // additionally required the remote's `isYouTubePlaying` / `isMusicPlaying`
+    // flag to be true in the Zustand store, but that flag lags behind the
+    // YT ghost registration by one 100ms polling tick (the same tick that
+    // fires `playYouTubeForPlayer` only writes the flag to the store a
+    // microtask later, and the YT iframe's `onReady` → ghost registration is
+    // async). During that window the YT volume-sync interval (200ms) kept
+    // reading ghost.volume = AUDIO_VOLUME and writing 50 to the iframe,
+    // producing the "YT plays everywhere at half volume" bug while skin
+    // music (which doesn't have this double-hop) attenuated correctly.
+    //
+    // Skin music is also safe to include unconditionally: `stopMusicForPlayer`
+    // removes the audio from `activeAudioInstances`, so presence already
+    // implies playback.
+    result.set(key, {
+      audio,
+      position: { x: player.position.x, z: player.position.z }
+    })
   })
   
   return result

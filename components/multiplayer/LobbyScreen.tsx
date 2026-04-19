@@ -505,13 +505,23 @@ export default function LobbyScreen() {
         vc.handleIceCandidate(from, candidate)
       })
 
-      // Initialize voice chat system with RPC sender
-      import('../../lib/audio/voiceChatSystem').then((vc) => {
-        vc.setRpcSender((event: string, data: any) => {
-          RPC.call(event, data, RPC.Mode.ALL)
-        })
-        vc.setLocalPlayerIdGetter(() => pk.myPlayer()?.id || null)
+      // Initialize voice chat system with RPC sender.
+      // FIX — AWAIT this before registering `pk.onPlayerJoin`. PlayroomKit
+      // fires `onPlayerJoin` synchronously for peers already connected in
+      // the room. Those handlers call `vc.createOffer(remoteId)` which
+      // early-returns when `rpcSendFn` is null (see voiceChatSystem.ts
+      // line 339). Previously this was a non-awaited `.then()`, so in
+      // Chrome the microtask order made `onPlayerJoin` fire BEFORE
+      // `setRpcSender` resolved → the offer was silently swallowed and
+      // only buffered ICE candidates arrived later ("[VoiceChat] Buffered
+      // ICE candidate from … (1 pending)" with no matching "Sent offer"
+      // is exactly that symptom). Firefox happened to order microtasks
+      // differently and worked by luck.
+      const vcModule = await import('../../lib/audio/voiceChatSystem')
+      vcModule.setRpcSender((event: string, data: any) => {
+        RPC.call(event, data, RPC.Mode.ALL)
       })
+      vcModule.setLocalPlayerIdGetter(() => pk.myPlayer()?.id || null)
 
       // Push-to-talk: V key
       const handleVoiceKeyDown = async (e: KeyboardEvent) => {

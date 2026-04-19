@@ -36,7 +36,13 @@ let globalVolumeMultiplier = 1.0
 
 export function setGlobalVolumeMultiplier(multiplier: number): void {
   globalVolumeMultiplier = Math.max(0, Math.min(1, multiplier))
-  activeAudioInstances.forEach((audio) => {
+  activeAudioInstances.forEach((audio, key) => {
+    // FIX — YouTube ghost audios (keys `__youtube_${id}__`) are managed by
+    // the spatial audio loop + the 200ms YT volume-sync interval. Writing
+    // a flat non-spatial volume here would override distance attenuation
+    // on every volume-slider change. Skip them; spatial will re-apply the
+    // correct distance-based volume with the new multiplier on next tick.
+    if (key.startsWith('__youtube_') && key.endsWith('__')) return
     if (!audio.error) audio.volume = AUDIO_VOLUME * globalVolumeMultiplier
   })
 }
