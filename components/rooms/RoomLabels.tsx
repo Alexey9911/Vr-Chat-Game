@@ -42,7 +42,7 @@ const ROOM_LABELS: LabelEntry[] = [
   // Jewish Room Y raised 337.74 → 340.86 to match PumpFun's height
   // (user said it was "muy abajo"). Orientation from the original
   // billboard version was fine, so rotY defaults to 0.
-  { label: 'Jewish Room',      position: [ -83.46, 340.86,  53.37], color: '#1d4ed8', outlineColor: '#0b1e66', staticBob: true },
+  { label: 'ALON ROOM',        position: [ -83.46, 340.86,  53.37], color: '#1d4ed8', outlineColor: '#0b1e66', staticBob: true },
   { label: 'PISS ON ME\nI AM A TOILET', position: [-104.50, 338.18, 108.94], fontSize: 1.8 },
   // Only Staff — user wants static (no camera-follow). Keep the same
   // tiny bob animation as the others for a hint of life.

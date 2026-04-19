@@ -96,7 +96,7 @@ export const SKINS: SkinConfig[] = [
   },
   {
     id: 'tobaku',
-    label: 'Tobaku',
+    label: 'Tokabu',
     paletteSupport: 'fixed',
     previewCamera: {
       position: [0, 1.55, 3.0],
