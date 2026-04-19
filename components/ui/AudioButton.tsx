@@ -216,6 +216,21 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
   //   U → Music play/stop ("volume" icon)
   //   I → Settings modal
   //   N → Customization / Skins modal
+  //
+  // Panel keys (Y / I / N) additionally release pointer-lock so the user
+  // can click inside the modal immediately. Without this the cursor
+  // stays captured by the canvas and the user has to press ESC first,
+  // which felt broken ("abren pero no se activa el pointer"). Flagging
+  // `intentionalUnlock = true` prevents the ESC listener from opening
+  // the lobby on this release.
+  const releasePointerForPanel = () => {
+    const locked: any = (document as any).pointerLockElement || (document as any).webkitPointerLockElement
+    if (!locked) return
+    cursorIntent.intentionalUnlock = true
+    const exit = (document as any).exitPointerLock || (document as any).webkitExitPointerLock
+    exit?.call(document)
+  }
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.repeat) return
@@ -225,6 +240,7 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
       const k = e.key.toLowerCase()
       if (k === 'y') {
         e.preventDefault()
+        releasePointerForPanel()
         toggleYouTubeModal()
       } else if (k === 'u') {
         e.preventDefault()
@@ -234,9 +250,11 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
         }
       } else if (k === 'i') {
         e.preventDefault()
+        releasePointerForPanel()
         toggleSettings()
       } else if (k === 'n') {
         e.preventDefault()
+        releasePointerForPanel()
         toggleModal()
       }
     }

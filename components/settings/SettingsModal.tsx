@@ -1,5 +1,5 @@
 import React from 'react'
-import { useSettingsStore, type EnvironmentPreset } from '../../lib/settings/settingsStore'
+import { useSettingsStore, type EnvironmentPreset, type ToneMappingKey } from '../../lib/settings/settingsStore'
 import { useMultiplayerStore } from '../../lib/multiplayerStore'
 import { useKeyboardStore } from '../../lib/useKeyboardStore'
 import { setGlobalVolumeMultiplier } from '../../lib/audio/musicSystem'
@@ -9,6 +9,16 @@ const ENVIRONMENT_OPTIONS: { value: EnvironmentPreset; label: string; descriptio
   { value: 'sunset', label: 'Sunset', description: 'Warm golden hour lighting' },
   { value: 'night', label: 'Night', description: 'Dark starry sky' },
   { value: 'warehouse', label: 'Warehouse', description: 'Indoor studio lighting' },
+]
+
+const TONEMAPPING_OPTIONS: { value: ToneMappingKey; description: string }[] = [
+  { value: 'Neutral (Khronos)', description: 'Vibrant, preserves saturation (recommended)' },
+  { value: 'ACES Filmic', description: 'Cinematic, slightly desaturated' },
+  { value: 'AgX', description: 'Modern, natural-looking' },
+  { value: 'Cineon', description: 'Film-like contrast' },
+  { value: 'Reinhard', description: 'Soft, low contrast' },
+  { value: 'Linear', description: 'Raw — burns highlights' },
+  { value: 'None', description: 'No tonemapping at all' },
 ]
 
 export default function SettingsModal() {
@@ -22,11 +32,22 @@ export default function SettingsModal() {
     micVolume,
     localMicGain,
     environment,
+    toneMapping,
+    toneMappingExposure,
+    envIntensity,
+    bgIntensity,
+    showBackground,
     closeModal,
     setVolume,
     setMicVolume,
     setLocalMicGain: setLocalMicGainStore,
     setEnvironment,
+    setToneMapping,
+    setToneMappingExposure,
+    setEnvIntensity,
+    setBgIntensity,
+    setShowBackground,
+    resetVideoSettings,
   } = useSettingsStore()
 
   const handleVolumeChange = (newVolume: number) => {
@@ -76,7 +97,11 @@ export default function SettingsModal() {
         aria-modal="true"
         aria-label="Settings"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: '500px' }}
+        // `overflowY: auto` + capped height lets the video settings grow
+        // without pushing the close button offscreen. Without this the
+        // modal overflows on smaller viewports once the Environment /
+        // Video sections are open.
+        style={{ maxWidth: '500px', maxHeight: '85vh', overflowY: 'auto' }}
       >
         <button className="skins-modal-close" type="button" onClick={() => closeModal()}>
           Close
@@ -163,6 +188,118 @@ export default function SettingsModal() {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* VIDEO / COLOUR CONTROLS — not persisted. Reset on reload. */}
+            <div className="settings-section">
+              <div className="settings-section-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>Video (temporary)</span>
+                <button
+                  type="button"
+                  onClick={() => resetVideoSettings()}
+                  style={{
+                    fontSize: 11,
+                    padding: '4px 10px',
+                    borderRadius: 6,
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    background: 'rgba(255,255,255,0.08)',
+                    color: 'inherit',
+                    cursor: 'pointer',
+                    textTransform: 'uppercase',
+                    letterSpacing: 1,
+                  }}
+                >
+                  Reset
+                </button>
+              </div>
+              <div className="settings-section-description">
+                Live colour / lighting tuning. Not saved — resets every time you reload the page.
+              </div>
+
+              {/* Tonemap selector */}
+              <div style={{ marginTop: 12, fontSize: 12, opacity: 0.8, marginBottom: 6 }}>Tonemapping</div>
+              <div className="settings-options-grid">
+                {TONEMAPPING_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    className={`settings-option-btn ${toneMapping === option.value ? 'selected' : ''}`}
+                    onClick={() => setToneMapping(option.value)}
+                  >
+                    <div className="settings-option-label">{option.value}</div>
+                    <div className="settings-option-description">{option.description}</div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Exposure slider */}
+              <div style={{ marginTop: 14, fontSize: 12, opacity: 0.8, marginBottom: 6 }}>
+                Exposure
+              </div>
+              <div className="settings-slider-container">
+                <input
+                  type="range"
+                  min={0}
+                  max={3}
+                  step={0.01}
+                  value={toneMappingExposure}
+                  onChange={(e) => setToneMappingExposure(Number(e.target.value))}
+                  className="settings-slider"
+                />
+                <div className="settings-slider-value">{toneMappingExposure.toFixed(2)}</div>
+              </div>
+
+              {/* HDRI light intensity */}
+              <div style={{ marginTop: 14, fontSize: 12, opacity: 0.8, marginBottom: 6 }}>
+                HDRI light intensity
+              </div>
+              <div className="settings-slider-container">
+                <input
+                  type="range"
+                  min={0}
+                  max={5}
+                  step={0.05}
+                  value={envIntensity}
+                  onChange={(e) => setEnvIntensity(Number(e.target.value))}
+                  className="settings-slider"
+                />
+                <div className="settings-slider-value">{envIntensity.toFixed(2)}</div>
+              </div>
+
+              {/* Background intensity */}
+              <div style={{ marginTop: 14, fontSize: 12, opacity: 0.8, marginBottom: 6 }}>
+                Sky background intensity
+              </div>
+              <div className="settings-slider-container">
+                <input
+                  type="range"
+                  min={0}
+                  max={5}
+                  step={0.05}
+                  value={bgIntensity}
+                  onChange={(e) => setBgIntensity(Number(e.target.value))}
+                  className="settings-slider"
+                />
+                <div className="settings-slider-value">{bgIntensity.toFixed(2)}</div>
+              </div>
+
+              {/* Show background toggle */}
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  marginTop: 14,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={showBackground}
+                  onChange={(e) => setShowBackground(e.target.checked)}
+                />
+                Show HDRI as sky background
+              </label>
             </div>
 
             <div className="skins-footer">

@@ -218,6 +218,11 @@ export default function SkinsModal() {
         aria-modal="true"
         aria-label="Skins"
         onClick={(e) => e.stopPropagation()}
+        // Matches the SettingsModal treatment — capped height + scroll so
+        // the palette can grow without pushing the Close / arrows out of
+        // view, and the modal feels visually consistent with the rest of
+        // the new UI (same chrome, same scroll behaviour).
+        style={{ maxHeight: '85vh', overflowY: 'auto' }}
       >
         <button className="skins-modal-close" type="button" onClick={() => closeModal()}>
           Close
@@ -260,12 +265,16 @@ export default function SkinsModal() {
           </div>
 
           <div className="skins-info-col">
+            {/* Header refactored to match the SettingsModal look: a big
+                "Skins" title row (same font weight / casing as "Settings")
+                with the current skin name + index rendered as a secondary
+                description instead of stacked labels. Keeps all the
+                existing data but feels like one cohesive modern modal. */}
             <div className="skins-header">
               <div className="skins-title">Skins</div>
               <div className="skins-subtitle">
-                {selectedSkinIndex + 1} / {SKINS.length}
+                {skin.label} · {selectedSkinIndex + 1} / {SKINS.length}
               </div>
-              <div className="skins-current">{skin.label}</div>
             </div>
 
             {loadBySkinId[skin.id]?.lastError && (
@@ -275,8 +284,16 @@ export default function SkinsModal() {
             )}
 
             {showPalette && (
-              <div className="skins-palette">
-                <div className="skins-palette-title">Colors</div>
+              // Uses the `settings-section` family of classes (shared with
+              // the Settings modal) so the palette visually matches the
+              // rest of the new UI — same green uppercase title, same
+              // description styling, same section spacing — instead of
+              // the legacy `.skins-palette` box look.
+              <div className="settings-section">
+                <div className="settings-section-title">Colors</div>
+                <div className="settings-section-description">
+                  Tap a swatch to recolour the selected skin. Visible to every player.
+                </div>
                 <div className="skin-colors-grid">
                   {SKIN_COLORS.map(({ label, hex }) => (
                     <button
@@ -294,7 +311,7 @@ export default function SkinsModal() {
             )}
 
             <div className="skins-footer">
-              <div className="skins-hint">C: close · Esc: close</div>
+              <div className="skins-hint">N / C / Esc: close</div>
             </div>
           </div>
         </div>

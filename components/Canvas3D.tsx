@@ -1,14 +1,14 @@
 import React, { Suspense, useRef } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { Environment, PerspectiveCamera, useProgress } from '@react-three/drei'
+import { PerspectiveCamera, useProgress } from '@react-three/drei'
 import Scene3D from './Scene3D'
 import CinematicCamera from './CinematicCamera'
 import CameraDebugHUD from './CameraDebugHUD'
 import DebugCameraFar from './DebugCameraFar'
+import ColorControls from './ColorControls'
 import FullLoadingScreen from './LoadingScreen/LoadingScreen'
 import { useCameraControls } from '../hooks/useCameraControls'
 import { EYE_HEIGHT } from '../lib/camera/cameraConstants'
-import { useSettingsStore } from '../lib/settings/settingsStore'
 
 // Threshold (percent) at which we consider the heavy scene "ready enough" to dismiss
 // the loading screen. Skins + rest trickle in while the user interacts with the lobby.
@@ -23,7 +23,6 @@ const CameraController: React.FC = () => {
 // Main canvas component with integrated loading logic
 const Canvas3D: React.FC<{ loadingOverlayEnabled?: boolean; forceHidden?: boolean }> = ({ loadingOverlayEnabled = true, forceHidden = false }) => {
   const containerRef = useRef<HTMLDivElement>(null)
-  const environment = useSettingsStore((s) => s.environment)
   // Usar useProgress para trackear la carga global de R3F
   const { progress } = useProgress()
   const [dismissed, setDismissed] = React.useState(false)
@@ -77,16 +76,10 @@ const Canvas3D: React.FC<{ loadingOverlayEnabled?: boolean; forceHidden?: boolea
             position: [-59.95, EYE_HEIGHT, -87.86]
           }}
         >
-          {/* hdri sky — switches based on settings */}
-          {environment === 'sunset' && (
-            <Environment files={"sky.hdr"} background environmentIntensity={1.4} />
-          )}
-          {environment === 'night' && (
-            <Environment preset="night" background environmentIntensity={0.6} />
-          )}
-          {environment === 'warehouse' && (
-            <Environment preset="warehouse" background environmentIntensity={1.2} />
-          )}
+          {/* HDRI sky + live colour/tonemap tuning via leva. Renders the
+              <Environment> internally so `environmentIntensity` and
+              `backgroundIntensity` can be tweaked without a re-mount. */}
+          <ColorControls />
           
           {/* Camera Controls */}
           <CameraController />

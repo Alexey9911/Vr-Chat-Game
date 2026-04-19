@@ -625,18 +625,34 @@ export const useCameraControls = () => {
     }
 
     // Apply lateral movement with collision detection.
-    // Step-up logic: before sliding off a wall we probe downward just
-    // ahead of the hit. If there's standable ground within STEP_HEIGHT
-    // above the player's feet (i.e. a stair tread), we let movement
-    // through and snap the player up instead of blocking.
-    if (velocity.current.lengthSq() > 0.001 && collisionMeshes.length > 0) {
+    //
+    // Iterative slide (Quake-style): a single hit-test per frame stops
+    // the player dead at inside-corners (diagonal movement hits wall A,
+    // slide redirects velocity along wall A, but that new velocity then
+    // runs head-first into wall B — which we only notice NEXT frame, by
+    // which point the player is already pressed into the corner and the
+    // slide oscillates between the two walls → "me quedo atrapado en
+    // las esquinas". Looping up to 4 times resolves multi-wall contacts
+    // within the same frame so the player smoothly grazes a corner
+    // instead of sticking to it.
+    const MAX_SLIDE_ITERATIONS = 4
+    let slideIter = 0
+    while (
+      slideIter < MAX_SLIDE_ITERATIONS &&
+      velocity.current.lengthSq() > 0.001 &&
+      collisionMeshes.length > 0
+    ) {
+      slideIter++
       const moveDir = velocity.current.clone().normalize()
       moveRaycaster.current.set(playerPos.current, moveDir)
       moveRaycaster.current.far = velocity.current.length() + 0.5
 
       const intersects = moveRaycaster.current.intersectObjects(collisionMeshes, false)
 
-      if (intersects.length > 0 && intersects[0].distance < velocity.current.length() + 0.3) {
+      if (!(intersects.length > 0 && intersects[0].distance < velocity.current.length() + 0.3)) {
+        break // no obstacle — let the outer code move the player.
+      }
+      {
         const hit = intersects[0]
 
         // Step-up is ONLY valid while grounded. When airborne (jumping
@@ -666,6 +682,10 @@ export const useCameraControls = () => {
             didStepUp = true
           }
         }
+        // Step-up resolved the obstacle vertically — skip the slide
+        // branch and the rest of the iterative-slide loop (otherwise
+        // the next iteration would re-hit the same step).
+        if (didStepUp) break
 
         if (!didStepUp) {
           const normal = hit.face?.normal
@@ -714,11 +734,18 @@ export const useCameraControls = () => {
               // Regular wall (or airborne contact) — slide along its
               // normal. Keep velocityY untouched so gravity / jump arc
               // are preserved while only the lateral component is
-              // cancelled on the wall axis.
+              // cancelled on the wall axis. The outer `while` will
+              // re-test with the sliding velocity so a second wall in
+              // the same frame (inside corner) also gets resolved
+              // instead of sticking to it.
               const slideVel = velocity.current.clone().sub(
                 worldNormal.clone().multiplyScalar(velocity.current.dot(worldNormal))
               )
               velocity.current.copy(slideVel.multiplyScalar(0.9))
+            } else {
+              // Slope climb handled vertically — no more lateral work
+              // needed this frame.
+              break
             }
           }
         }
@@ -726,6 +753,46 @@ export const useCameraControls = () => {
     }
     
     playerPos.current.add(velocity.current)
+
+    // =============================================
+    // DE-PENETRATION PASS — robust corner / hitbox recovery.
+    //
+    // The iterative slide above handles the common "sliding off a wall"
+    // case but can still leave the player slightly INSIDE a collider
+    // when they clip a sharp outside corner at high speed (e.g. the car
+    // hitboxes): the forward-cast ray enters the box, the next ray from
+    // inside it hits the opposite face with an inverted normal, and the
+    // slide oscillates instead of pushing out.
+    //
+    // Fix: after committing this frame's movement, sweep 8 horizontal
+    // rays around the player at torso height and push them OUT along
+    // the surface normal of any face found closer than PLAYER_RADIUS.
+    // This is a classic de-penetration step — cheap (8 short raycasts)
+    // and effectively turns the player into a capsule for collision
+    // recovery purposes without paying the cost of real capsule casts.
+    if (collisionMeshes.length > 0) {
+      const PLAYER_RADIUS = 0.9
+      const probeY = playerPos.current.y - EYE_HEIGHT * 0.5
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2
+        const dir = new Vector3(Math.cos(a), 0, Math.sin(a))
+        const origin = new Vector3(playerPos.current.x, probeY, playerPos.current.z)
+        moveRaycaster.current.set(origin, dir)
+        moveRaycaster.current.far = PLAYER_RADIUS
+        const hits = moveRaycaster.current.intersectObjects(collisionMeshes, false)
+        if (hits.length === 0) continue
+        const hit = hits[0]
+        if (hit.distance >= PLAYER_RADIUS) continue
+        const n = hit.face?.normal
+        if (!n || !hit.object) continue
+        const worldN = n.clone().transformDirection((hit.object as any).matrixWorld)
+        // Flip so normal faces the player (ray origin).
+        if (worldN.dot(dir) > 0) worldN.multiplyScalar(-1)
+        const push = PLAYER_RADIUS - hit.distance
+        playerPos.current.x += worldN.x * push
+        playerPos.current.z += worldN.z * push
+      }
+    }
 
     // Sync movement animation ('Sprint' | 'Run' | null) to Playroom so
     // remote clients can render the correct clip. Only fires on state
@@ -836,18 +903,24 @@ export const useCameraControls = () => {
       }
     }
 
-    // Smooth radial distance: FAST lerp inward (no hard snap — looked brusque
-    // against small colliders like cars) / SLOW lerp outward (prevents zoom
-    // flicker when a fast orbit momentarily misses the collider).
-    // k_inward=30 converges ~95% in ~100ms — fast enough that the player
-    // never actually sees the camera inside a wall, but smooth enough to
-    // avoid the hard "teleport" feel. CAM_COLLISION_OFFSET=0.5 acts as the
-    // safety buffer that keeps us from clipping during those 100ms.
+    // Smooth radial distance.
+    //
+    // Previous tuning (kIn=30) felt brusque: the camera snapped inward
+    // within ~100ms which reads as a jerky punch whenever you graze a
+    // car / wall while running. Pro third-person games (Uncharted, GoW,
+    // Horizon) keep the inward pull noticeably slower than an instant
+    // snap — ~200-250ms to converge — and rely on a generous collision
+    // offset to never clip through geometry in that window.
+    //
+    // New tuning:
+    //   kIn  = 14  → ≈95% in ~210ms, silky instead of snappy.
+    //   kOut = 5   → ≈95% in ~600ms, prevents flicker on orbit misses.
+    // CAM_COLLISION_OFFSET already provides the safety buffer.
     if (targetDist < smoothedCamDist.current) {
-      const kIn = 1 - Math.exp(-30 * delta)
+      const kIn = 1 - Math.exp(-14 * delta)
       smoothedCamDist.current += (targetDist - smoothedCamDist.current) * kIn
     } else {
-      const kOut = 1 - Math.exp(-8 * delta)
+      const kOut = 1 - Math.exp(-5 * delta)
       smoothedCamDist.current += (targetDist - smoothedCamDist.current) * kOut
     }
 
