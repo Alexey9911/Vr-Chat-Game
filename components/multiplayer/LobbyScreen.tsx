@@ -149,10 +149,19 @@ export default function LobbyScreen() {
   const localPlayerIdRef = useRef<string | null>(null)
 
   useEffect(() => {
+    // FIX — Previously we called `initBackgroundConnection(mod)` here, which
+    // ran `pk.insertCoin(...)` on mount. That meant every tab that simply
+    // OPENED the page counted toward the 10-player PlayroomKit limit (ghost
+    // "Player" entries in the Online list, and new joiners getting
+    // redirected to a fresh lobby even though the current one looked empty).
+    // The original design (commit 8e1582b) only connected on Play. We now
+    // just pre-load the module so `handlePlayClick` doesn't have to wait
+    // for the dynamic import — the actual insertCoin / RPC registration /
+    // onPlayerJoin setup happens inside `initBackgroundConnection`, which
+    // is only invoked from `handlePlayClick`.
     // @ts-ignore — playroomkit will be available after npm install
     import('playroomkit').then((mod: any) => {
       playroomRef.current = mod
-      initBackgroundConnection(mod)
     })
 
     const urlParams = new URLSearchParams(window.location.search)
@@ -305,7 +314,7 @@ export default function LobbyScreen() {
   }
 
   // Finalize player profile and enter the game 
-  const handlePlayClick = () => {
+  const handlePlayClick = async () => {
     initAudioOnInteraction()
     // If already in-game (lobby was reopened via ESC), just close the overlay
     // and re-lock the canvas synchronously (this click is a valid user gesture).
@@ -320,11 +329,30 @@ export default function LobbyScreen() {
       return
     }
     const pk = playroomRef.current
-    if (!pk || !pk.myPlayer()) {
-      setError('Wait for server connection...')
+    if (!pk) {
+      setError('Loading multiplayer... try again.')
       return
     }
     setError('')
+
+    // Connect NOW (not on mount) so tabs that never click Play don't
+    // consume a slot in the 10-player PlayroomKit room limit.
+    if (!hasInitialized.current) {
+      setIsConnecting(true)
+      try {
+        await initBackgroundConnection(pk)
+      } catch (err: any) {
+        setIsConnecting(false)
+        setError('Could not join lobby. Try again.')
+        return
+      }
+      setIsConnecting(false)
+    }
+
+    if (!pk.myPlayer()) {
+      setError('Wait for server connection...')
+      return
+    }
     // Mic permission is now optional, managed from Audio Settings inside the lobby.
     // No blocking prompt here — user can enable mic anytime later.
 
