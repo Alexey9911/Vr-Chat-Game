@@ -10,6 +10,7 @@
     "optimize-emotes": "node scripts/optimize-emotes.js"
   },
   "dependencies": {
+    "@geckos.io/client": "^3.1.0",
     "@react-three/drei": "^9.88.13",
     "@react-three/fiber": "^8.15.11",
     "gsap": "^3.15.0",
