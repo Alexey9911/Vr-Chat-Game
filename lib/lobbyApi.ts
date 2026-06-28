@@ -103,15 +103,37 @@ export async function resetLobbies(): Promise<void> {
   await fetch(`${LOBBY_API_URL}/reset`, { method: 'POST' })
 }
 
-/** Get the latest 10 chat messages for a specific lobby */
+/** Get the latest chat messages for a lobby. Neon-backed (/api/messages); falls back to the legacy Deno KV if
+ *  that route errors (e.g. DATABASE_URL not yet set in this deployment) so chat history never breaks mid-migration. */
 export async function getChatHistory(lobby: string): Promise<ChatMessage[]> {
-  const res = await fetch(`${LOBBY_API_URL}/chat?lobby=${lobby}`)
-  if (!res.ok) return []
-  return res.json()
+  try {
+    const res = await fetch(`/api/messages?lobby=${encodeURIComponent(lobby)}`)
+    if (res.ok) return res.json()
+  } catch (_) {
+    /* fall through to the legacy backend */
+  }
+  try {
+    const res = await fetch(`${LOBBY_API_URL}/chat?lobby=${lobby}`)
+    if (!res.ok) return []
+    return res.json()
+  } catch (_) {
+    return []
+  }
 }
 
-/** Push a new chat message to the lobby's history */
+/** Push a new chat message to the lobby's history. Persists to Neon (/api/messages); falls back to the legacy
+ *  Deno KV on error. Fire-and-forget. */
 export async function sendChatMessage(lobby: string, message: ChatMessage): Promise<void> {
+  try {
+    const res = await fetch(`/api/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lobby, message }),
+    })
+    if (res.ok) return
+  } catch (_) {
+    /* fall through to the legacy backend */
+  }
   try {
     await fetch(`${LOBBY_API_URL}/chat`, {
       method: 'POST',
