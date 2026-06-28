@@ -33,6 +33,11 @@ export type SkinAnimationConfig = {
   walk: string
   run: string
   emotes: string[]
+  // Animal skins (popcat/bull) ship only ONE clip (a walk) and have no real
+  // idle. When true, the avatar STOPS animating while standing still (holds a
+  // static rest pose) instead of walking in place, and only plays the clip
+  // while actually moving.
+  freezeWhenIdle?: boolean
 }
 
 const ANIMAL_BASE_CLIP = 'Armature|Unreal Take|baselayer'
@@ -64,12 +69,14 @@ export const SKIN_ANIMATIONS: Record<string, SkinAnimationConfig> = {
     walk: ANIMAL_BASE_CLIP,
     run: ANIMAL_BASE_CLIP,
     emotes: [],
+    freezeWhenIdle: true,
   },
   popcat: {
     idle: ANIMAL_BASE_CLIP,
     walk: ANIMAL_BASE_CLIP,
     run: ANIMAL_BASE_CLIP,
     emotes: [],
+    freezeWhenIdle: true,
   },
 
   // ── EXISTING SKINS (names hand-mapped against the old scrambled export) ──

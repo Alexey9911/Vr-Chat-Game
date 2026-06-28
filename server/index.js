@@ -41,9 +41,30 @@ if (process.env.GECKOS_BIND) {
   }
 }
 
-// Optional TURN/ICE override (recommended for NAT coverage since there is no fallback transport): set
-// GECKOS_ICE to a JSON array of RTCIceServer entries.
-let iceServers = defaultIceServers || [];
+// ICE servers. CRITICAL FIX: in this geckos/@geckos.io v3 build, `defaultIceServers` ships EMPTY, so werift
+// gathers NO server-reflexive (srflx) candidate. On fly.io the machine binds the INTERNAL fly-global-services
+// IP (172.x), so with no srflx the relay advertises ONLY that internal candidate — which is unreachable from
+// the public internet. Browsers then fail ICE silently (timeout, no loud error) and multiplayer never works.
+// (Verified by comparing candidates: the working GTA-PORT relay advertises a `typ srflx` PUBLIC candidate;
+// this one only advertised `typ host` 172.x.) Providing STUN explicitly makes werift discover the machine's
+// PUBLIC dedicated-IPv4 and emit the srflx candidate browsers can actually reach over UDP.
+// ICE servers (STUN for srflx gathering). GECKOS_ICE (a JSON array of {urls,...}) overrides this — e.g. to
+// point at a real TURN server.
+//
+// ⚠️ KNOWN INFRA BLOCKER (diagnosed on fly.io, 2026-06-28): this relay only ever advertises its INTERNAL
+// `172.x typ host` ICE candidate — no srflx/relay — so browsers can't reach it over UDP and WebRTC dies on a
+// silent ICE timeout. Cause is NOT this code or geckos config: geckos forces UDP-mux, which needs the relay's
+// UDP egress and ingress to share one public IP, but fly NATs this machine's UDP EGRESS through a SHARED IP
+// (e.g. 152.233.42.195) that differs from its dedicated INGRESS IPv4 (213.188.208.248), so STUN/TURN responses
+// never return and no public candidate is gathered. (The working GTA-PORT relay egresses via its OWN dedicated
+// IP — symmetric — so its srflx == its dedicated IP and it connects.)
+// FIX = make egress symmetric: run this relay on a host where egress IP == ingress IP (a plain VPS), or get
+// fly to egress this app's UDP via its dedicated IPv4. Once egress is symmetric, the STUN below "just works".
+const DEFAULT_ICE = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+];
+let iceServers = DEFAULT_ICE;
 if (process.env.GECKOS_ICE) {
   try {
     iceServers = JSON.parse(process.env.GECKOS_ICE);
@@ -51,6 +72,7 @@ if (process.env.GECKOS_ICE) {
     /* keep defaults */
   }
 }
+console.log('[geckos] iceServers =', JSON.stringify(iceServers));
 
 const io = geckos({
   cors: { allowAuthorization: true, origin: '*' },

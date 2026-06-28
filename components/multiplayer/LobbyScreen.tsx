@@ -308,12 +308,16 @@ export default function LobbyScreen() {
   // and lets netClient's reconciler drive remotes + the late-join music sync.
   const handleGeckosPlay = async () => {
     setError('')
+    // Spawn with the skin the player picked in the lobby (LobbyCenterSkinPicker
+    // updates selectedSkinIndex). Previously this was hardcoded to 'ansem', so
+    // the lobby selection was ignored and everyone entered as ansem.
+    const lobbySkin = SKINS[selectedSkinIndex] ?? SKINS[0]
     const profile = isAdminMode
       ? getAdminProfile(nickname.trim())
       : {
           name: nickname.trim(),
           color: selectedColor,
-          skinId: 'ansem',
+          skinId: lobbySkin.id,
           isAdmin: false,
           colors: { primary: selectedColor },
         }

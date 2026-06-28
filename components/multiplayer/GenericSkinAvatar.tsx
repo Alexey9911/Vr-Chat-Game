@@ -52,8 +52,21 @@ export default function GenericSkinAvatar({
   const currentClipRef = useRef<string | null>(null)
 
   useEffect(() => {
-    const idle = getSkinAnimation(skinId)?.idle
-    const requested = animation ? (movementMap[animation] || animation) : idle
+    const cfg = getSkinAnimation(skinId)
+
+    // Animal skins with no real idle: stop animating while standing still so
+    // they hold a static pose instead of walking in place.
+    const isIdleState = !animation || animation === 'Idle'
+    if (cfg?.freezeWhenIdle && isIdleState) {
+      if (currentActionRef.current) {
+        currentActionRef.current.fadeOut(0.2)
+        currentActionRef.current = null
+        currentClipRef.current = null
+      }
+      return
+    }
+
+    const requested = animation ? (movementMap[animation] || animation) : cfg?.idle
     if (!requested) return
 
     // Resolve to an actual action; fall back to the first available clip.

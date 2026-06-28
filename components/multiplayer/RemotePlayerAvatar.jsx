@@ -138,11 +138,9 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
 
   // Y offset to raise skins above floor.
   // Alon has its own built-in ALON_FEET_Y_OFFSET inside AlonAvatar.tsx (1.5 at local scale).
-  // Existing small-rig skins (tobaku/unc/chillhouse/pinguin) render with their feet
-  // BELOW the model origin, so they need +1.58 to sit on the ground.
-  // The NEW skins were measured with feet AT the origin (feetY≈0), so they need
-  // no offset — yOffset 1.58 would float them ~1.58 units above the floor.
-  const skinYOffset = isAlonSkin ? 0 : isNewSkin ? 0 : isSmallRig ? 1.58 : 0
+  // Small-rig skins (incl. the new ansem/giga/fwog/bull/popcat — same char1 rig)
+  // need +1.58 to sit cleanly on the ground; tobaku/unc are the reference.
+  const skinYOffset = isAlonSkin ? 0 : isSmallRig ? 1.58 : 0
 
   // Nickname/chat vertical offsets — proportional to total rendered height
   // Characters are ~2 units tall at scale 1, so ~14 units at 7x scale
@@ -156,7 +154,11 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
       <group ref={characterRef} scale={[skinScale, skinScale, skinScale]} position-y={skinYOffset}>
         <Suspense fallback={null}>
         {isNewSkin ? (
+          // key={skinId} forces a fresh mount when switching between skins that
+          // share this component — otherwise React reuses the instance and the
+          // stale animation mixer breaks the new skin's clips.
           <GenericSkinAvatar
+            key={player.skinId}
             modelUrl={NEW_SKIN_URLS[player.skinId]}
             skinId={player.skinId}
             animation={animation}
