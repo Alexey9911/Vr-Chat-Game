@@ -548,6 +548,32 @@ export default function LobbyScreen() {
         vc.handleIceCandidate(from, candidate)
       })
 
+      // --- Admin Kick RPC ---
+      // Broadcast from AdminLobbyPanel. Every client receives the call, but
+      // only the target player actually disconnects (leave backend +
+      // PlayroomKit quit + hard reload so they land back on the lobby UI).
+      // Non-targets just drop the kicked player from their local map for
+      // instant visual feedback without waiting for PlayroomKit's socket
+      // timeout.
+      RPC.register('adminKick', async (data: any) => {
+        const { playerId } = data || {}
+        if (!playerId) return
+        const myId = pk.myPlayer()?.id
+        if (myId === playerId) {
+          // I'm the one being kicked.
+          try { leaveLobby(playerId) } catch {}
+          try { pk.myPlayer()?.quit?.() } catch {}
+          setTimeout(() => {
+            try { window.location.href = window.location.pathname } catch {
+              window.location.reload()
+            }
+          }, 100)
+        } else {
+          // Someone else got kicked — drop them from my local view.
+          removeRemotePlayer(playerId)
+        }
+      })
+
       // Initialize voice chat system with RPC sender.
       // FIX — AWAIT this before registering `pk.onPlayerJoin`. PlayroomKit
       // fires `onPlayerJoin` synchronously for peers already connected in

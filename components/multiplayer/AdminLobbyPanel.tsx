@@ -3,6 +3,20 @@ import { useMultiplayerStore } from '../../lib/multiplayerStore'
 import { MAX_PLAYERS_PER_LOBBY, generateLobbyCode, getLobbyIndex } from '../../lib/lobbyConfig'
 import { getLobbyStatus, resetLobbies, fakeJoin, fakeLeave } from '../../lib/lobbyApi'
 
+// Broadcast an adminKick over PlayroomKit RPC. The target player's client
+// (registered in LobbyScreen.initBackgroundConnection) receives the call,
+// leaves the Deno-KV backend + PlayroomKit room, and reloads back to the
+// lobby UI. Every other client just removes the kicked player from their
+// local remotePlayers map for instant visual feedback.
+async function broadcastKick(playerId: string) {
+  try {
+    const pk: any = await import('playroomkit')
+    pk.RPC.call('adminKick', { playerId }, pk.RPC.Mode.ALL)
+  } catch (err) {
+    console.warn('[Admin] kick RPC failed:', err)
+  }
+}
+
 export default function AdminLobbyPanel() {
   const { 
     adminPanelVisible, 
@@ -127,7 +141,10 @@ export default function AdminLobbyPanel() {
                   }}>
                     <span>{player.isAdmin ? '👑 ' : '• '}{player.name || 'Unknown'}</span>
                     <button
-                      onClick={() => removeRemotePlayer(player.id)}
+                      onClick={() => {
+                        broadcastKick(player.id)
+                        removeRemotePlayer(player.id)
+                      }}
                       style={{
                         background: 'rgba(255, 60, 60, 0.2)',
                         border: '1px solid rgba(255, 60, 60, 0.4)',
@@ -154,7 +171,13 @@ export default function AdminLobbyPanel() {
                 </div>
                 {/* Kick All button */}
                 <button
-                  onClick={() => playersInLobby.forEach(p => removeRemotePlayer(p.id))}
+                  onClick={() => {
+                    if (!confirm(`Kick ALL ${playersInLobby.length} players from this room?`)) return
+                    playersInLobby.forEach(p => {
+                      broadcastKick(p.id)
+                      removeRemotePlayer(p.id)
+                    })
+                  }}
                   style={{
                     marginTop: '6px',
                     width: '100%',
