@@ -1,6 +1,6 @@
 import type { AppEvent, ChatWire, PlayerState, VoiceFrame, VoiceSignal } from './types';
 
-import { GeckosTransport } from './geckos-transport';
+import { WebSocketTransport } from './websocket-transport';
 
 /**
  * The realtime backend for {@link Presence}: position fan-out + chat + generic app events + voice PCM frames +
@@ -35,9 +35,10 @@ export interface TransportHandlers {
 }
 
 /**
- * Build the realtime transport. alonHouse is geckos-only, so this ALWAYS returns a {@link GeckosTransport}
- * pointed at `NEXT_PUBLIC_GECKOS_URL` (the fly.io relay). If the env var is unset, the transport simply fails to
- * connect and logs a clear error (no multiplayer) rather than crashing the app.
+ * Build the realtime transport. alonHouse now uses a plain WebSocket (TCP) relay on fly.io — geckos.io's
+ * WebRTC/UDP could not establish through fly's asymmetric UDP egress NAT (see {@link WebSocketTransport}).
+ * Reuses `NEXT_PUBLIC_GECKOS_URL` (the fly.io relay), converted to wss:// inside the transport. If the env var
+ * is unset, the transport logs a clear error (no multiplayer) rather than crashing the app.
  */
 export function createTransport(): RealtimeTransport {
   const url = process.env.NEXT_PUBLIC_GECKOS_URL;
@@ -45,5 +46,5 @@ export function createTransport(): RealtimeTransport {
     console.error('[net] NEXT_PUBLIC_GECKOS_URL is not set — multiplayer is disabled.');
   }
 
-  return new GeckosTransport(url ?? '');
+  return new WebSocketTransport(url ?? '');
 }

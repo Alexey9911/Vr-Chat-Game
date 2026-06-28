@@ -2,7 +2,7 @@
   "name": "alonhouse-realtime",
   "version": "0.1.0",
   "private": true,
-  "description": "geckos.io (WebRTC/UDP) realtime relay for alonHouse (single-lobby presence + chat + app events + voice).",
+  "description": "WebSocket (TCP) realtime relay for alonHouse (single-lobby presence + chat + app events + voice).",
   "type": "module",
   "engines": {
     "node": ">=22"
@@ -11,6 +11,6 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@geckos.io/server": "^3.1.0"
+    "ws": "^8.18.0"
   }
 }

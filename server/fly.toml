@@ -1,5 +1,5 @@
-# fly.io config for the alonHouse geckos.io UDP relay. Deploy from this folder: `fly deploy`.
-# IMPORTANT (UDP): allocate a DEDICATED IPv4 once — `fly ips allocate-v4` — or WebRTC UDP won't route.
+# fly.io config for the alonHouse WebSocket (TCP) relay. Deploy from this folder: `fly deploy`.
+# No UDP / dedicated IPv4 / ICE needed — WebSockets ride the standard HTTP/TLS service and traverse any NAT.
 app = "alonhouse-realtime"
 primary_region = "iad"
 
@@ -8,11 +8,9 @@ primary_region = "iad"
 
 [env]
   PORT = "8080"
-  GECKOS_UDP_PORT = "20000"
-  # CRITICAL: Fly only delivers inbound UDP to this hostname (resolved to an IP in index.js).
-  GECKOS_BIND = "fly-global-services"
 
-# HTTP/HTTPS: health check + geckos WebRTC signaling (same internal port).
+# HTTP/HTTPS: health check + the WebSocket upgrade (same internal port). force_https + the tls handler mean the
+# browser connects with wss://alonhouse-realtime.fly.dev and fly terminates TLS to the ws server on :8080.
 [[services]]
   protocol = "tcp"
   internal_port = 8080
@@ -31,17 +29,8 @@ primary_region = "iad"
     hard_limit = 400
     soft_limit = 300
 
-# UDP: one multiplexed WebRTC DataChannel port shared by all peers.
-[[services]]
-  protocol = "udp"
-  internal_port = 20000
-  [[services.ports]]
-    port = 20000
-
-# Sized for ONE big lobby of 30-50: geckos v3's pure-JS (werift) WebRTC does DTLS/SCTP on the CPU, so a
-# DEDICATED-CPU `performance-2x` (2 vCPU + 4 GB) gives consistent headroom (no shared-CPU jitter). Keep exactly
-# ONE machine (peer state is in-process): `fly scale count 1`. Do NOT scale to 2 — players would split across
-# relays and not see each other. To park it cheap between sessions: `fly machine stop <id> -a alonhouse-realtime`.
+# One big lobby of 30-50 over WebSockets is light (no per-peer DTLS/SCTP CPU like geckos). Keep exactly ONE
+# machine — peer state is in-process: `fly scale count 1`. Do NOT scale to 2 (players would split across relays).
 [[vm]]
-  size = "performance-2x"
-  memory = "4096mb"
+  size = "shared-cpu-1x"
+  memory = "512mb"
