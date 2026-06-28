@@ -17,7 +17,7 @@
  */
 
 import { getActiveAudioInstances, AUDIO_VOLUME } from './musicSystem'
-import { isGeckos, setLocalState as netSetLocalState, setMediaStartEpoch as netSetMediaStartEpoch } from '../net/netClient'
+import { setLocalState as netSetLocalState, setMediaStartEpoch as netSetMediaStartEpoch } from '../net/netClient'
 
 // ─── Types ────────────────────────────────────────────────────────────
 
@@ -461,11 +461,11 @@ export async function playYouTubeForPlayer(playerId: string, videoId: string, st
             } catch {}
           } else if (event.data === window.YT.PlayerState.ENDED) {
             // FIX — On ENDED, if this is the LOCAL player's own video, also
-            // reset Playroom state + notify UI. Previously we only called
+            // reset transport state + notify UI. Previously we only called
             // `stopYouTubeForPlayer` locally, which removed our own iframe
-            // but left `isYouTubePlaying=true` / `youtubeData=…` in the
-            // Playroom state, so remote peers kept showing the embed cover
-            // image on this avatar forever.
+            // but left `isYouTubePlaying=true` in the broadcast state, so
+            // remote peers kept showing the embed cover image on this
+            // avatar forever.
             const isLocal = playerId === getLocalPlayerId()
             stopYouTubeForPlayer(playerId)
             if (isLocal) {
@@ -473,19 +473,9 @@ export async function playYouTubeForPlayer(playerId: string, videoId: string, st
               // / `isYouTubeAudioPlaying` immediately reflect the end.
               localVideoTitle = ''
               localVideoId = ''
-              // Reset transport state so remotes stop the embed. geckos: clear our broadcast flags.
-              if (isGeckos()) {
-                netSetMediaStartEpoch(undefined)
-                netSetLocalState({ isYouTubePlaying: false, youtubeVideoId: undefined })
-              } else {
-                import('playroomkit').then((pk) => {
-                  const me = pk.myPlayer?.()
-                  if (me?.id) {
-                    me.setState('isYouTubePlaying', false)
-                    me.setState('youtubeData', null)
-                  }
-                }).catch(() => {})
-              }
+              // Reset transport state so remotes stop the embed — clear our broadcast flags.
+              netSetMediaStartEpoch(undefined)
+              netSetLocalState({ isYouTubePlaying: false, youtubeVideoId: undefined })
               // Notify the UI (LobbyScreen / YouTubeModal) so the
               // "ytPlaying" React state clears without a manual stop click.
               try {
@@ -588,15 +578,7 @@ export async function playYouTubeAudio(url: string): Promise<YouTubeStreamInfo> 
     throw new Error('Invalid YouTube URL. Paste a link like https://youtube.com/watch?v=...')
   }
 
-  // Get local player ID if not cached yet
-  if (!cachedLocalPlayerId) {
-    try {
-      const pk = await import('playroomkit')
-      const me = pk.myPlayer?.()
-      if (me?.id) cachedLocalPlayerId = me.id
-    } catch {}
-  }
-
+  // The local player ID is set via setLocalYouTubePlayerId() from netClient (geckos).
   const info = await playYouTubeForPlayer(getLocalPlayerId(), videoId)
   localVideoTitle = info.title
   localVideoId = videoId

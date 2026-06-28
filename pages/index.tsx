@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import dynamic from 'next/dynamic'
-import { RPC } from 'playroomkit'
 import KeyboardHUD from '../components/KeyboardHUD'
 import TouchControls from '../components/TouchControls'
 import { useIsMobile } from '../hooks/useIsMobile'
@@ -9,7 +8,7 @@ import CASection from '../components/CASection'
 import EntryLoadingOverlay from '../components/EntryLoadingOverlay'
 import AssetPreloader from '../components/AssetPreloader'
 import { useMultiplayerStore } from '../lib/multiplayerStore'
-import { isGeckos, setLocalState as netSetLocalState, setMediaStartEpoch as netSetMediaStartEpoch } from '../lib/net/netClient'
+import { setLocalState as netSetLocalState, setMediaStartEpoch as netSetMediaStartEpoch } from '../lib/net/netClient'
 import Navbar from '../components/Navbar'
 import CinematicHUD from '../components/CinematicHUD'
 import FadeOverlay from '../components/checkpoints/FadeOverlay'
@@ -25,7 +24,7 @@ const Canvas3D = dynamic(() => import('../components/Canvas3D'), {
   )
 })
 
-// Multiplayer components — dynamic to avoid SSR (PlayroomKit is client-only)
+// Multiplayer components — dynamic to avoid SSR (client-only)
 const LobbyScreen = dynamic(() => import('../components/multiplayer/LobbyScreen'), { ssr: false })
 const ChatInput = dynamic(() => import('../components/multiplayer/ChatInput'), { ssr: false })
 const PlayersList = dynamic(() => import('../components/multiplayer/PlayersList'), { ssr: false })
@@ -44,62 +43,24 @@ function HomePage() {
   const isMobile = useIsMobile()
   const lobbyVisible = useMultiplayerStore((s) => s.lobbyVisible)
   const isTransitioning = useZoneStore((s) => s.isTransitioning)
-  const playroomRef = React.useRef<any>(null)
-
-  useEffect(() => {
-    // @ts-ignore
-    import('playroomkit').then((mod: any) => {
-      playroomRef.current = mod
-    })
-  }, [])
 
   const handlePlayMusic = () => {
-    // geckos: play locally + broadcast persistent state (isMusicPlaying + mediaStartEpoch) so LATE JOINERS
+    // play locally + broadcast persistent state (isMusicPlaying + mediaStartEpoch) so LATE JOINERS
     // hear it via the reconciler — no fire-and-forget RPC that newcomers miss.
-    if (isGeckos()) {
-      const { localPlayerId, remotePlayers } = useMultiplayerStore.getState()
-      if (!localPlayerId) return
-      const skinId = remotePlayers.get(localPlayerId)?.skinId || 'ansem'
-      import('../lib/audio/musicSystem').then(({ playMusicForPlayer }) => playMusicForPlayer(localPlayerId, skinId))
-      netSetMediaStartEpoch(Date.now())
-      netSetLocalState({ isMusicPlaying: true, isYouTubePlaying: false, youtubeVideoId: undefined })
-      return
-    }
-    if (!playroomRef.current) return
-
-    const pk = playroomRef.current
-    const player = pk.myPlayer()
-    if (!player) return
-
-    const profile = player.getState('pdata')
-    const playerId = player.id
-    const skinId = profile?.skinId || 'ansem'
-
-    try {
-      RPC.call('playMusic', { playerId, skinId }, RPC.Mode.ALL)
-    } catch (err) {
-      console.error('[Music] Failed to call RPC:', err)
-    }
+    const { localPlayerId, remotePlayers } = useMultiplayerStore.getState()
+    if (!localPlayerId) return
+    const skinId = remotePlayers.get(localPlayerId)?.skinId || 'ansem'
+    import('../lib/audio/musicSystem').then(({ playMusicForPlayer }) => playMusicForPlayer(localPlayerId, skinId))
+    netSetMediaStartEpoch(Date.now())
+    netSetLocalState({ isMusicPlaying: true, isYouTubePlaying: false, youtubeVideoId: undefined })
   }
 
   const handleStopMusic = () => {
-    if (isGeckos()) {
-      const { localPlayerId } = useMultiplayerStore.getState()
-      if (!localPlayerId) return
-      import('../lib/audio/musicSystem').then(({ stopMusicForPlayer }) => stopMusicForPlayer(localPlayerId))
-      netSetMediaStartEpoch(undefined)
-      netSetLocalState({ isMusicPlaying: false })
-      return
-    }
-    if (!playroomRef.current) return
-    const pk = playroomRef.current
-    const player = pk.myPlayer()
-    if (!player) return
-    try {
-      RPC.call('stopMusic', { playerId: player.id }, RPC.Mode.ALL)
-    } catch (err) {
-      console.error('[Music] Failed to call stopMusic RPC:', err)
-    }
+    const { localPlayerId } = useMultiplayerStore.getState()
+    if (!localPlayerId) return
+    import('../lib/audio/musicSystem').then(({ stopMusicForPlayer }) => stopMusicForPlayer(localPlayerId))
+    netSetMediaStartEpoch(undefined)
+    netSetLocalState({ isMusicPlaying: false })
   }
 
   useEffect(() => {

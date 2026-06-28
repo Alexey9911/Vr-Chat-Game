@@ -6,7 +6,7 @@ import EmotePickerNew from './EmotePickerNew'
 import GifBar from './GifBar'
 import { Emote, parseEmoteCodes, getEmoteById } from '../../lib/emotes/emotesConfig'
 import { getChatHistory, sendChatMessage } from '../../lib/lobbyApi'
-import { isGeckos, sendChat as netSendChat, GECKOS_LOBBY } from '../../lib/net/netClient'
+import { sendChat as netSendChat, GECKOS_LOBBY } from '../../lib/net/netClient'
 
 // Format timestamp as [HH:MM:SS] in 24h
 function formatTime(ts: number): string {
@@ -96,13 +96,6 @@ export default function ChatInput() {
     remotePlayers,
   } = useMultiplayerStore()
   const { setChatActive } = useKeyboardStore()
-
-  // ── playroomkit ──────────────────────────────────────────────────────────
-  const playroomRef = useRef<any>(null)
-  useEffect(() => {
-    // @ts-ignore
-    import('playroomkit').then((mod: any) => { playroomRef.current = mod })
-  }, [])
 
   // ── fetch history on connect ─────────────────────────────────────────────
   useEffect(() => {
@@ -243,23 +236,11 @@ export default function ChatInput() {
       timestamp: Date.now(),
     }
 
-    // Resolve the local id + profile from whichever transport is active.
-    let localId: string | null = null
-    let profile: any = null
-    if (isGeckos()) {
-      const st = useMultiplayerStore.getState()
-      localId = st.localPlayerId
-      if (!localId) return
-      profile = st.remotePlayers.get(localId) || null
-    } else {
-      const pk = playroomRef.current
-      if (!pk) return
-      const me = pk.myPlayer()
-      if (!me) return
-      localId = me.id
-      profile = me.getState('pdata')
-      me.setState('chatMessage', chatData, true) // Playroom: peers poll this key
-    }
+    // Resolve the local id + profile from the geckos store.
+    const st = useMultiplayerStore.getState()
+    const localId = st.localPlayerId
+    if (!localId) return
+    const profile = st.remotePlayers.get(localId) || null
 
     const msg = {
       id: chatData.timestamp.toString() + '-' + localId,
@@ -270,11 +251,11 @@ export default function ChatInput() {
       timestamp: chatData.timestamp,
     }
 
-    if (isGeckos()) netSendChat(msg) // geckos: broadcast the bubble over the reliable `chat` channel
+    netSendChat(msg) // geckos: broadcast the bubble over the reliable `chat` channel
 
     addChatMessage(msg)
 
-    const lobby = currentLobby || (isGeckos() ? GECKOS_LOBBY : null)
+    const lobby = currentLobby || GECKOS_LOBBY
     if (lobby) {
       sendChatMessage(lobby, msg)
     }

@@ -2,7 +2,8 @@
  * Voice Chat System — WebRTC Push-to-Talk
  * 
  * Peer-to-peer audio streaming using WebRTC.
- * Signaling is done via PlayroomKit RPC.
+ * Signaling is relayed over the geckos.io addressed `voice` channel (see lib/net/netClient sendVoiceSignal /
+ * presence.onVoice). The transport is injected via setRpcSender — this module stays transport-agnostic.
  * Spatial audio: volume based on distance (12m range).
  * 
  * Usage:

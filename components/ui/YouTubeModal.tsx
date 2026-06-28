@@ -55,38 +55,6 @@ export default function YouTubeModal({ isOpen, onClose }: YouTubeModalProps) {
         netSetLocalState({ isYouTubePlaying: true, youtubeVideoId: info.videoId, isMusicPlaying: false })
         return
       }
-
-      // Mutual exclusion: stop skin music if playing
-      try {
-        const pk = await import('playroomkit')
-        const me = pk.myPlayer?.()
-        if (me?.id) {
-          const isSkinPlaying = me.getState('isMusicPlaying')
-          if (isSkinPlaying) {
-            stopMusicForPlayer(me.id)
-            me.setState('isMusicPlaying', false)
-            me.setState('musicData', null)
-            const { RPC } = pk
-            RPC.call('stopMusic', { playerId: me.id }, RPC.Mode.ALL)
-          }
-        }
-      } catch {}
-
-      const info = await playYouTubeAudio(url)
-      setTitle(info.title)
-      setPlaying(true)
-
-      // Set PlayroomKit state so other players' polling picks it up
-      try {
-        const pk = await import('playroomkit')
-        const me = pk.myPlayer?.()
-        if (me?.id) {
-          me.setState('isYouTubePlaying', true)
-          me.setState('youtubeData', { videoId: info.videoId, startTime: Date.now() })
-        }
-      } catch (err) {
-        console.warn('[YouTube] State set failed:', err)
-      }
     } catch (err: any) {
       setError(err.message || 'Failed to play YouTube audio')
     } finally {
@@ -105,17 +73,6 @@ export default function YouTubeModal({ isOpen, onClose }: YouTubeModalProps) {
       netSetLocalState({ isYouTubePlaying: false, youtubeVideoId: undefined })
       return
     }
-
-    // Clear PlayroomKit state
-    try {
-      import('playroomkit').then((pk) => {
-        const me = pk.myPlayer?.()
-        if (me?.id) {
-          me.setState('isYouTubePlaying', false)
-          me.setState('youtubeData', null)
-        }
-      }).catch(() => {})
-    } catch {}
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

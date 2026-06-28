@@ -5,7 +5,7 @@
  * Each skin has its own unique audio file.
  */
 
-import { isGeckos, setLocalState as netSetLocalState } from '../net/netClient'
+import { setLocalState as netSetLocalState } from '../net/netClient'
 import { useMultiplayerStore } from '../multiplayerStore'
 
 export interface SkinAudioConfig {
@@ -161,19 +161,9 @@ export function playMusicForPlayer(playerId: string, skinId: string, startTime?:
       
       // Update player state in the active transport if available
       if (typeof window !== 'undefined') {
-        if (isGeckos()) {
-          // Only clear OUR broadcast flag (this cleanup also runs for remotes the reconciler stops).
-          if (playerId === useMultiplayerStore.getState().localPlayerId) {
-            netSetLocalState({ isMusicPlaying: false })
-          }
-        } else {
-          import('playroomkit').then(({ myPlayer }) => {
-            const player = myPlayer()
-            if (player && player.id === playerId) {
-              player.setState('isMusicPlaying', false)
-              player.setState('musicData', null)
-            }
-          }).catch(() => {})
+        // Only clear OUR broadcast flag (this cleanup also runs for remotes the reconciler stops).
+        if (playerId === useMultiplayerStore.getState().localPlayerId) {
+          netSetLocalState({ isMusicPlaying: false })
         }
       }
     }

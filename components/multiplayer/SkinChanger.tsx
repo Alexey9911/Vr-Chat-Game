@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useMultiplayerStore } from '../../lib/multiplayerStore'
 import { isGeckos, setLocalState as netSetLocalState } from '../../lib/net/netClient'
 
@@ -20,13 +20,7 @@ const SKIN_COLORS = [
 export default function SkinChanger() {
   const [isOpen, setIsOpen] = useState(false)
   const [selectedColor, setSelectedColor] = useState('#4a9eff')
-  const playroomRef = useRef<any>(null)
   const { isConnected } = useMultiplayerStore()
-
-  useEffect(() => {
-    // @ts-ignore
-    import('playroomkit').then((mod: any) => { playroomRef.current = mod })
-  }, [])
 
   // Press C to toggle
   useEffect(() => {
@@ -51,12 +45,6 @@ export default function SkinChanger() {
       netSetLocalState({ color })
       return
     }
-    const pk = playroomRef.current
-    if (!pk) return
-    const me = pk.myPlayer?.()
-    if (!me) return
-    const prev = me.getState('pdata') || {}
-    me.setState('pdata', { ...prev, color }, true)
   }
 
   if (!isConnected || !isOpen) return null

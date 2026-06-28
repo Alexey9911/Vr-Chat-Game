@@ -1,54 +1,35 @@
-import React, { useRef, useEffect } from 'react'
+import React from 'react'
 import { SKINS } from '../../lib/skins/skinsConfig'
 import { useSkinStore } from '../../lib/skins/skinStore'
 import { useMultiplayerStore } from '../../lib/multiplayerStore'
+import { setLocalState as netSetLocalState } from '../../lib/net/netClient'
 
 export default function SkinBar() {
   const { isConnected } = useMultiplayerStore()
   const { activeSkinId, setActiveSkinId, colorsBySkinId, setSelectedSkinIndex } = useSkinStore()
-  const playroomRef = useRef<any>(null)
-
-  useEffect(() => {
-    if (!isConnected) return
-    import('playroomkit').then((mod: any) => {
-      playroomRef.current = mod
-    })
-  }, [isConnected])
 
   function applySkin(skinId: string) {
-    const pk = playroomRef.current
-    const me = pk?.myPlayer?.()
-    if (!me) return
-
     const skinIndex = SKINS.findIndex((s) => s.id === skinId)
     const skin = SKINS[skinIndex] ?? SKINS[0]
 
-    const prev = me.getState('pdata') || {}
-    const colors = colorsBySkinId[skinId]
-    const color = colors?.primary ?? prev.color ?? '#4a9eff'
+    const { localPlayerId, remotePlayers, updateRemotePlayer } = useMultiplayerStore.getState()
+    if (!localPlayerId) return
 
-    me.setState(
-      'pdata',
-      {
-        ...prev,
-        skinId: skin.id,
-        colors: colors ?? prev.colors,
-        color,
-      },
-      true
-    )
+    const prev = remotePlayers.get(localPlayerId)
+    const colors = colorsBySkinId[skinId]
+    const color = colors?.primary ?? prev?.color ?? '#4a9eff'
+
+    const next = {
+      skinId: skin.id,
+      colors: colors ?? prev?.colors,
+      color,
+    }
+
+    updateRemotePlayer(localPlayerId, next)
+    netSetLocalState(next)
 
     setActiveSkinId(skin.id)
     setSelectedSkinIndex(skinIndex >= 0 ? skinIndex : 0)
-
-    const { localPlayerId, updateRemotePlayer } = useMultiplayerStore.getState()
-    if (localPlayerId) {
-      updateRemotePlayer(localPlayerId, {
-        skinId: skin.id,
-        colors: colors ?? prev.colors,
-        color,
-      })
-    }
   }
 
   if (!isConnected) return null

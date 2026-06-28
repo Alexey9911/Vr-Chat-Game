@@ -11,7 +11,7 @@ import { useViewStore } from '../../lib/camera/viewStore'
 import { useSettingsStore } from '../../lib/settings/settingsStore'
 import { cursorIntent } from '../../lib/cursorIntent'
 import { requestPointerLockSafe } from '../../lib/pointerLockHelper'
-import { isGeckos, setLocalState as netSetLocalState } from '../../lib/net/netClient'
+import { setLocalState as netSetLocalState } from '../../lib/net/netClient'
 
 interface AudioButtonProps {
   onPlayMusic: () => void
@@ -150,49 +150,18 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
     setLocalMicGain(settingsLocalMicGain / 100)
   }, [settingsLocalMicGain])
 
-  const playroomRef = useRef<any>(null)
-
-  useEffect(() => {
-    if (!isConnected) return
-    // @ts-ignore
-    import('playroomkit').then((mod: any) => { playroomRef.current = mod })
-  }, [isConnected])
-
   // Poll local music/skin state every 500ms to drive the HUD button (enabled/disabled + playing icon).
   useEffect(() => {
     if (!isConnected) return
     const interval = setInterval(() => {
-      // geckos: there is no Playroom room — read the local player's own zustand entry (kept fresh by the
-      // producers via netSetLocalState). Without this the HUD button stays permanently disabled under geckos.
-      if (isGeckos()) {
-        const { localPlayerId, remotePlayers } = useMultiplayerStore.getState()
-        const me = localPlayerId ? remotePlayers.get(localPlayerId) : undefined
-        if (!me) return
-        setIsActuallyPlaying(!!me.isMusicPlaying)
-        setCurrentSkinId(me.skinId || 'ansem')
-        setIsYouTubePlaying(isYouTubeAudioPlaying())
-        return
-      }
-      const pk = playroomRef.current
-      if (!pk) return
-      const player = pk.myPlayer()
-      if (!player) return
-      const isPlaying = player.getState('isMusicPlaying') || false
-      setIsActuallyPlaying(isPlaying)
-      const profile = player.getState('pdata')
-      setCurrentSkinId(profile?.skinId || 'ansem')
-
-      // FIX FOR LOCAL POV: Sync local player's music state to the remotePlayers store
-      useMultiplayerStore.getState().updateRemotePlayer(player.id, { isMusicPlaying: isPlaying })
-
-      // Sync local YouTube state too (for thumbnail in third-person + HUD button)
-      const ytPlaying = isYouTubeAudioPlaying()
-      const ytVideoId = getCurrentVideoId()
-      setIsYouTubePlaying(ytPlaying)
-      useMultiplayerStore.getState().updateRemotePlayer(player.id, {
-        isYouTubePlaying: ytPlaying,
-        youtubeVideoId: ytPlaying ? ytVideoId : undefined
-      })
+      // geckos: read the local player's own zustand entry (kept fresh by the
+      // producers via netSetLocalState). Without this the HUD button stays permanently disabled.
+      const { localPlayerId, remotePlayers } = useMultiplayerStore.getState()
+      const me = localPlayerId ? remotePlayers.get(localPlayerId) : undefined
+      if (!me) return
+      setIsActuallyPlaying(!!me.isMusicPlaying)
+      setCurrentSkinId(me.skinId || 'ansem')
+      setIsYouTubePlaying(isYouTubeAudioPlaying())
     }, 500)
     return () => clearInterval(interval)
   }, [isConnected])
@@ -365,35 +334,20 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
           }
           vc.startTransmitting()
           useKeyboardStore.getState().setLocalMicActive(true)
-          if (isGeckos()) {
-            netSetLocalState({ isMicActive: true })
-          } else {
-            const me = playroomRef.current?.myPlayer?.()
-            if (me) me.setState('isMicActive', true)
-          }
+          netSetLocalState({ isMicActive: true })
         }}
         onMouseUp={async () => {
           const vc = await import('../../lib/audio/voiceChatSystem')
           vc.stopTransmitting()
           useKeyboardStore.getState().setLocalMicActive(false)
-          if (isGeckos()) {
-            netSetLocalState({ isMicActive: false })
-          } else {
-            const me = playroomRef.current?.myPlayer?.()
-            if (me) me.setState('isMicActive', false)
-          }
+          netSetLocalState({ isMicActive: false })
         }}
         onMouseLeave={async () => {
           if (localMicActive) {
             const vc = await import('../../lib/audio/voiceChatSystem')
             vc.stopTransmitting()
             useKeyboardStore.getState().setLocalMicActive(false)
-            if (isGeckos()) {
-              netSetLocalState({ isMicActive: false })
-            } else {
-              const me = playroomRef.current?.myPlayer?.()
-              if (me) me.setState('isMicActive', false)
-            }
+            netSetLocalState({ isMicActive: false })
           }
         }}
         title="Push to Talk (hold or press V)"

@@ -14,7 +14,6 @@ import { requestPointerLockSafe, cancelPendingPointerLock } from '../lib/pointer
 import { useZoneStore } from '../lib/zoneStore'
 import { ROOM_Y_OFFSET, ROOM_FLOOR_BLENDER_Y } from '../lib/roomsConfig'
 import { getSkinEmoteClipMap } from '../lib/skins/skinAnimations'
-import { isGeckos } from '../lib/net/netClient'
 
 // Physics constants
 const GRAVITY = -35
@@ -77,16 +76,15 @@ export const useCameraControls = () => {
 
   // Multiplayer sync counter
   const syncCounter = useRef(0)
-  const playroomRef = useRef<any>(null)
-  
+
   // Position throttling for network optimization
   const lastSentPos = useRef(new Vector3(SPAWN_X, EYE_HEIGHT, SPAWN_Z))
   const lastSentRotY = useRef(initFacing)
-  // Last movement animation pushed to Playroom ('Sprint' | 'Run' | null).
-  // We only setState when the value transitions to avoid network spam —
-  // idle → run → sprint flips are rare compared to the per-frame position
-  // updates. Emotes (currentEmote.current) always take priority, so while
-  // an emote is active we don't touch this.
+  // Last movement animation broadcast ('Sprint' | 'Run' | null).
+  // We only write to the store when the value transitions to avoid network
+  // spam — idle → run → sprint flips are rare compared to the per-frame
+  // position updates. Emotes (currentEmote.current) always take priority, so
+  // while an emote is active we don't touch this.
   const lastSentMoveAnim = useRef<string | null>(null)
   const POSITION_THRESHOLD = 0.08 // Only sync if moved >8cm
   const ROTATION_THRESHOLD = 0.04 // Only sync if rotated >2.3 degrees
@@ -293,16 +291,6 @@ export const useCameraControls = () => {
     }
   }, [chatActive, lobbyVisible])
 
-  // Load PlayroomKit dynamically
-  useEffect(() => {
-    // @ts-ignore — playroomkit will be available after npm install
-    import('playroomkit').then((mod: any) => {
-      playroomRef.current = mod
-    }).catch(() => {
-      // Not installed yet, will work after npm install
-    })
-  }, [])
-
   // Memoizar los handlers para evitar recreaciones
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     const el = document.activeElement as any
@@ -341,12 +329,11 @@ export const useCameraControls = () => {
     // number keys simply do nothing for them.
     const animMap = getSkinEmoteClipMap(activeSkinId)
 
-    if (animMap[key] && (isGeckos() || playroomRef.current?.myPlayer?.())) {
+    if (animMap[key]) {
       currentEmote.current = animMap[key]
       setCurrentAnimation(animMap[key])
-      if (!isGeckos()) playroomRef.current.myPlayer().setState('animation', animMap[key], true)
 
-      // Update local player in store so their own avatar animates (geckos also broadcasts it via the StateGetter).
+      // Update local player in store so their own avatar animates (geckos broadcasts it via the StateGetter).
       const { localPlayerId, updateRemotePlayer } = useMultiplayerStore.getState()
       if (localPlayerId) {
         updateRemotePlayer(localPlayerId, { animation: animMap[key] })
@@ -839,18 +826,17 @@ export const useCameraControls = () => {
       }
     }
 
-    // Sync movement animation ('Sprint' | 'Run' | null) to Playroom so
+    // Sync movement animation ('Sprint' | 'Run' | null) into the store so
     // remote clients can render the correct clip. Only fires on state
     // transitions (idle↔run↔sprint). Skipped while an emote is active —
-    // emotes own `setState('animation', ...)` until the player moves,
-    // and the block below clears them.
+    // emotes own the animation field until the player moves, and the
+    // block below clears them.
     if (currentEmote.current === null) {
       const moving = velocity.current.lengthSq() > 0.001
       const desiredMoveAnim: string | null = moving ? (sprinting ? 'Sprint' : 'Run') : null
       if (desiredMoveAnim !== lastSentMoveAnim.current) {
         lastSentMoveAnim.current = desiredMoveAnim
-        if (!isGeckos()) playroomRef.current?.myPlayer?.()?.setState('animation', desiredMoveAnim, true)
-        // Store update drives the local avatar AND (geckos) the broadcast — runs for both transports.
+        // Store update drives the local avatar AND the geckos broadcast.
         const { localPlayerId, updateRemotePlayer } = useMultiplayerStore.getState()
         if (localPlayerId) {
           updateRemotePlayer(localPlayerId, { animation: desiredMoveAnim })
@@ -862,7 +848,6 @@ export const useCameraControls = () => {
     if (velocity.current.lengthSq() > 0.001 && currentEmote.current !== null) {
       currentEmote.current = null
       setCurrentAnimation(null)
-      if (!isGeckos()) playroomRef.current?.myPlayer?.()?.setState('animation', null, true)
 
       // Clear local player animation (geckos broadcasts the cleared clip too).
       const { localPlayerId, updateRemotePlayer } = useMultiplayerStore.getState()
@@ -977,60 +962,42 @@ export const useCameraControls = () => {
     // =============================================
     syncCounter.current++
     if (syncCounter.current % 3 === 0) {
-      try {
-        const geckos = isGeckos()
-        const pk = geckos ? null : playroomRef.current
-        const me = geckos ? null : pk?.myPlayer?.()
-        // Playroom needs `me`; geckos broadcasts from the zustand echo below (no Playroom). Run when ready.
-        if (geckos || me) {
-          // Player facing direction for multiplayer
-          const rotY = playerFacingY.current
+      // geckos broadcasts from the zustand echo below.
+      // Player facing direction for multiplayer
+      const rotY = playerFacingY.current
 
-          // Check if position or rotation changed significantly
-          const dx = Math.abs(playerPos.current.x - lastSentPos.current.x)
-          const dy = Math.abs(playerPos.current.y - lastSentPos.current.y)
-          const dz = Math.abs(playerPos.current.z - lastSentPos.current.z)
+      // Check if position or rotation changed significantly
+      const dx = Math.abs(playerPos.current.x - lastSentPos.current.x)
+      const dy = Math.abs(playerPos.current.y - lastSentPos.current.y)
+      const dz = Math.abs(playerPos.current.z - lastSentPos.current.z)
 
-          let rotDelta = Math.abs(rotY - lastSentRotY.current)
-          if (rotDelta > Math.PI) rotDelta = Math.PI * 2 - rotDelta
+      let rotDelta = Math.abs(rotY - lastSentRotY.current)
+      if (rotDelta > Math.PI) rotDelta = Math.PI * 2 - rotDelta
 
-          const posChanged = dx > POSITION_THRESHOLD || dy > POSITION_THRESHOLD || dz > POSITION_THRESHOLD
-          const rotChanged = rotDelta > ROTATION_THRESHOLD
+      const posChanged = dx > POSITION_THRESHOLD || dy > POSITION_THRESHOLD || dz > POSITION_THRESHOLD
+      const rotChanged = rotDelta > ROTATION_THRESHOLD
 
-          // Only sync if something changed (or force sync every 60 frames ~1 sec)
-          if (posChanged || rotChanged || syncCounter.current % 60 === 0) {
-            // Compress data to reduce bandwidth
-            const compressedPos = compressPosition({
-              x: playerPos.current.x,
-              y: playerPos.current.y,
-              z: playerPos.current.z,
-            })
-            const compressedRotY = compressRotation(rotY)
+      // Only sync if something changed (or force sync every 60 frames ~1 sec)
+      if (posChanged || rotChanged || syncCounter.current % 60 === 0) {
+        // Compress data to reduce bandwidth
+        const compressedPos = compressPosition({
+          x: playerPos.current.x,
+          y: playerPos.current.y,
+          z: playerPos.current.z,
+        })
+        const compressedRotY = compressRotation(rotY)
 
-            // Playroom path: write the per-player keyed state. (geckos broadcasts from the echo below.)
-            if (me) {
-              me.setState('pos', compressedPos, true)
-              me.setState('rotY', compressedRotY, true)
-            }
+        lastSentPos.current.copy(playerPos.current)
+        lastSentRotY.current = rotY
 
-            lastSentPos.current.copy(playerPos.current)
-            lastSentRotY.current = rotY
-
-            // Echo into the local zustand entry. For geckos this IS the broadcast source (Presence pulls it
-            // each tick via the StateGetter); for Playroom it keeps the LOCAL avatar rendering.
-            const { localPlayerId, updateRemotePlayer } = useMultiplayerStore.getState()
-            if (localPlayerId) {
-              // Under geckos the movement/emote/clear blocks are the SOLE animation writers (so 'Run'/'Sprint'
-              // survive); the echo must not clobber them with currentEmote (null while moving). Playroom keeps
-              // its original behaviour where the echo carries currentEmote.
-              updateRemotePlayer(localPlayerId, geckos
-                ? { position: compressedPos, rotationY: compressedRotY }
-                : { position: compressedPos, rotationY: compressedRotY, animation: currentEmote.current })
-            }
-          }
+        // Echo into the local zustand entry. This IS the geckos broadcast source (Presence pulls it
+        // each tick via the StateGetter) and keeps the LOCAL avatar rendering.
+        const { localPlayerId, updateRemotePlayer } = useMultiplayerStore.getState()
+        if (localPlayerId) {
+          // The movement/emote/clear blocks are the SOLE animation writers (so 'Run'/'Sprint'
+          // survive); the echo must not clobber them with currentEmote (null while moving).
+          updateRemotePlayer(localPlayerId, { position: compressedPos, rotationY: compressedRotY })
         }
-      } catch (e) {
-        // PlayroomKit not ready yet
       }
     }
   })

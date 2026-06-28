@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { RPC } from 'playroomkit'
 import { useMultiplayerStore } from '../../lib/multiplayerStore'
 import { checkAdminURL, getAdminProfile, setAdminStatus } from '../../lib/auth/adminAuth'
-import { MAX_PLAYERS_PER_LOBBY, getLobbyIndex, generateLobbyCode, isValidLobbyCode } from '../../lib/lobbyConfig'
-import { findLobby, joinLobby, leaveLobby } from '../../lib/lobbyApi'
 import { useKeyboardStore } from '../../lib/useKeyboardStore'
 import AdminPasswordModal from './AdminPasswordModal'
 import { parseEmoteCodes, getEmoteById } from '../../lib/emotes/emotesConfig'
@@ -107,19 +104,14 @@ function InlineGif({ url }: { url: string }) {
 }
 
 export default function LobbyScreen() {
-  const { 
-    lobbyVisible, 
-    setLobbyVisible, 
-    setConnected, 
-    setLocalPlayerId, 
-    updateRemotePlayer, 
-    removeRemotePlayer, 
-    addChatMessage,
+  const {
+    lobbyVisible,
+    setLobbyVisible,
+    setConnected,
     setIsAdmin,
     setCurrentLobby,
     chatMessages,
     setChatMessages,
-    remotePlayers,
     isConnected,
   } = useMultiplayerStore()
 
@@ -154,27 +146,10 @@ export default function LobbyScreen() {
   const [showAdminModal, setShowAdminModal] = useState(false)
   const [isAdminMode, setIsAdminMode] = useState(false)
   const [autoJoinNickname, setAutoJoinNickname] = useState<string | null>(null)
-  const [connectingLobby, setConnectingLobby] = useState<string | null>(null)
-  const playroomRef = useRef<any>(null)
   const hasInitialized = useRef(false)
   const localPlayerIdRef = useRef<string | null>(null)
 
   useEffect(() => {
-    // FIX — Previously we called `initBackgroundConnection(mod)` here, which
-    // ran `pk.insertCoin(...)` on mount. That meant every tab that simply
-    // OPENED the page counted toward the 10-player PlayroomKit limit (ghost
-    // "Player" entries in the Online list, and new joiners getting
-    // redirected to a fresh lobby even though the current one looked empty).
-    // The original design (commit 8e1582b) only connected on Play. We now
-    // just pre-load the module so `handlePlayClick` doesn't have to wait
-    // for the dynamic import — the actual insertCoin / RPC registration /
-    // onPlayerJoin setup happens inside `initBackgroundConnection`, which
-    // is only invoked from `handlePlayClick`.
-    // @ts-ignore — playroomkit will be available after npm install
-    import('playroomkit').then((mod: any) => {
-      playroomRef.current = mod
-    })
-
     const urlParams = new URLSearchParams(window.location.search)
     const isAutoJoin = urlParams.get('autoJoin') === 'true'
 
@@ -222,7 +197,6 @@ export default function LobbyScreen() {
         try { netDisconnect() } catch {}
         return
       }
-      leaveLobby(localPlayerIdRef.current)
     }
     window.addEventListener('beforeunload', handleLeave)
     window.addEventListener('pagehide', handleLeave)
@@ -289,7 +263,7 @@ export default function LobbyScreen() {
 
   // FIX — Clear local YT UI when the video ends naturally. youtubePlayer
   // dispatches `yt-ended` from the YT iframe's ENDED state change and also
-  // resets Playroom state so remotes drop the embed cover image; this hook
+  // resets net state so remotes drop the embed cover image; this hook
   // keeps THIS client's own Customization tab in sync so the input re-enables
   // and the "now playing" banner disappears without a manual Stop click.
   useEffect(() => {
@@ -437,505 +411,10 @@ export default function LobbyScreen() {
       return
     }
 
-    // geckos single-lobby path (NEXT_PUBLIC_NET=geckos) — bypass Playroom + the lobby-split entirely.
+    // geckos single-lobby path — bypass Playroom + the lobby-split entirely.
     if (isGeckos()) {
       await handleGeckosPlay()
       return
-    }
-
-    const pk = playroomRef.current
-    if (!pk) {
-      setError('Loading multiplayer... try again.')
-      return
-    }
-    setError('')
-
-    // Connect NOW (not on mount) so tabs that never click Play don't
-    // consume a slot in the 10-player PlayroomKit room limit.
-    if (!hasInitialized.current) {
-      setIsConnecting(true)
-      try {
-        await initBackgroundConnection(pk)
-      } catch (err: any) {
-        setIsConnecting(false)
-        setError('Could not join lobby. Try again.')
-        return
-      }
-      setIsConnecting(false)
-    }
-
-    if (!pk.myPlayer()) {
-      setError('Wait for server connection...')
-      return
-    }
-    // Mic permission is now optional, managed from Audio Settings inside the lobby.
-    // No blocking prompt here — user can enable mic anytime later.
-
-    const me = pk.myPlayer()
-    const profile = isAdminMode 
-      ? getAdminProfile(nickname.trim())
-      : {
-          name: nickname.trim(),
-          color: selectedColor,
-          skinId: 'ansem',
-          isAdmin: false,
-          colors: { primary: selectedColor },
-        }
-    
-    me.setState('pdata', profile)
-    setLocalPlayerId(me.id)
-
-    if (isAdminMode && profile.name) {
-      const cleanName = profile.name.replace('[ADMIN] ', '')
-      sessionStorage.setItem('adminNickname', cleanName)
-    }
-
-    updateRemotePlayer(me.id, {
-      id: me.id,
-      name: profile.name,
-      color: profile.color,
-      skinId: profile.skinId,
-      isAdmin: profile.isAdmin,
-      colors: profile.colors,
-    })
-
-    setConnected(true)
-    setLobbyVisible(false)
-    // Lock camera synchronously within this click handler so the user can
-    // move the camera immediately without having to click on the canvas.
-    lockCanvas()
-  }
-
-  // Background connection for live chat and state sync
-  const initBackgroundConnection = async (providedPk?: any) => {
-    try {
-      const pk = providedPk || playroomRef.current
-      if (!pk) return
-
-      if (!hasInitialized.current) {
-        hasInitialized.current = true
-        
-        // Step 1: Determine which lobby to join
-        let lobbyCode: string
-        
-        const adminTargetLobby = sessionStorage.getItem('targetLobby')
-        const redirectLobby = sessionStorage.getItem('redirectLobby')
-        
-        if (adminTargetLobby && isAdminMode) {
-          // Admin targeting a specific room
-          sessionStorage.removeItem('targetLobby')
-          lobbyCode = adminTargetLobby
-          console.log(`[Lobby] Admin targeting: ${lobbyCode}`)
-        } else if (redirectLobby) {
-          // Redirected from a full lobby — use the next lobby directly
-          sessionStorage.removeItem('redirectLobby')
-          sessionStorage.removeItem('playerNickname')
-          sessionStorage.removeItem('playerColor')
-          lobbyCode = redirectLobby
-          console.log(`[Lobby] Redirected to: ${lobbyCode}`)
-        } else {
-          // Check if URL has a specific lobby param (e.g. ?lobby=AlonHouse-2)
-          const urlParams = new URLSearchParams(window.location.search)
-          const urlLobby = urlParams.get('lobby')
-          
-          if (urlLobby && isValidLobbyCode(urlLobby)) {
-            lobbyCode = urlLobby
-            console.log(`[Lobby] Joining specific lobby from URL: ${lobbyCode}`)
-          } else {
-            // Ask the API: "which lobby has space?"
-            console.log('[Lobby] Asking API for available lobby...')
-            const lobbyInfo = await findLobby()
-            lobbyCode = lobbyInfo.code
-            console.log(`[Lobby] API says: ${lobbyCode} (${lobbyInfo.players}/${lobbyInfo.max})`)
-          }
-        }
-        
-        setCurrentLobby(lobbyCode)
-        setConnectingLobby(lobbyCode)
-        
-        // Step 2: Connect to PlayroomKit with the EXACT room code
-        try {
-          await pk.insertCoin({
-            skipLobby: true,
-            roomCode: lobbyCode,
-            maxPlayersPerRoom: isAdminMode ? MAX_PLAYERS_PER_LOBBY + 1 : MAX_PLAYERS_PER_LOBBY,
-          })
-        } catch (insertErr: any) {
-          const errMsg = insertErr?.message || String(insertErr)
-          if (errMsg.includes('ROOM_LIMIT') || errMsg.includes('room') || errMsg.includes('full')) {
-            // Room is actually full — redirect to next lobby
-            const nextIndex = getLobbyIndex(lobbyCode) + 1
-            const nextLobby = generateLobbyCode(nextIndex)
-            console.log(`[Lobby] ${lobbyCode} full (PlayroomKit), redirecting to ${nextLobby}...`)
-            
-            sessionStorage.setItem('playerNickname', nickname.trim())
-            sessionStorage.setItem('playerColor', selectedColor)
-            sessionStorage.setItem('redirectLobby', nextLobby)
-            
-            const url = new URL(window.location.href)
-            url.search = ''
-            url.searchParams.set('autoJoin', 'true')
-            if (isAdminMode) {
-              url.searchParams.set('admin', 'admin')
-              sessionStorage.setItem('adminNickname', nickname.trim())
-            }
-            
-            window.location.href = url.toString()
-            return // Page is reloading
-          }
-          throw insertErr // Re-throw unknown errors
-        }
-        
-        // Step 3: Register in API after successful connection
-        const me = pk.myPlayer()
-        if (me) {
-          localPlayerIdRef.current = me.id
-          await joinLobby(me.id, lobbyCode)
-          console.log(`[Lobby] Registered ${me.id} in ${lobbyCode}`)
-        }
-        
-        // Update URL
-        window.history.replaceState({}, '', `${window.location.pathname}?lobby=${lobbyCode}`)
-        console.log(`[Lobby] Successfully joined ${lobbyCode}`)
-
-        // Step 4: Fetch chat history for preview before entering game
-        import('../../lib/lobbyApi').then(({ getChatHistory }) => {
-          getChatHistory(lobbyCode).then((history) => {
-            if (history && history.length > 0) {
-              setChatMessages(history)
-            }
-          })
-        })
-      }
-
-      // Player profile initialization moved to handlePlayClick mapping
-
-      // Register RPC for synchronized music playback
-      RPC.register('playMusic', async (data: any, caller: any) => {
-        const { playerId, skinId } = data
-        
-        try {
-          const { playMusicForPlayer } = await import('../../lib/audio/musicSystem')
-          playMusicForPlayer(playerId, skinId)
-          
-          if (caller) {
-            caller.setState('isMusicPlaying', true)
-            caller.setState('musicData', {
-              skinId: skinId,
-              startTime: Date.now()
-            })
-          }
-        } catch (err) {
-        }
-      })
-
-      // Register RPC to stop music across all players
-      RPC.register('stopMusic', async (data: any, caller: any) => {
-        const { playerId } = data
-        try {
-          const { stopMusicForPlayer } = await import('../../lib/audio/musicSystem')
-          stopMusicForPlayer(playerId)
-          if (caller) {
-            caller.setState('isMusicPlaying', false)
-            caller.setState('musicData', null)
-          }
-        } catch (err) {
-        }
-      })
-
-      // --- Voice Chat RPC Handlers ---
-      RPC.register('voiceOffer', async (data: any) => {
-        const { from, to, sdp } = data
-        if (to !== pk.myPlayer()?.id) return
-        const vc = await import('../../lib/audio/voiceChatSystem')
-        vc.handleOffer(from, sdp)
-      })
-      RPC.register('voiceAnswer', async (data: any) => {
-        const { from, to, sdp } = data
-        if (to !== pk.myPlayer()?.id) return
-        const vc = await import('../../lib/audio/voiceChatSystem')
-        vc.handleAnswer(from, sdp)
-      })
-      RPC.register('voiceIce', async (data: any) => {
-        const { from, to, candidate } = data
-        if (to !== pk.myPlayer()?.id) return
-        const vc = await import('../../lib/audio/voiceChatSystem')
-        vc.handleIceCandidate(from, candidate)
-      })
-
-      // --- Admin Kick RPC ---
-      // Broadcast from AdminLobbyPanel. Every client receives the call, but
-      // only the target player actually disconnects (leave backend +
-      // PlayroomKit quit + hard reload so they land back on the lobby UI).
-      // Non-targets just drop the kicked player from their local map for
-      // instant visual feedback without waiting for PlayroomKit's socket
-      // timeout.
-      RPC.register('adminKick', async (data: any) => {
-        const { playerId } = data || {}
-        if (!playerId) return
-        const myId = pk.myPlayer()?.id
-        if (myId === playerId) {
-          // I'm the one being kicked.
-          try { leaveLobby(playerId) } catch {}
-          try { pk.myPlayer()?.quit?.() } catch {}
-          setTimeout(() => {
-            try { window.location.href = window.location.pathname } catch {
-              window.location.reload()
-            }
-          }, 100)
-        } else {
-          // Someone else got kicked — drop them from my local view.
-          removeRemotePlayer(playerId)
-        }
-      })
-
-      // Initialize voice chat system with RPC sender.
-      // FIX — AWAIT this before registering `pk.onPlayerJoin`. PlayroomKit
-      // fires `onPlayerJoin` synchronously for peers already connected in
-      // the room. Those handlers call `vc.createOffer(remoteId)` which
-      // early-returns when `rpcSendFn` is null (see voiceChatSystem.ts
-      // line 339). Previously this was a non-awaited `.then()`, so in
-      // Chrome the microtask order made `onPlayerJoin` fire BEFORE
-      // `setRpcSender` resolved → the offer was silently swallowed and
-      // only buffered ICE candidates arrived later ("[VoiceChat] Buffered
-      // ICE candidate from … (1 pending)" with no matching "Sent offer"
-      // is exactly that symptom). Firefox happened to order microtasks
-      // differently and worked by luck.
-      const vcModule = await import('../../lib/audio/voiceChatSystem')
-      vcModule.setRpcSender((event: string, data: any) => {
-        RPC.call(event, data, RPC.Mode.ALL)
-      })
-      vcModule.setLocalPlayerIdGetter(() => pk.myPlayer()?.id || null)
-
-      // Push-to-talk: V key
-      const handleVoiceKeyDown = async (e: KeyboardEvent) => {
-        if (e.key === 'v' || e.key === 'V') {
-          // Skip if typing in input
-          const el = document.activeElement as any
-          if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return
-          if (e.repeat) return // Ignore key repeat
-          const vc = await import('../../lib/audio/voiceChatSystem')
-          if (!vc.isMicAvailable()) {
-            const ok = await vc.initVoiceChat()
-            if (!ok) return
-            await vc.addLocalTrackToExistingPeers()
-            const remotePlayers = useMultiplayerStore.getState().remotePlayers
-            remotePlayers.forEach((_, peerId) => {
-              if (!vc.hasPeer(peerId)) vc.createOffer(peerId)
-            })
-          }
-          vc.startTransmitting()
-          useKeyboardStore.getState().setLocalMicActive(true)
-          const me = pk.myPlayer()
-          if (me) me.setState('isMicActive', true)
-        }
-      }
-      const handleVoiceKeyUp = async (e: KeyboardEvent) => {
-        if (e.key === 'v' || e.key === 'V') {
-          const vc = await import('../../lib/audio/voiceChatSystem')
-          vc.stopTransmitting()
-          useKeyboardStore.getState().setLocalMicActive(false)
-          const me = pk.myPlayer()
-          if (me) me.setState('isMicActive', false)
-        }
-      }
-      window.addEventListener('keydown', handleVoiceKeyDown)
-      window.addEventListener('keyup', handleVoiceKeyUp)
-
-      // onPlayerJoin — identical to playroom_guide/Experience.jsx lines 23-38
-      pk.onPlayerJoin((state: any) => {
-        // Skip processing our own state — ChatInput handles the local player
-        if (state.id === pk.myPlayer()?.id) return
-        
-        const seenChatTimestamps = new Set<number>()
-        // Track the currently-scheduled chat-bubble-clear timer per player.
-        // Previously each message scheduled its own setTimeout without
-        // cancelling the previous one — so if msg A (scheduled to clear at
-        // T=5) was followed by msg B at T=3 (clear at T=8), A's timer still
-        // fired at T=5 and hid B's bubble prematurely. This was especially
-        // noticeable for GIFs because they're usually sent rapid-fire.
-        let chatClearTimer: ReturnType<typeof setTimeout> | null = null
-
-        // FIX — Always create remote entry immediately, even without profile.
-        // Guarantees avatars show up right when a player joins. Profile data is
-        // upgraded in the polling interval as it becomes available. Without
-        // this, heavy-scene main-thread stalls could race the pdata/pos writes
-        // and the player would never appear in the world.
-        const initialProfile = state.getState('pdata')
-        updateRemotePlayer(state.id, {
-          id: state.id,
-          name: initialProfile?.name || '',
-          color: initialProfile?.color || '#4a9eff',
-          skinId: initialProfile?.skinId || 'ansem',
-          isAdmin: initialProfile?.isAdmin || false,
-          colors: initialProfile?.colors || { primary: initialProfile?.color || '#4a9eff' },
-        })
-
-        // Track music sync state to prevent duplicate plays
-        const musicSyncedFor = new Set<string>()
-        let wasMusicPlaying = false
-
-        // Track YouTube sync state
-        const ytSyncedFor = new Set<string>()
-        let wasYouTubePlaying = false
-
-        // Cache dynamic imports once
-        let musicMod: any = null
-        let ytMod: any = null
-        import('../../lib/audio/musicSystem').then((m) => { musicMod = m })
-        import('../../lib/audio/youtubePlayer').then((m) => { ytMod = m })
-        
-        // Poll remote player positions (OPTIMIZED: single updateRemotePlayer call per tick)
-        const posInterval = setInterval(() => {
-          const pos = state.getState('pos')
-          const rotY = state.getState('rotY')
-          const profile = state.getState('pdata')
-          const chatData = state.getState('chatMessage')
-          const anim = state.getState('animation')
-          const isMusicPlaying = state.getState('isMusicPlaying')
-          const musicData = state.getState('musicData')
-          const isYouTubePlaying = state.getState('isYouTubePlaying')
-          const youtubeData = state.getState('youtubeData')
-
-          // FIX — Decouple profile/flag updates from `pos`. Previously, if a
-          // remote player hadn't written 'pos' yet (racy during heavy-scene
-          // loading) we'd skip updating name/skin/music/mic flags entirely —
-          // causing the avatar to remain a nameless placeholder and music/mic
-          // indicators to be stuck OFF.
-          const update: any = {}
-          if (pos) {
-            update.position = pos
-            update.rotationY = rotY || 0
-            update.animation = anim || null
-          }
-          if (profile && profile.name) {
-            update.name = profile.name
-            update.color = profile.color || '#4a9eff'
-            update.skinId = profile.skinId
-            update.isAdmin = profile.isAdmin || false
-            update.colors = profile.colors
-          }
-          // Flags are safe to update independently — defaults are falsy so they
-          // don't corrupt anything if the remote hasn't set them yet.
-          update.isMusicPlaying = isMusicPlaying || false
-          update.isYouTubePlaying = isYouTubePlaying || false
-          update.youtubeVideoId = youtubeData?.videoId || undefined
-          update.isMicActive = state.getState('isMicActive') || false
-
-          updateRemotePlayer(state.id, update)
-          
-          // Sync music ONCE when new player joins and music is playing.
-          // FIX — If the play call throws (main-thread stall during heavy
-          // scene, autoplay block, etc.) we REMOVE the sync key so the next
-          // tick retries. Previously a silent failure left the key in the set
-          // and the remote's music was never heard.
-          if (isMusicPlaying && musicData && musicData.skinId) {
-            wasMusicPlaying = true
-            const syncKey = `${state.id}-${musicData.skinId}-${musicData.startTime}`
-            if (!musicSyncedFor.has(syncKey) && musicMod) {
-              musicSyncedFor.add(syncKey)
-              const elapsed = Date.now() - (musicData.startTime || 0)
-              try {
-                musicMod.playMusicForPlayer(state.id, musicData.skinId, elapsed / 1000)
-              } catch (err) {
-                musicSyncedFor.delete(syncKey)
-                console.warn('[Music Sync] failed, will retry next tick:', err)
-              }
-            }
-          } else if (!isMusicPlaying) {
-            if (wasMusicPlaying) {
-              wasMusicPlaying = false
-              if (musicMod && musicMod.isPlayingForPlayer(state.id)) {
-                musicMod.stopMusicForPlayer(state.id)
-              }
-            }
-            musicSyncedFor.clear()
-          }
-
-          // Sync YouTube music ONCE when remote player is playing.
-          // FIX — playYouTubeForPlayer returns a Promise that can reject
-          // (timeout, embed restrictions, iframe API not ready, etc.). Without
-          // a catch, the rejection is swallowed and the syncKey stays set
-          // forever → the remote's YT is never played on our side. Now on
-          // failure we drop the key so the next tick retries automatically.
-          if (isYouTubePlaying && youtubeData && youtubeData.videoId) {
-            wasYouTubePlaying = true
-            const ytSyncKey = `${state.id}-${youtubeData.videoId}-${youtubeData.startTime}`
-            if (!ytSyncedFor.has(ytSyncKey) && ytMod) {
-              ytSyncedFor.add(ytSyncKey)
-              const elapsed = Date.now() - (youtubeData.startTime || 0)
-              Promise.resolve(ytMod.playYouTubeForPlayer(state.id, youtubeData.videoId, elapsed / 1000))
-                .catch((err: any) => {
-                  ytSyncedFor.delete(ytSyncKey)
-                  console.warn('[YT Sync] failed, will retry next tick:', err?.message || err)
-                })
-            }
-          } else if (!isYouTubePlaying) {
-            if (wasYouTubePlaying) {
-              wasYouTubePlaying = false
-              if (ytMod && ytMod.isYouTubePlayingForPlayer(state.id)) {
-                ytMod.stopYouTubeForPlayer(state.id)
-              }
-            }
-            ytSyncedFor.clear()
-          }
-
-          // Handle chat bubbles (state-based instead of RPC)
-          if (chatData && chatData.text && chatData.timestamp) {
-            if (!seenChatTimestamps.has(chatData.timestamp)) {
-              seenChatTimestamps.add(chatData.timestamp)
-              updateRemotePlayer(state.id, { chatMessage: chatData.text })
-              addChatMessage({
-                id: chatData.timestamp.toString() + '-' + state.id,
-                playerId: state.id,
-                playerName: profile?.name || 'Player',
-                playerColor: profile?.colors?.primary || profile?.color || '#ffb84d',
-                text: chatData.text,
-                timestamp: chatData.timestamp,
-              })
-              // Cancel any pending clear from a previous message so it
-              // doesn't fire early and hide this (newer) bubble. Extended
-              // to 8s so GIFs/images have more time to load AND be read.
-              if (chatClearTimer) clearTimeout(chatClearTimer)
-              chatClearTimer = setTimeout(() => {
-                updateRemotePlayer(state.id, { chatMessage: null })
-                chatClearTimer = null
-              }, 8000)
-            }
-          }
-        }, 100) // 10 FPS sync
-
-        // When a new player joins, always create voice peer connection
-        // (receive-only if no mic). FIX — catch any error so it doesn't
-        // bubble up as unhandled rejection; the peer will auto-retry on the
-        // next user V-press via the `addLocalTrackToExistingPeers` path.
-        import('../../lib/audio/voiceChatSystem').then((vc) => {
-          if (!vc.hasPeer(state.id)) {
-            Promise.resolve(vc.createOffer(state.id)).catch((err: any) => {
-              console.warn('[Voice] initial createOffer failed:', err?.message || err)
-            })
-          }
-        }).catch(() => {})
-
-        state.onQuit(() => {
-          clearInterval(posInterval)
-          musicSyncedFor.clear()
-          removeRemotePlayer(state.id)
-          import('../../lib/audio/voiceChatSystem').then((vc) => vc.removePeer(state.id))
-        })
-      })
-
-      // Background connection ready
-
-      // Cleanup voice chat on unmount
-      return () => {
-        window.removeEventListener('keydown', handleVoiceKeyDown)
-        window.removeEventListener('keyup', handleVoiceKeyUp)
-        import('../../lib/audio/voiceChatSystem').then((vc) => vc.cleanupVoiceChat())
-      }
-    } catch (err: any) {
-      // Background connection failure - silent
-      hasInitialized.current = false // reset so they can try again
     }
   }
 
@@ -957,7 +436,7 @@ export default function LobbyScreen() {
 
   // Auto-join effect: admin lobby switch OR regular user redirect from full lobby
   useEffect(() => {
-    if (autoJoinNickname && playroomRef.current) {
+    if (autoJoinNickname) {
       setTimeout(() => {
         handlePlayClick()
       }, 500)
@@ -1060,7 +539,7 @@ export default function LobbyScreen() {
                      - CustomizationTab (same store)
                      - SkinBar (bottom in-game HUD)
                      - SkinsModal (C key in-game)
-                     - Playroom `pdata.skinId` → remote avatars
+                     - geckos PlayerState `skinId` → remote avatars
                    No duplicated logic: `applyLobbySkin` mirrors CustomizationTab.applyProfile. */}
                <LobbyCenterSkinPicker
                  selectedSkinIndex={selectedSkinIndex}
@@ -1068,7 +547,6 @@ export default function LobbyScreen() {
                  setSelectedSkinIndex={setSelectedSkinIndex}
                  setActiveSkinId={setActiveSkinId}
                  setSkinLoaded={setSkinLoaded}
-                 playroomRef={playroomRef}
                />
 
                {/* Mobile-only skin picker */}
@@ -1182,7 +660,6 @@ export default function LobbyScreen() {
                 ytLoading={ytLoading} setYtLoading={setYtLoading}
                 ytError={ytError} setYtError={setYtError}
                 setYtPlaying={setYtPlaying} setYtTitle={setYtTitle}
-                playroomRef={playroomRef}
                 selectedSkinIndex={selectedSkinIndex}
                 colorsBySkinId={colorsBySkinId}
                 setSelectedSkinIndex={setSelectedSkinIndex}
@@ -1431,7 +908,7 @@ function MicPermissionRow() {
 // LOBBY CENTER SKIN PICKER — 3D preview + arrows shown in the middle
 // panel of the lobby (replaces the old /avatar.png static image).
 // Shares state with CustomizationTab / SkinsModal / SkinBar via
-// useSkinStore, and pushes skin changes to Playroom via the same
+// useSkinStore, and pushes skin changes to remotes via the same
 // profile-update path used by CustomizationTab.applyProfile.
 // ───────────────────────────────────────────────────────────────────
 type LobbyCenterSkinPickerProps = {
@@ -1440,14 +917,12 @@ type LobbyCenterSkinPickerProps = {
   setSelectedSkinIndex: (i: number) => void
   setActiveSkinId: (id: string) => void
   setSkinLoaded: (id: string, loaded: boolean) => void
-  playroomRef: React.MutableRefObject<any>
 }
 
 function LobbyCenterSkinPicker(props: LobbyCenterSkinPickerProps) {
   const {
     selectedSkinIndex, colorsBySkinId,
     setSelectedSkinIndex, setActiveSkinId, setSkinLoaded,
-    playroomRef,
   } = props
 
   const skin = SKINS[selectedSkinIndex] ?? SKINS[0]
@@ -1470,8 +945,6 @@ function LobbyCenterSkinPicker(props: LobbyCenterSkinPickerProps) {
   }, [selectedSkinIndex])
 
   function applyLobbySkin(nextIndex: number) {
-    const pk = playroomRef.current
-    const me = pk?.myPlayer?.()
     const nextSkin = SKINS[nextIndex] ?? SKINS[0]
     const nextColors = colorsBySkinId[nextSkin.id]
 
@@ -1484,14 +957,6 @@ function LobbyCenterSkinPicker(props: LobbyCenterSkinPickerProps) {
         const prev = remotePlayers.get(localPlayerId)
         const color = nextColors?.primary ?? prev?.color ?? '#4a9eff'
         updateRemotePlayer(localPlayerId, { skinId: nextSkin.id, colors: nextColors ?? prev?.colors, color })
-      }
-    } else if (me) {
-      const prev = me.getState('pdata') || {}
-      const color = nextColors?.primary ?? prev.color ?? '#4a9eff'
-      me.setState('pdata', { ...prev, skinId: nextSkin.id, colors: nextColors ?? prev.colors, color }, true)
-      const { localPlayerId, updateRemotePlayer } = useMultiplayerStore.getState()
-      if (localPlayerId) {
-        updateRemotePlayer(localPlayerId, { skinId: nextSkin.id, colors: nextColors ?? prev.colors, color })
       }
     }
   }
@@ -1604,7 +1069,6 @@ type CustomizationProps = {
   ytLoading: boolean; setYtLoading: (b: boolean) => void
   ytError: string; setYtError: (s: string) => void
   setYtPlaying: (b: boolean) => void; setYtTitle: (s: string) => void
-  playroomRef: React.MutableRefObject<any>
   selectedSkinIndex: number
   colorsBySkinId: Record<string, SkinColors | undefined>
   setSelectedSkinIndex: (i: number) => void
@@ -1617,7 +1081,7 @@ function CustomizationTab(props: CustomizationProps) {
   const {
     isConnected, ytUrl, setYtUrl, ytPlaying, ytTitle,
     ytLoading, setYtLoading, ytError, setYtError,
-    setYtPlaying, setYtTitle, playroomRef,
+    setYtPlaying, setYtTitle,
     selectedSkinIndex, colorsBySkinId,
     setSelectedSkinIndex, setSkinColors, setActiveSkinId, setSkinLoaded,
   } = props
@@ -1647,17 +1111,6 @@ function CustomizationTab(props: CustomizationProps) {
       }
       setActiveSkinId(nextSkin.id)
       return
-    }
-    const pk = playroomRef.current
-    const me = pk?.myPlayer?.()
-    if (!me) return
-    const prev = me.getState('pdata') || {}
-    const color = nextColors?.primary ?? prev.color ?? '#4a9eff'
-    me.setState('pdata', { ...prev, skinId: nextSkin.id, colors: nextColors ?? prev.colors, color }, true)
-    setActiveSkinId(nextSkin.id)
-    const { localPlayerId, updateRemotePlayer } = useMultiplayerStore.getState()
-    if (localPlayerId) {
-      updateRemotePlayer(localPlayerId, { skinId: nextSkin.id, colors: nextColors ?? prev.colors, color })
     }
   }
 
@@ -1696,30 +1149,6 @@ function CustomizationTab(props: CustomizationProps) {
         netSetLocalState({ isYouTubePlaying: true, youtubeVideoId: info.videoId, isMusicPlaying: false })
         return
       }
-
-      // Stop any skin music
-      try {
-        const pk = playroomRef.current
-        const me = pk?.myPlayer?.()
-        if (me?.id && me.getState('isMusicPlaying')) {
-          stopMusicForPlayer(me.id)
-          me.setState('isMusicPlaying', false)
-          me.setState('musicData', null)
-          RPC.call('stopMusic', { playerId: me.id }, RPC.Mode.ALL)
-        }
-      } catch {}
-
-      const info = await playYouTubeAudio(ytUrl)
-      setYtTitle(info.title)
-      setYtPlaying(true)
-      try {
-        const pk = playroomRef.current
-        const me = pk?.myPlayer?.()
-        if (me?.id) {
-          me.setState('isYouTubePlaying', true)
-          me.setState('youtubeData', { videoId: info.videoId, startTime: Date.now() })
-        }
-      } catch {}
     } catch (err: any) {
       setYtError(err?.message || 'Failed to play YouTube audio')
     } finally {
@@ -1737,14 +1166,6 @@ function CustomizationTab(props: CustomizationProps) {
       netSetLocalState({ isYouTubePlaying: false, youtubeVideoId: undefined })
       return
     }
-    try {
-      const pk = playroomRef.current
-      const me = pk?.myPlayer?.()
-      if (me?.id) {
-        me.setState('isYouTubePlaying', false)
-        me.setState('youtubeData', null)
-      }
-    } catch {}
   }
 
   return (

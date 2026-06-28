@@ -5,7 +5,6 @@ import { EYE_HEIGHT } from './camera/cameraConstants'
 const SPAWN_X = -59.95
 const SPAWN_Z = -87.86
 const SPAWN_ROT = (74.61 + 180) * (Math.PI / 180) // 74.61° display + 180° offset
-import { LobbyInfo, LobbyCode, createDefaultLobbyInfo, getLobbyIndex } from './lobbyConfig'
 
 export interface ChatMessage {
   id: string
@@ -63,10 +62,8 @@ interface MultiplayerState {
   setChatMessages: (msgs: ChatMessage[]) => void
 
   // Multi-lobby system
-  currentLobby: LobbyCode | null
-  setCurrentLobby: (code: LobbyCode) => void
-  availableLobbies: LobbyInfo[]
-  updateLobbyList: (lobbies: LobbyInfo[]) => void
+  currentLobby: string | null
+  setCurrentLobby: (code: string) => void
 
   // Admin system
   isAdmin: boolean
@@ -160,8 +157,6 @@ export const useMultiplayerStore = create<MultiplayerState>((set, get) => ({
   // Multi-lobby
   currentLobby: null,
   setCurrentLobby: (code) => set({ currentLobby: code }),
-  availableLobbies: createDefaultLobbyInfo(),
-  updateLobbyList: (lobbies) => set({ availableLobbies: lobbies }),
 
   // Admin
   isAdmin: false,

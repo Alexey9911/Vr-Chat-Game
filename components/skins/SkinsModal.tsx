@@ -6,6 +6,7 @@ import type { SkinColors } from '../../lib/skins/skinTypes'
 import SkinPreviewCanvas from './SkinPreviewCanvas'
 import { useMultiplayerStore } from '../../lib/multiplayerStore'
 import { useKeyboardStore } from '../../lib/useKeyboardStore'
+import { setLocalState as netSetLocalState } from '../../lib/net/netClient'
 
 const SKIN_COLORS = [
   { label: 'Electric Blue', hex: '#4a9eff' },
@@ -63,17 +64,10 @@ export default function SkinsModal() {
   const colors = colorsBySkinId[skin.id]
   const neighborUrls = useMemo(() => getNeighborUrls(selectedSkinIndex), [selectedSkinIndex])
   const panelRef = useRef<HTMLDivElement | null>(null)
-  const playroomRef = useRef<any>(null)
   const abortRef = useRef<AbortController | null>(null)
   const [fadePhase, setFadePhase] = useState<'in' | 'out'>('in')
   const loadedLogged = useRef<Record<string, boolean>>({})
   const isVisible = isConnected && isModalOpen
-
-  useEffect(() => {
-    import('playroomkit').then((mod: any) => {
-      playroomRef.current = mod
-    })
-  }, [])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -99,41 +93,28 @@ export default function SkinsModal() {
 
   useEffect(() => {
     if (!isVisible) return
-    const pk = playroomRef.current
-    const me = pk?.myPlayer?.()
-    const profile = me?.getState?.('pdata')
-    const profSkinId = profile?.skinId
+    const { localPlayerId, remotePlayers } = useMultiplayerStore.getState()
+    const me = localPlayerId ? remotePlayers.get(localPlayerId) : undefined
+    const profSkinId = me?.skinId
     const idx = SKINS.findIndex((s) => s.id === profSkinId)
     if (idx >= 0) setSelectedSkinIndex(idx)
   }, [isVisible, setSelectedSkinIndex])
 
   async function applyProfile(nextSkinIndex: number, nextColors: SkinColors | undefined) {
-    const pk = playroomRef.current
-    const me = pk?.myPlayer?.()
-    if (!me) return
-    const prev = me.getState('pdata') || {}
+    const { localPlayerId, remotePlayers, updateRemotePlayer } = useMultiplayerStore.getState()
+    if (!localPlayerId) return
+    const prev = remotePlayers.get(localPlayerId)
     const nextSkin = SKINS[nextSkinIndex] ?? SKINS[0]
-    const color = nextColors?.primary ?? prev.color ?? '#4a9eff'
-    me.setState(
-      'pdata',
-      {
-        ...prev,
-        skinId: nextSkin.id,
-        colors: nextColors ?? prev.colors,
-        color,
-      },
-      true
-    )
+    const color = nextColors?.primary ?? prev?.color ?? '#4a9eff'
+    const colors = nextColors ?? prev?.colors
     // Also update local UI skin state so HUD reflects correct labels
     setActiveSkinId(nextSkin.id)
-    const { localPlayerId, updateRemotePlayer } = useMultiplayerStore.getState()
-    if (localPlayerId) {
-      updateRemotePlayer(localPlayerId, {
-        skinId: nextSkin.id,
-        colors: nextColors ?? prev.colors,
-        color,
-      })
-    }
+    updateRemotePlayer(localPlayerId, {
+      skinId: nextSkin.id,
+      colors,
+      color,
+    })
+    netSetLocalState({ skinId: nextSkin.id, colors, color })
   }
 
   async function validateSkinAssets(nextIndex: number) {
