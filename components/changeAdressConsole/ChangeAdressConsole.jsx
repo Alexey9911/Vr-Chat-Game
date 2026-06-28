@@ -2,7 +2,12 @@
 import { useState } from "react";
 
 export default function ChangeAdressConsole({ text }) {
-  const [mensaje, setMensaje] = useState("EY5ysH6q7M8EUA1Moqs2QdNAf3sqPHQfo6FRFe2dpump");
+  const [mensaje, setMensaje] = useState("0x000000");
+
+  // Display a short first…last form so a long contract address doesn't blow out
+  // the width. The copy button still copies the FULL address.
+  const shortAddr =
+    mensaje.length > 12 ? `${mensaje.slice(0, 6)}...${mensaje.slice(-4)}` : mensaje;
 
   const copyToClipboard = async () => {
     try {
@@ -17,7 +22,7 @@ export default function ChangeAdressConsole({ text }) {
   return (
     <div className="text-xl  text-center mt-4 ">
       <div className="inline-flex items-center gap-[20px]  justify-center">
-        <span className="whitespace-nowrap">{mensaje}</span>
+        <span className="whitespace-nowrap">{shortAddr}</span>
         <button
           onClick={copyToClipboard}
           className="hover:opacity-70 transition "
