@@ -2,13 +2,16 @@ import React, { useState, useEffect } from 'react'
 import { useMultiplayerStore } from '../../lib/multiplayerStore'
 import { MAX_PLAYERS_PER_LOBBY, generateLobbyCode, getLobbyIndex } from '../../lib/lobbyConfig'
 import { getLobbyStatus, resetLobbies, fakeJoin, fakeLeave } from '../../lib/lobbyApi'
+import { isGeckos, kick as netKick } from '../../lib/net/netClient'
 
-// Broadcast an adminKick over PlayroomKit RPC. The target player's client
-// (registered in LobbyScreen.initBackgroundConnection) receives the call,
-// leaves the Deno-KV backend + PlayroomKit room, and reloads back to the
-// lobby UI. Every other client just removes the kicked player from their
-// local remotePlayers map for instant visual feedback.
+// Broadcast an adminKick. geckos: a reliable `evt {t:'kick'}` (the target leaves+reloads, others drop locally).
+// Playroom: RPC.call('adminKick', RPC.Mode.ALL). The target's client (registered in LobbyScreen) reacts; every
+// other client just removes the kicked player from their local remotePlayers map for instant visual feedback.
 async function broadcastKick(playerId: string) {
+  if (isGeckos()) {
+    netKick(playerId)
+    return
+  }
   try {
     const pk: any = await import('playroomkit')
     pk.RPC.call('adminKick', { playerId }, pk.RPC.Mode.ALL)

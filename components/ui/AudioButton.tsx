@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Volume2, VolumeX, Square, Palette, Settings, Mic, Smile, Heart, ThumbsUp, Zap, MousePointer2 } from 'lucide-react'
+import { Volume2, VolumeX, Square, Palette, Settings, Mic } from 'lucide-react'
 import { useMultiplayerStore } from '../../lib/multiplayerStore'
 import { useKeyboardStore } from '../../lib/useKeyboardStore'
 import { hasSkinAudio, setGlobalVolumeMultiplier } from '../../lib/audio/musicSystem'
@@ -11,39 +11,16 @@ import { useViewStore } from '../../lib/camera/viewStore'
 import { useSettingsStore } from '../../lib/settings/settingsStore'
 import { cursorIntent } from '../../lib/cursorIntent'
 import { requestPointerLockSafe } from '../../lib/pointerLockHelper'
+import { isGeckos, setLocalState as netSetLocalState } from '../../lib/net/netClient'
 
 interface AudioButtonProps {
   onPlayMusic: () => void
   onStopMusic: () => void
 }
 
-// Emote keys per skin — flexible map
-const SKIN_EMOTE_KEYS: Record<string, number[]> = {
-  'ai16z': [3, 4, 5],
-  chillhouse: [2, 3, 4, 5, 6, 7, 8],
-  tobaku: [2, 3, 4, 5, 6],
-  unc: [2, 3, 4, 5, 6],
-  pinguin: [2, 3, 4, 5, 6],
-}
-const DEFAULT_EMOTE_KEYS = [2, 3, 4, 5]
-
-function getEmoteKeys(skinId: string | null): number[] {
-  if (!skinId) return DEFAULT_EMOTE_KEYS
-  return SKIN_EMOTE_KEYS[skinId] ?? DEFAULT_EMOTE_KEYS
-}
-
-// Icon mapping for emote keys
-const EMOTE_ICONS: Record<number, React.ReactElement> = {
-  2: <Smile size={18} />,
-  3: <Heart size={18} />,
-  4: <ThumbsUp size={18} />,
-  5: <Zap size={18} />,
-}
-
-// Dispatch synthetic keydown to reuse useCameraControls emote logic
-function triggerEmote(key: number) {
-  window.dispatchEvent(new KeyboardEvent('keydown', { key: String(key), bubbles: true, cancelable: true }))
-}
+// NOTE: per-skin emote/dance buttons live in EmoteBar.tsx (driven by the
+// central lib/skins/skinAnimations.ts config). The old duplicate emote map
+// that used to live here was dead code and has been removed.
 
 export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonProps) {
   const { isConnected, lobbyVisible } = useMultiplayerStore()
@@ -181,10 +158,21 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
     import('playroomkit').then((mod: any) => { playroomRef.current = mod })
   }, [isConnected])
 
-  // Poll Playroom state: isMusicPlaying + skinId every 500ms
+  // Poll local music/skin state every 500ms to drive the HUD button (enabled/disabled + playing icon).
   useEffect(() => {
     if (!isConnected) return
     const interval = setInterval(() => {
+      // geckos: there is no Playroom room — read the local player's own zustand entry (kept fresh by the
+      // producers via netSetLocalState). Without this the HUD button stays permanently disabled under geckos.
+      if (isGeckos()) {
+        const { localPlayerId, remotePlayers } = useMultiplayerStore.getState()
+        const me = localPlayerId ? remotePlayers.get(localPlayerId) : undefined
+        if (!me) return
+        setIsActuallyPlaying(!!me.isMusicPlaying)
+        setCurrentSkinId(me.skinId || 'ansem')
+        setIsYouTubePlaying(isYouTubeAudioPlaying())
+        return
+      }
       const pk = playroomRef.current
       if (!pk) return
       const player = pk.myPlayer()
@@ -192,18 +180,18 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
       const isPlaying = player.getState('isMusicPlaying') || false
       setIsActuallyPlaying(isPlaying)
       const profile = player.getState('pdata')
-      setCurrentSkinId(profile?.skinId || 'alon')
-      
+      setCurrentSkinId(profile?.skinId || 'ansem')
+
       // FIX FOR LOCAL POV: Sync local player's music state to the remotePlayers store
       useMultiplayerStore.getState().updateRemotePlayer(player.id, { isMusicPlaying: isPlaying })
-      
+
       // Sync local YouTube state too (for thumbnail in third-person + HUD button)
       const ytPlaying = isYouTubeAudioPlaying()
       const ytVideoId = getCurrentVideoId()
       setIsYouTubePlaying(ytPlaying)
-      useMultiplayerStore.getState().updateRemotePlayer(player.id, { 
-        isYouTubePlaying: ytPlaying, 
-        youtubeVideoId: ytPlaying ? ytVideoId : undefined 
+      useMultiplayerStore.getState().updateRemotePlayer(player.id, {
+        isYouTubePlaying: ytPlaying,
+        youtubeVideoId: ytPlaying ? ytVideoId : undefined
       })
     }, 500)
     return () => clearInterval(interval)
@@ -286,7 +274,6 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
   if (!isConnected) return null
 
   const hasAudio = currentSkinId && hasSkinAudio(currentSkinId)
-  const emoteKeys = getEmoteKeys(currentSkinId)
 
   // Mutual exclusion: skin music disabled if YouTube playing, YouTube disabled if skin music playing
   const skinMusicDisabled = isYouTubePlaying || (!hasAudio && !isActuallyPlaying)
@@ -378,26 +365,35 @@ export default function AudioButton({ onPlayMusic, onStopMusic }: AudioButtonPro
           }
           vc.startTransmitting()
           useKeyboardStore.getState().setLocalMicActive(true)
-          const pk = playroomRef.current
-          const me = pk?.myPlayer?.()
-          if (me) me.setState('isMicActive', true)
+          if (isGeckos()) {
+            netSetLocalState({ isMicActive: true })
+          } else {
+            const me = playroomRef.current?.myPlayer?.()
+            if (me) me.setState('isMicActive', true)
+          }
         }}
         onMouseUp={async () => {
           const vc = await import('../../lib/audio/voiceChatSystem')
           vc.stopTransmitting()
           useKeyboardStore.getState().setLocalMicActive(false)
-          const pk = playroomRef.current
-          const me = pk?.myPlayer?.()
-          if (me) me.setState('isMicActive', false)
+          if (isGeckos()) {
+            netSetLocalState({ isMicActive: false })
+          } else {
+            const me = playroomRef.current?.myPlayer?.()
+            if (me) me.setState('isMicActive', false)
+          }
         }}
         onMouseLeave={async () => {
           if (localMicActive) {
             const vc = await import('../../lib/audio/voiceChatSystem')
             vc.stopTransmitting()
             useKeyboardStore.getState().setLocalMicActive(false)
-            const pk = playroomRef.current
-            const me = pk?.myPlayer?.()
-            if (me) me.setState('isMicActive', false)
+            if (isGeckos()) {
+              netSetLocalState({ isMicActive: false })
+            } else {
+              const me = playroomRef.current?.myPlayer?.()
+              if (me) me.setState('isMicActive', false)
+            }
           }
         }}
         title="Push to Talk (hold or press V)"

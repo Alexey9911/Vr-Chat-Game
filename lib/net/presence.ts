@@ -1,5 +1,5 @@
 import type { RealtimeTransport, TransportHandlers } from './realtime-transport';
-import type { AppEvent, ChatWire, PlayerState, RemotePeer, StateGetter, VoiceFrame } from './types';
+import type { AppEvent, ChatWire, PlayerState, RemotePeer, StateGetter, VoiceFrame, VoiceSignal } from './types';
 
 import { createTransport } from './realtime-transport';
 import { distance3D, falloff, type Vec3Like } from './spatial';
@@ -66,6 +66,7 @@ export class Presence {
   private nick = '';
   private onChatCb: ((chat: ChatWire) => void) | null = null;
   private onEvtCb: ((evt: AppEvent) => void) | null = null;
+  private onVoiceCb: ((from: string, signal: VoiceSignal) => void) | null = null;
   private onVoiceFrameCb: ((frame: VoiceFrame) => void) | null = null;
   private timer: null | number = null;
   private readonly transport: RealtimeTransport;
@@ -104,6 +105,11 @@ export class Presence {
           this.remote.set(p.id, { ...p, lastSeen: performance.now() });
         }
       },
+      onVoice: (from, signal) => {
+        if (from !== this.id) {
+          this.onVoiceCb?.(from, signal);
+        }
+      },
       onVoiceFrame: (frame) => {
         if (frame.id !== this.id) {
           this.onVoiceFrameCb?.(frame);
@@ -132,6 +138,11 @@ export class Presence {
   /** Register the handler for incoming generic app events (music play/stop, admin kick) from other players. */
   onEvt(cb: (evt: AppEvent) => void): void {
     this.onEvtCb = cb;
+  }
+
+  /** Register the handler for incoming WebRTC voice signaling (SDP/ICE) addressed to us. */
+  onVoice(cb: (from: string, signal: VoiceSignal) => void): void {
+    this.onVoiceCb = cb;
   }
 
   /** Register the handler for incoming voice PCM frames from other players. */
@@ -163,6 +174,11 @@ export class Presence {
     this.transport.sendEvt(evt);
   }
 
+  /** Send a WebRTC voice signaling message (SDP/ICE) to ONE peer (the mesh handshake, ported from GTA-PORT). */
+  sendVoice(to: string, signal: VoiceSignal): void {
+    this.transport.sendVoice(this.id, to, signal);
+  }
+
   /** Broadcast a voice PCM frame to everyone (proximity gain is applied per-listener on receive). */
   sendVoiceFrame(frame: VoiceFrame): void {
     this.transport.sendVoiceFrame(frame);
@@ -175,7 +191,7 @@ export class Presence {
     const c = s.colors ? `${s.colors.primary ?? ''}|${s.colors.secondary ?? ''}|${s.colors.accent ?? ''}` : '';
     const prof =
       `${s.name}|${s.color}|${s.skinId ?? ''}|${s.isAdmin ? 1 : 0}|${c}|` +
-      `${s.isMusicPlaying ? 1 : 0}|${s.isYouTubePlaying ? 1 : 0}|${s.youtubeVideoId ?? ''}|${s.isMicActive ? 1 : 0}`;
+      `${s.isMusicPlaying ? 1 : 0}|${s.isYouTubePlaying ? 1 : 0}|${s.youtubeVideoId ?? ''}|${s.mediaStartEpoch ?? ''}|${s.isMicActive ? 1 : 0}`;
     const key = `${s.x.toFixed(2)},${s.y.toFixed(2)},${s.z.toFixed(2)},${s.rotationY.toFixed(3)},${s.animation ?? ''},${prof}`;
     const now = performance.now();
     const inJoinBurst = now - this.joinedAt < JOIN_BURST_MS;

@@ -31,6 +31,10 @@ export interface PlayerState {
   isMusicPlaying?: boolean;
   isYouTubePlaying?: boolean;
   youtubeVideoId?: string;
+  /** Epoch ms when the current track (YT or skin music) started — lets a LATE JOINER seek to the live position
+   *  (elapsed = Date.now() - mediaStartEpoch). This is what makes "a newcomer hears the music already playing"
+   *  work, the same way GTA-PORT carries `startedAt`. YT and skin music are mutually exclusive, so one field. */
+  mediaStartEpoch?: number;
   isMicActive?: boolean;
 }
 
@@ -63,8 +67,24 @@ export type AppEvent =
   | { t: 'kick'; id: string };
 
 /**
+ * WebRTC voice signaling (the geckos `voice` event, RELIABLE + ADDRESSED to one peer). This is the SAME mesh
+ * model GTA-PORT uses — alonHouse already has a working WebRTC mesh voice (lib/audio/voiceChatSystem.ts); the
+ * ONLY thing that changes for the geckos cut is the signaling pipe (Playroom RPC → this addressed `voice`
+ * channel, which server/index.js already relays). `kind` discriminates SDP offer/answer vs an ICE candidate.
+ */
+export interface VoiceSignal {
+  kind: 'answer' | 'ice' | 'offer';
+  /** SDP for offer/answer (JSON string), undefined for ice. */
+  sdp?: string;
+  /** ICE candidate (JSON string) for kind:'ice', undefined for offer/answer. */
+  candidate?: string;
+}
+
+/**
  * A voice PCM frame (the geckos `vframe` event, UNRELIABLE — like `pos`). Base64 of a 16 kHz mono Int16 frame +
- * the sender's id and position so the receiver can apply proximity gain (no WebRTC mesh, no TURN).
+ * the sender's id and position so the receiver can apply proximity gain (no WebRTC mesh, no TURN). NOTE: alonHouse
+ * currently uses the WebRTC mesh ({@link VoiceSignal}) ported from GTA-PORT, not this PCM path — kept for a future
+ * broadcast-voice option that scales past a mesh.
  */
 export interface VoiceFrame {
   id: string;

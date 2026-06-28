@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import { CharacterSoldier } from '../multiplayer/CharacterSoldier'
 import { useGLTFKtx2 } from '../../hooks/useGLTFKtx2'
 import type { SkinConfig, SkinColors } from '../../lib/skins/skinTypes'
+import { SKIN_ANIMATIONS } from '../../lib/skins/skinAnimations'
 import { SkeletonUtils } from 'three-stdlib'
 
 function lerp3(a: THREE.Vector3, b: THREE.Vector3, t: number) {
@@ -62,7 +63,9 @@ function GltfAvatar({ url, overrideScale, playClipName }: { url: string; overrid
     const height = Math.max(0.0001, size.y)
     const targetHeight = 1.8
     const autoScale = targetHeight / height
-    const scale = overrideScale ?? autoScale;
+    // Shrink every skin slightly so none clip the edges of the preview frame.
+    const PREVIEW_FILL = 0.85
+    const scale = (overrideScale ?? autoScale) * PREVIEW_FILL;
     const center = new THREE.Vector3()
     box.getCenter(center)
     const yMin = box.min.y
@@ -144,19 +147,15 @@ function PreviewModel({ skin, colors }: { skin: SkinConfig; colors: SkinColors |
   const lodUrls = skin.assets.lodModelUrls?.length ? skin.assets.lodModelUrls : [skin.assets.modelUrl]
   const [hi, low] = lodUrls.length >= 2 ? lodUrls : [lodUrls[0], lodUrls[0]];
 
-  // Preview rule:
-  // - trumpskin: force play 'Idle_11' clip
-  // - alon: force play 'Breakdance_1990' clip (idle pose)
-  // - others: remain in bind/T-pose (no autoplay)
+  // Preview rule: play the skin's real idle clip (from the central skin-anim
+  // config) so the preview shows a resting pose instead of a T-pose. Legacy
+  // ids not in the config fall back to this small table.
   const IDLE_CLIPS: Record<string, string> = {
     trumpskin: 'Idle_11',
-    alon: 'Breakdance_1990',
     chillhouse: 'Confident_Strut',
-    tobaku: 'Breakdance_1990',
-    unc: 'Denim_Pop_Dance',
     pinguin: 'Walking',
   }
-  const forceClip = IDLE_CLIPS[skin.id]
+  const forceClip = SKIN_ANIMATIONS[skin.id]?.idle ?? IDLE_CLIPS[skin.id]
   
   if (process.env.NODE_ENV !== 'production' && (skin.id === 'ai16z' || skin.id === 'trumpskin')) {
   }

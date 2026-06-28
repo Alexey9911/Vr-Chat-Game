@@ -6,6 +6,7 @@ import EmotePickerNew from './EmotePickerNew'
 import GifBar from './GifBar'
 import { Emote, parseEmoteCodes, getEmoteById } from '../../lib/emotes/emotesConfig'
 import { getChatHistory, sendChatMessage } from '../../lib/lobbyApi'
+import { isGeckos, sendChat as netSendChat, GECKOS_LOBBY } from '../../lib/net/netClient'
 
 // Format timestamp as [HH:MM:SS] in 24h
 function formatTime(ts: number): string {
@@ -237,41 +238,54 @@ export default function ChatInput() {
     const full = text + gifUrls.map((url) => `[GIF:${url}]`).join('')
     if (!full.trim()) return
 
-    const pk = playroomRef.current
-    if (!pk) return
-    const me = pk.myPlayer()
-    if (!me) return
-
-    const profile = me.getState('pdata')
     const chatData = {
       text: full.trim(),
       timestamp: Date.now(),
     }
 
-    me.setState('chatMessage', chatData, true)
+    // Resolve the local id + profile from whichever transport is active.
+    let localId: string | null = null
+    let profile: any = null
+    if (isGeckos()) {
+      const st = useMultiplayerStore.getState()
+      localId = st.localPlayerId
+      if (!localId) return
+      profile = st.remotePlayers.get(localId) || null
+    } else {
+      const pk = playroomRef.current
+      if (!pk) return
+      const me = pk.myPlayer()
+      if (!me) return
+      localId = me.id
+      profile = me.getState('pdata')
+      me.setState('chatMessage', chatData, true) // Playroom: peers poll this key
+    }
 
     const msg = {
-      id: chatData.timestamp.toString() + '-' + me.id,
-      playerId: me.id,
+      id: chatData.timestamp.toString() + '-' + localId,
+      playerId: localId,
       playerName: profile?.name || 'Anonymous',
       playerColor: profile?.colors?.primary || profile?.color || '#ffb84d',
       text: chatData.text,
       timestamp: chatData.timestamp,
     }
 
+    if (isGeckos()) netSendChat(msg) // geckos: broadcast the bubble over the reliable `chat` channel
+
     addChatMessage(msg)
 
-    if (currentLobby) {
-      sendChatMessage(currentLobby, msg)
+    const lobby = currentLobby || (isGeckos() ? GECKOS_LOBBY : null)
+    if (lobby) {
+      sendChatMessage(lobby, msg)
     }
 
-    updateRemotePlayer(me.id, { chatMessage: chatData.text })
+    updateRemotePlayer(localId, { chatMessage: chatData.text })
     // Cancel any pending clear from the previous message — without this,
     // rapidly-sent GIFs/messages would get hidden after only 1–2s because
     // the OLDER message's 8s timer fired while the NEW bubble was showing.
     if (chatClearTimerRef.current) clearTimeout(chatClearTimerRef.current)
     chatClearTimerRef.current = setTimeout(() => {
-      updateRemotePlayer(me.id, { chatMessage: null })
+      updateRemotePlayer(localId!, { chatMessage: null })
       chatClearTimerRef.current = null
     }, 8000)
 

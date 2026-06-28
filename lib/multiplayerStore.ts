@@ -54,6 +54,7 @@ interface MultiplayerState {
   remotePlayers: Map<string, RemotePlayer>
   updateRemotePlayer: (id: string, data: Partial<RemotePlayer>) => void
   removeRemotePlayer: (id: string) => void
+  dropRemotePlayer: (id: string) => void
   kickedPlayerIds: Set<string>
 
   // Chat
@@ -95,7 +96,7 @@ export const useMultiplayerStore = create<MultiplayerState>((set, get) => ({
       id,
       name: '',
       color: '#ffffff',
-      skinId: 'alon',
+      skinId: 'ansem',
       isAdmin: false,
       colors: { primary: '#4a9eff' },
       position: { x: SPAWN_X, y: EYE_HEIGHT, z: SPAWN_Z },
@@ -126,6 +127,16 @@ export const useMultiplayerStore = create<MultiplayerState>((set, get) => ({
     const kicked = new Set(get().kickedPlayerIds)
     kicked.add(id)
     set({ remotePlayers: current, kickedPlayerIds: kicked })
+  },
+  // Remove a remote WITHOUT marking them kicked — used for a normal leave/prune in the geckos single-lobby
+  // path. (removeRemotePlayer permanently blocks the id via kickedPlayerIds, which is only right for an admin
+  // kick; a pruned/departed peer must be able to come back — geckos mints a fresh id per session anyway.)
+  dropRemotePlayer: (id) => {
+    const current = get().remotePlayers
+    if (!current.has(id)) return
+    const next = new Map(current)
+    next.delete(id)
+    set({ remotePlayers: next })
   },
 
   chatMessages: [],

@@ -1,5 +1,5 @@
 import type { RealtimeTransport, TransportHandlers } from './realtime-transport';
-import type { AppEvent, ChatWire, PlayerState, VoiceFrame } from './types';
+import type { AppEvent, ChatWire, PlayerState, VoiceFrame, VoiceSignal } from './types';
 
 /** How long to wait for the geckos (UDP) channel to connect before giving up. A touch longer than GTA-PORT's
  *  4 s because there is NO fallback here — we'd rather wait for a slow ICE than drop straight to "no multiplayer".
@@ -70,6 +70,10 @@ export class GeckosTransport implements RealtimeTransport {
           channel.on('chat', (data) => handlers.onChat(data as ChatWire));
           channel.on('evt', (data) => handlers.onEvt(data as AppEvent));
           channel.on('vframe', (data) => handlers.onVoiceFrame(data as VoiceFrame));
+          channel.on('voice', (data) => {
+            const d = data as { from: string; signal: VoiceSignal; to: string };
+            handlers.onVoice(d.from, d.signal);
+          });
           channel.on('leave', (data) => handlers.onLeave((data as { id: string }).id));
         });
       })
@@ -98,6 +102,13 @@ export class GeckosTransport implements RealtimeTransport {
   sendPos(payload: PlayerState): void {
     if (this.mode === 'geckos') {
       this.channel?.emit('pos', payload);
+    }
+  }
+
+  sendVoice(from: string, to: string, signal: VoiceSignal): void {
+    if (this.mode === 'geckos') {
+      // Addressed + reliable: the relay (server/index.js `channel.on('voice')`) routes it to the named peer only.
+      this.channel?.emit('voice', { from, signal, to }, { reliable: true });
     }
   }
 

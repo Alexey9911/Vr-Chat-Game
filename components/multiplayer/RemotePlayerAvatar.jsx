@@ -7,6 +7,17 @@ import ChillHouseAvatar from './ChillHouseAvatar'
 import TobakuAvatar from './TobakuAvatar'
 import UncAvatar from './UncAvatar'
 import PinguinAvatar from './PinguinAvatar'
+import GenericSkinAvatar from './GenericSkinAvatar'
+
+// NEW skins render through the auto-normalizing GenericSkinAvatar. Mapping
+// skinId → raw GLB url (uncompressed for now; TODO optimize to KTX2).
+const NEW_SKIN_URLS = {
+  ansem: '/new_skins/ansem.glb',
+  giga: '/new_skins/giga.glb',
+  fwog: '/new_skins/fwog.glb',
+  bull: '/new_skins/bull.glb',
+  popcat: '/new_skins/popcat.glb',
+}
 import * as THREE from 'three'
 import { EYE_HEIGHT } from '../../lib/camera/cameraConstants'
 import { useViewStore } from '../../lib/camera/viewStore'
@@ -107,9 +118,13 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
   // Scale for all skins to match new map size
   const isAlonSkin = player.skinId === 'alon'
   const isAdmin = player.isAdmin || false
-  // Skins using the same "char1" tiny-scale rig as trumpskin/elonmuskchibi
-  const SMALL_RIG_SKINS = ['chillhouse', 'tobaku', 'unc', 'pinguin']
+  // Skins using the same "char1"/Armature rig. The NEW skins (ansem, giga,
+  // fwog, bull, popcat) share this exact rig, so they get the same scale,
+  // feet offset and billboard heights as tobaku/unc.
+  const SMALL_RIG_SKINS = ['chillhouse', 'tobaku', 'unc', 'pinguin', 'ansem', 'giga', 'fwog', 'bull', 'popcat']
   const isSmallRig = SMALL_RIG_SKINS.includes(player.skinId)
+  // New skins render through GenericSkinAvatar (chosen below).
+  const isNewSkin = !!NEW_SKIN_URLS[player.skinId]
 
   // All skins scaled up to match the larger map
   // Alon: internal 5.6x (AlonAvatar) * external 1.25 = 7x total
@@ -123,10 +138,11 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
 
   // Y offset to raise skins above floor.
   // Alon has its own built-in ALON_FEET_Y_OFFSET inside AlonAvatar.tsx (1.5 at local scale).
-  // Small-rig skins (chillhouse, tobaku, unc, pinguin) clip into the floor at 0.8, so
-  // raise them to ~1.58 world-units to sit cleanly on the ground (bumped +5%
-  // from 1.5 per user feedback — feet were still grazing the floor very slightly).
-  const skinYOffset = isAlonSkin ? 0 : isSmallRig ? 1.58 : 0
+  // Existing small-rig skins (tobaku/unc/chillhouse/pinguin) render with their feet
+  // BELOW the model origin, so they need +1.58 to sit on the ground.
+  // The NEW skins were measured with feet AT the origin (feetY≈0), so they need
+  // no offset — yOffset 1.58 would float them ~1.58 units above the floor.
+  const skinYOffset = isAlonSkin ? 0 : isNewSkin ? 0 : isSmallRig ? 1.58 : 0
 
   // Nickname/chat vertical offsets — proportional to total rendered height
   // Characters are ~2 units tall at scale 1, so ~14 units at 7x scale
@@ -139,7 +155,13 @@ function RemotePlayerAvatarInner({ player, isLocal = false }) {
       {/* Character model — at feet level, per-player Suspense to avoid full-scene blink */}
       <group ref={characterRef} scale={[skinScale, skinScale, skinScale]} position-y={skinYOffset}>
         <Suspense fallback={null}>
-        {player.skinId === 'chillhouse' ? (
+        {isNewSkin ? (
+          <GenericSkinAvatar
+            modelUrl={NEW_SKIN_URLS[player.skinId]}
+            skinId={player.skinId}
+            animation={animation}
+          />
+        ) : player.skinId === 'chillhouse' ? (
           <ChillHouseAvatar animation={animation} />
         ) : player.skinId === 'tobaku' ? (
           <TobakuAvatar animation={animation} />

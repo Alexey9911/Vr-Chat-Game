@@ -9,6 +9,7 @@ import CASection from '../components/CASection'
 import EntryLoadingOverlay from '../components/EntryLoadingOverlay'
 import AssetPreloader from '../components/AssetPreloader'
 import { useMultiplayerStore } from '../lib/multiplayerStore'
+import { isGeckos, setLocalState as netSetLocalState, setMediaStartEpoch as netSetMediaStartEpoch } from '../lib/net/netClient'
 import Navbar from '../components/Navbar'
 import CinematicHUD from '../components/CinematicHUD'
 import FadeOverlay from '../components/checkpoints/FadeOverlay'
@@ -53,6 +54,17 @@ function HomePage() {
   }, [])
 
   const handlePlayMusic = () => {
+    // geckos: play locally + broadcast persistent state (isMusicPlaying + mediaStartEpoch) so LATE JOINERS
+    // hear it via the reconciler — no fire-and-forget RPC that newcomers miss.
+    if (isGeckos()) {
+      const { localPlayerId, remotePlayers } = useMultiplayerStore.getState()
+      if (!localPlayerId) return
+      const skinId = remotePlayers.get(localPlayerId)?.skinId || 'ansem'
+      import('../lib/audio/musicSystem').then(({ playMusicForPlayer }) => playMusicForPlayer(localPlayerId, skinId))
+      netSetMediaStartEpoch(Date.now())
+      netSetLocalState({ isMusicPlaying: true, isYouTubePlaying: false, youtubeVideoId: undefined })
+      return
+    }
     if (!playroomRef.current) return
 
     const pk = playroomRef.current
@@ -61,7 +73,7 @@ function HomePage() {
 
     const profile = player.getState('pdata')
     const playerId = player.id
-    const skinId = profile?.skinId || 'alon'
+    const skinId = profile?.skinId || 'ansem'
 
     try {
       RPC.call('playMusic', { playerId, skinId }, RPC.Mode.ALL)
@@ -71,6 +83,14 @@ function HomePage() {
   }
 
   const handleStopMusic = () => {
+    if (isGeckos()) {
+      const { localPlayerId } = useMultiplayerStore.getState()
+      if (!localPlayerId) return
+      import('../lib/audio/musicSystem').then(({ stopMusicForPlayer }) => stopMusicForPlayer(localPlayerId))
+      netSetMediaStartEpoch(undefined)
+      netSetLocalState({ isMusicPlaying: false })
+      return
+    }
     if (!playroomRef.current) return
     const pk = playroomRef.current
     const player = pk.myPlayer()

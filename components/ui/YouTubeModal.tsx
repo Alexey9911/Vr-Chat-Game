@@ -4,6 +4,7 @@ import { playYouTubeAudio, stopYouTubeAudio, isYouTubeAudioPlaying, getCurrentVi
 import { stopMusicForPlayer } from '../../lib/audio/musicSystem'
 import { useMultiplayerStore } from '../../lib/multiplayerStore'
 import { useSettingsStore } from '../../lib/settings/settingsStore'
+import { isGeckos, setLocalState as netSetLocalState, setMediaStartEpoch as netSetMediaStartEpoch } from '../../lib/net/netClient'
 
 interface YouTubeModalProps {
   isOpen: boolean
@@ -40,6 +41,21 @@ export default function YouTubeModal({ isOpen, onClose }: YouTubeModalProps) {
     if (!url.trim()) return
     setLoading(true)
     try {
+      // geckos: broadcast persistent per-player YT state (videoId + mediaStartEpoch) so late joiners hear it.
+      if (isGeckos()) {
+        const localId = useMultiplayerStore.getState().localPlayerId
+        if (localId) {
+          // Mutual exclusion: stop our skin music first.
+          stopMusicForPlayer(localId)
+        }
+        const info = await playYouTubeAudio(url)
+        setTitle(info.title)
+        setPlaying(true)
+        netSetMediaStartEpoch(Date.now())
+        netSetLocalState({ isYouTubePlaying: true, youtubeVideoId: info.videoId, isMusicPlaying: false })
+        return
+      }
+
       // Mutual exclusion: stop skin music if playing
       try {
         const pk = await import('playroomkit')
@@ -83,6 +99,12 @@ export default function YouTubeModal({ isOpen, onClose }: YouTubeModalProps) {
     setPlaying(false)
     setTitle('')
     setError('')
+
+    if (isGeckos()) {
+      netSetMediaStartEpoch(undefined)
+      netSetLocalState({ isYouTubePlaying: false, youtubeVideoId: undefined })
+      return
+    }
 
     // Clear PlayroomKit state
     try {

@@ -5,6 +5,9 @@
  * Each skin has its own unique audio file.
  */
 
+import { isGeckos, setLocalState as netSetLocalState } from '../net/netClient'
+import { useMultiplayerStore } from '../multiplayerStore'
+
 export interface SkinAudioConfig {
   skinId: string
   audioPath: string
@@ -24,6 +27,12 @@ export const SKIN_AUDIO_MAP: Record<string, string> = {
   'tobaku': '/alonsong.mp3',
   'unc': '/alonsong.mp3',
   'pinguin': '/alonsong.mp3',
+  // Newest batch (ansem is now the default skin) — placeholder song for now
+  'ansem': '/alonsong.mp3',
+  'giga': '/alonsong.mp3',
+  'fwog': '/alonsong.mp3',
+  'bull': '/alonsong.mp3',
+  'popcat': '/alonsong.mp3',
   // 'soldier' (default) - no audio
 }
 
@@ -150,15 +159,22 @@ export function playMusicForPlayer(playerId: string, skinId: string, startTime?:
       musicPlayingState.set(playerId, false)
       audioLoadingState.delete(playerId) // Clear loading flag
       
-      // Update player state in PlayroomKit if available
+      // Update player state in the active transport if available
       if (typeof window !== 'undefined') {
-        import('playroomkit').then(({ myPlayer }) => {
-          const player = myPlayer()
-          if (player && player.id === playerId) {
-            player.setState('isMusicPlaying', false)
-            player.setState('musicData', null)
+        if (isGeckos()) {
+          // Only clear OUR broadcast flag (this cleanup also runs for remotes the reconciler stops).
+          if (playerId === useMultiplayerStore.getState().localPlayerId) {
+            netSetLocalState({ isMusicPlaying: false })
           }
-        }).catch(() => {})
+        } else {
+          import('playroomkit').then(({ myPlayer }) => {
+            const player = myPlayer()
+            if (player && player.id === playerId) {
+              player.setState('isMusicPlaying', false)
+              player.setState('musicData', null)
+            }
+          }).catch(() => {})
+        }
       }
     }
 

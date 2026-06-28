@@ -17,6 +17,7 @@
  */
 
 import { getActiveAudioInstances, AUDIO_VOLUME } from './musicSystem'
+import { isGeckos, setLocalState as netSetLocalState, setMediaStartEpoch as netSetMediaStartEpoch } from '../net/netClient'
 
 // ─── Types ────────────────────────────────────────────────────────────
 
@@ -472,14 +473,19 @@ export async function playYouTubeForPlayer(playerId: string, videoId: string, st
               // / `isYouTubeAudioPlaying` immediately reflect the end.
               localVideoTitle = ''
               localVideoId = ''
-              // Reset PlayroomKit state so remotes stop polling the embed.
-              import('playroomkit').then((pk) => {
-                const me = pk.myPlayer?.()
-                if (me?.id) {
-                  me.setState('isYouTubePlaying', false)
-                  me.setState('youtubeData', null)
-                }
-              }).catch(() => {})
+              // Reset transport state so remotes stop the embed. geckos: clear our broadcast flags.
+              if (isGeckos()) {
+                netSetMediaStartEpoch(undefined)
+                netSetLocalState({ isYouTubePlaying: false, youtubeVideoId: undefined })
+              } else {
+                import('playroomkit').then((pk) => {
+                  const me = pk.myPlayer?.()
+                  if (me?.id) {
+                    me.setState('isYouTubePlaying', false)
+                    me.setState('youtubeData', null)
+                  }
+                }).catch(() => {})
+              }
               // Notify the UI (LobbyScreen / YouTubeModal) so the
               // "ytPlaying" React state clears without a manual stop click.
               try {

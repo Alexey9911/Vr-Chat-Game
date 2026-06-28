@@ -16,6 +16,17 @@ import type { SkinColors } from '../../lib/skins/skinTypes'
 import SkinPreviewCanvas from '../skins/SkinPreviewCanvas'
 import { playYouTubeAudio, stopYouTubeAudio, isYouTubeAudioPlaying, getCurrentVideoTitle, setYouTubeVolume } from '../../lib/audio/youtubePlayer'
 import { cursorIntent } from '../../lib/cursorIntent'
+import {
+  isGeckos,
+  connect as netConnect,
+  disconnect as netDisconnect,
+  onPeerJoin as netOnPeerJoin,
+  onPeerLeave as netOnPeerLeave,
+  setLocalState as netSetLocalState,
+  setMediaStartEpoch as netSetMediaStartEpoch,
+  sendVoiceSignal as netSendVoiceSignal,
+  GECKOS_LOBBY,
+} from '../../lib/net/netClient'
 
 const ENVIRONMENT_OPTIONS: { value: EnvironmentPreset; label: string; description: string }[] = [
   { value: 'sunset', label: 'Sunset', description: 'Warm golden hour lighting' },
@@ -206,6 +217,11 @@ export default function LobbyScreen() {
     const handleLeave = () => {
       if (hasLeft || !localPlayerIdRef.current) return
       hasLeft = true
+      if (isGeckos()) {
+        // geckos: cleanly leave the relay (server broadcasts a `leave` to peers). No Deno-KV registry.
+        try { netDisconnect() } catch {}
+        return
+      }
       leaveLobby(localPlayerIdRef.current)
     }
     window.addEventListener('beforeunload', handleLeave)
@@ -313,7 +329,99 @@ export default function LobbyScreen() {
     } catch {}
   }
 
-  // Finalize player profile and enter the game 
+  // geckos single-lobby connect (no Playroom, no 10-per-lobby split). Active when NEXT_PUBLIC_NET=geckos.
+  // Wires the existing WebRTC mesh voice's signaling through the geckos `voice` channel (copied from GTA-PORT),
+  // and lets netClient's reconciler drive remotes + the late-join music sync.
+  const handleGeckosPlay = async () => {
+    setError('')
+    const profile = isAdminMode
+      ? getAdminProfile(nickname.trim())
+      : {
+          name: nickname.trim(),
+          color: selectedColor,
+          skinId: 'ansem',
+          isAdmin: false,
+          colors: { primary: selectedColor },
+        }
+
+    setIsConnecting(true)
+    try {
+      if (!hasInitialized.current) {
+        hasInitialized.current = true
+
+        // Voice signaling over geckos — wire BEFORE connect so the first discovered peers can hand-shake.
+        const vc = await import('../../lib/audio/voiceChatSystem')
+        vc.setRpcSender((event: string, data: any) => netSendVoiceSignal(event, data))
+        vc.setLocalPlayerIdGetter(() => useMultiplayerStore.getState().localPlayerId || null)
+        netOnPeerJoin((peerId) => {
+          if (!vc.hasPeer(peerId)) Promise.resolve(vc.createOffer(peerId)).catch(() => {})
+        })
+        netOnPeerLeave((peerId) => vc.removePeer(peerId))
+
+        // Inbound voice signaling (SDP/ICE) → the mesh handlers. Passed INTO connect so it's registered
+        // before join (a fast peer's answer/ICE could otherwise arrive before a post-connect registration).
+        const id = await netConnect(nickname.trim(), profile, (from, signal) => {
+          if (signal.kind === 'offer') vc.handleOffer(from, signal.sdp || '')
+          else if (signal.kind === 'answer') vc.handleAnswer(from, signal.sdp || '')
+          else if (signal.candidate) vc.handleIceCandidate(from, signal.candidate)
+        })
+        localPlayerIdRef.current = id
+
+        // Push-to-talk (V) — identical UX to Playroom; the mic flag rides geckos PlayerState (isMicActive).
+        const handleVoiceKeyDown = async (e: KeyboardEvent) => {
+          if (e.key !== 'v' && e.key !== 'V') return
+          const el = document.activeElement as any
+          if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return
+          if (e.repeat) return
+          const vcc = await import('../../lib/audio/voiceChatSystem')
+          if (!vcc.isMicAvailable()) {
+            const ok = await vcc.initVoiceChat()
+            if (!ok) return
+            await vcc.addLocalTrackToExistingPeers()
+            useMultiplayerStore.getState().remotePlayers.forEach((_, peerId) => {
+              if (peerId !== id && !vcc.hasPeer(peerId)) vcc.createOffer(peerId)
+            })
+          }
+          vcc.startTransmitting()
+          useKeyboardStore.getState().setLocalMicActive(true)
+          netSetLocalState({ isMicActive: true })
+        }
+        const handleVoiceKeyUp = async (e: KeyboardEvent) => {
+          if (e.key !== 'v' && e.key !== 'V') return
+          const vcc = await import('../../lib/audio/voiceChatSystem')
+          vcc.stopTransmitting()
+          useKeyboardStore.getState().setLocalMicActive(false)
+          netSetLocalState({ isMicActive: false })
+        }
+        window.addEventListener('keydown', handleVoiceKeyDown)
+        window.addEventListener('keyup', handleVoiceKeyUp)
+
+        // Single fixed lobby — currentLobby is only the Neon chat partition key now.
+        setCurrentLobby(GECKOS_LOBBY as any)
+        import('../../lib/lobbyApi').then(({ getChatHistory }) => {
+          getChatHistory(GECKOS_LOBBY).then((history) => {
+            if (history && history.length > 0) setChatMessages(history)
+          })
+        })
+      }
+    } catch (err) {
+      hasInitialized.current = false
+      setIsConnecting(false)
+      setError('Could not connect. Try again.')
+      return
+    }
+    setIsConnecting(false)
+
+    if (isAdminMode && profile.name) {
+      sessionStorage.setItem('adminNickname', profile.name.replace('[ADMIN] ', ''))
+    }
+    // netConnect already set localPlayerId + seeded the profile entry; just enter the world.
+    setConnected(true)
+    setLobbyVisible(false)
+    lockCanvas()
+  }
+
+  // Finalize player profile and enter the game
   const handlePlayClick = async () => {
     initAudioOnInteraction()
     // If already in-game (lobby was reopened via ESC), just close the overlay
@@ -328,6 +436,13 @@ export default function LobbyScreen() {
       setError('Please enter a nickname!')
       return
     }
+
+    // geckos single-lobby path (NEXT_PUBLIC_NET=geckos) — bypass Playroom + the lobby-split entirely.
+    if (isGeckos()) {
+      await handleGeckosPlay()
+      return
+    }
+
     const pk = playroomRef.current
     if (!pk) {
       setError('Loading multiplayer... try again.')
@@ -362,7 +477,7 @@ export default function LobbyScreen() {
       : {
           name: nickname.trim(),
           color: selectedColor,
-          skinId: 'alon',
+          skinId: 'ansem',
           isAdmin: false,
           colors: { primary: selectedColor },
         }
@@ -651,7 +766,7 @@ export default function LobbyScreen() {
           id: state.id,
           name: initialProfile?.name || '',
           color: initialProfile?.color || '#4a9eff',
-          skinId: initialProfile?.skinId || 'alon',
+          skinId: initialProfile?.skinId || 'ansem',
           isAdmin: initialProfile?.isAdmin || false,
           colors: initialProfile?.colors || { primary: initialProfile?.color || '#4a9eff' },
         })
@@ -1363,7 +1478,14 @@ function LobbyCenterSkinPicker(props: LobbyCenterSkinPickerProps) {
     setSelectedSkinIndex(nextIndex)
     setActiveSkinId(nextSkin.id)
 
-    if (me) {
+    if (isGeckos()) {
+      const { localPlayerId, remotePlayers, updateRemotePlayer } = useMultiplayerStore.getState()
+      if (localPlayerId) {
+        const prev = remotePlayers.get(localPlayerId)
+        const color = nextColors?.primary ?? prev?.color ?? '#4a9eff'
+        updateRemotePlayer(localPlayerId, { skinId: nextSkin.id, colors: nextColors ?? prev?.colors, color })
+      }
+    } else if (me) {
       const prev = me.getState('pdata') || {}
       const color = nextColors?.primary ?? prev.color ?? '#4a9eff'
       me.setState('pdata', { ...prev, skinId: nextSkin.id, colors: nextColors ?? prev.colors, color }, true)
@@ -1515,11 +1637,21 @@ function CustomizationTab(props: CustomizationProps) {
   }, [selectedSkinIndex])
 
   async function applyProfile(nextIndex: number, nextColors: SkinColors | undefined) {
+    const nextSkin = SKINS[nextIndex] ?? SKINS[0]
+    if (isGeckos()) {
+      const { localPlayerId, remotePlayers, updateRemotePlayer } = useMultiplayerStore.getState()
+      if (localPlayerId) {
+        const prev = remotePlayers.get(localPlayerId)
+        const color = nextColors?.primary ?? prev?.color ?? '#4a9eff'
+        updateRemotePlayer(localPlayerId, { skinId: nextSkin.id, colors: nextColors ?? prev?.colors, color })
+      }
+      setActiveSkinId(nextSkin.id)
+      return
+    }
     const pk = playroomRef.current
     const me = pk?.myPlayer?.()
     if (!me) return
     const prev = me.getState('pdata') || {}
-    const nextSkin = SKINS[nextIndex] ?? SKINS[0]
     const color = nextColors?.primary ?? prev.color ?? '#4a9eff'
     me.setState('pdata', { ...prev, skinId: nextSkin.id, colors: nextColors ?? prev.colors, color }, true)
     setActiveSkinId(nextSkin.id)
@@ -1554,6 +1686,17 @@ function CustomizationTab(props: CustomizationProps) {
     if (!ytUrl.trim()) return
     setYtLoading(true)
     try {
+      if (isGeckos()) {
+        const localId = useMultiplayerStore.getState().localPlayerId
+        if (localId) stopMusicForPlayer(localId)
+        const info = await playYouTubeAudio(ytUrl)
+        setYtTitle(info.title)
+        setYtPlaying(true)
+        netSetMediaStartEpoch(Date.now())
+        netSetLocalState({ isYouTubePlaying: true, youtubeVideoId: info.videoId, isMusicPlaying: false })
+        return
+      }
+
       // Stop any skin music
       try {
         const pk = playroomRef.current
@@ -1589,6 +1732,11 @@ function CustomizationTab(props: CustomizationProps) {
     setYtPlaying(false)
     setYtTitle('')
     setYtError('')
+    if (isGeckos()) {
+      netSetMediaStartEpoch(undefined)
+      netSetLocalState({ isYouTubePlaying: false, youtubeVideoId: undefined })
+      return
+    }
     try {
       const pk = playroomRef.current
       const me = pk?.myPlayer?.()

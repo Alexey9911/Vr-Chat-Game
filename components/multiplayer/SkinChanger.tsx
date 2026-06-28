@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useMultiplayerStore } from '../../lib/multiplayerStore'
+import { isGeckos, setLocalState as netSetLocalState } from '../../lib/net/netClient'
 
 const SKIN_COLORS = [
   { label: 'Electric Blue', hex: '#4a9eff' },
@@ -42,6 +43,14 @@ export default function SkinChanger() {
 
   const applySkin = (color: string) => {
     setSelectedColor(color)
+    if (isGeckos()) {
+      const { localPlayerId, remotePlayers, updateRemotePlayer } = useMultiplayerStore.getState()
+      if (!localPlayerId) return
+      const prev = remotePlayers.get(localPlayerId)
+      updateRemotePlayer(localPlayerId, { color, colors: { ...(prev?.colors || {}), primary: color } })
+      netSetLocalState({ color })
+      return
+    }
     const pk = playroomRef.current
     if (!pk) return
     const me = pk.myPlayer?.()

@@ -1,4 +1,4 @@
-import type { AppEvent, ChatWire, PlayerState, VoiceFrame } from './types';
+import type { AppEvent, ChatWire, PlayerState, VoiceFrame, VoiceSignal } from './types';
 
 import { GeckosTransport } from './geckos-transport';
 
@@ -17,6 +17,8 @@ export interface RealtimeTransport {
   sendChat(chat: ChatWire): void;
   /** Unreliable (UDP), ~SEND_HZ: the local player's transform + profile. */
   sendPos(payload: PlayerState): void;
+  /** Reliable + addressed: a WebRTC voice signaling message (SDP/ICE) to one peer (the mesh ported from GTA-PORT). */
+  sendVoice(from: string, to: string, signal: VoiceSignal): void;
   /** Unreliable (UDP): a voice PCM frame — proximity gain is applied client-side on receive. */
   sendVoiceFrame(frame: VoiceFrame): void;
 }
@@ -27,6 +29,8 @@ export interface TransportHandlers {
   onEvt: (evt: AppEvent) => void;
   onLeave: (id: string) => void;
   onPos: (state: PlayerState) => void;
+  /** A WebRTC voice signaling message addressed to us from `from`. */
+  onVoice: (from: string, signal: VoiceSignal) => void;
   onVoiceFrame: (frame: VoiceFrame) => void;
 }
 

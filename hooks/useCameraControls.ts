@@ -13,6 +13,8 @@ import { setTeleportFunction } from '../lib/teleportController'
 import { requestPointerLockSafe, cancelPendingPointerLock } from '../lib/pointerLockHelper'
 import { useZoneStore } from '../lib/zoneStore'
 import { ROOM_Y_OFFSET, ROOM_FLOOR_BLENDER_Y } from '../lib/roomsConfig'
+import { getSkinEmoteClipMap } from '../lib/skins/skinAnimations'
+import { isGeckos } from '../lib/net/netClient'
 
 // Physics constants
 const GRAVITY = -35
@@ -333,43 +335,18 @@ export const useCameraControls = () => {
       addPressedKey(' ')
     }
 
-    // EMOTES (Number keys) - Dynamic based on active skin.
-    // New skins (chillhouse, tobaku, unc, pinguin) map key -> raw GLB clip name directly.
-    // Legacy skins (alon/elonmuskchibi/trumpskin) still map to Punch/Yes/Wave/Death.
-    const SKIN_EMOTE_CLIPS: Record<string, string[]> = {
-      chillhouse: [
-        'Running', 'Boom_Dance', 'Breakdance_1990', 'Fall1',
-        'Idle_3', 'All_Night_Dance', 'Wake_Up_and_Look_Up',
-      ],
-      tobaku: ['Hip_Hop_Dance_3', 'Idle_6', 'Running', 'Walking', 'ymca_dance'],
-      unc: ['Breakdance_1990', 'Climb_Attempt_and_Fall_1', 'Idle_4', 'Running', 'Walking'],
-      pinguin: ['Fall4', 'FunnyDancing_02', 'Hip_Hop_Dance_2', 'Idle_03', 'Running'],
-    }
+    // EMOTES (Number keys) — fully data-driven from the central skin-animation
+    // config. Each skin's `emotes[]` maps key '2'.. → raw GLB clip name. Skins
+    // with no emotes (the animal skins: bull/popcat) get an empty map, so the
+    // number keys simply do nothing for them.
+    const animMap = getSkinEmoteClipMap(activeSkinId)
 
-    let animMap: Record<string, string> = {
-      '2': 'Punch',
-      '3': 'Yes',
-      '4': 'Wave',
-      '5': 'Death',
-    }
-
-    if (activeSkinId === 'elon') {
-      animMap = {}
-    } else if (activeSkinId === 'ai16z') {
-      animMap = { '2': 'Yes', '3': 'Wave', '4': 'Death' }
-    } else if (activeSkinId && SKIN_EMOTE_CLIPS[activeSkinId]) {
-      animMap = {}
-      SKIN_EMOTE_CLIPS[activeSkinId].forEach((clip, i) => {
-        animMap[String(i + 2)] = clip // keys start at '2' (emote 1)
-      })
-    }
-    
-    if (animMap[key] && playroomRef.current?.myPlayer?.()) {
+    if (animMap[key] && (isGeckos() || playroomRef.current?.myPlayer?.())) {
       currentEmote.current = animMap[key]
       setCurrentAnimation(animMap[key])
-      playroomRef.current.myPlayer().setState('animation', animMap[key], true)
-      
-      // Update local player in store so their own avatar animates
+      if (!isGeckos()) playroomRef.current.myPlayer().setState('animation', animMap[key], true)
+
+      // Update local player in store so their own avatar animates (geckos also broadcasts it via the StateGetter).
       const { localPlayerId, updateRemotePlayer } = useMultiplayerStore.getState()
       if (localPlayerId) {
         updateRemotePlayer(localPlayerId, { animation: animMap[key] })
@@ -872,12 +849,11 @@ export const useCameraControls = () => {
       const desiredMoveAnim: string | null = moving ? (sprinting ? 'Sprint' : 'Run') : null
       if (desiredMoveAnim !== lastSentMoveAnim.current) {
         lastSentMoveAnim.current = desiredMoveAnim
-        if (playroomRef.current?.myPlayer?.()) {
-          playroomRef.current.myPlayer().setState('animation', desiredMoveAnim, true)
-          const { localPlayerId, updateRemotePlayer } = useMultiplayerStore.getState()
-          if (localPlayerId) {
-            updateRemotePlayer(localPlayerId, { animation: desiredMoveAnim })
-          }
+        if (!isGeckos()) playroomRef.current?.myPlayer?.()?.setState('animation', desiredMoveAnim, true)
+        // Store update drives the local avatar AND (geckos) the broadcast — runs for both transports.
+        const { localPlayerId, updateRemotePlayer } = useMultiplayerStore.getState()
+        if (localPlayerId) {
+          updateRemotePlayer(localPlayerId, { animation: desiredMoveAnim })
         }
       }
     }
@@ -886,14 +862,12 @@ export const useCameraControls = () => {
     if (velocity.current.lengthSq() > 0.001 && currentEmote.current !== null) {
       currentEmote.current = null
       setCurrentAnimation(null)
-      if (playroomRef.current?.myPlayer?.()) {
-        playroomRef.current.myPlayer().setState('animation', null, true)
-        
-        // Clear local player animation
-        const { localPlayerId, updateRemotePlayer } = useMultiplayerStore.getState()
-        if (localPlayerId) {
-          updateRemotePlayer(localPlayerId, { animation: null })
-        }
+      if (!isGeckos()) playroomRef.current?.myPlayer?.()?.setState('animation', null, true)
+
+      // Clear local player animation (geckos broadcasts the cleared clip too).
+      const { localPlayerId, updateRemotePlayer } = useMultiplayerStore.getState()
+      if (localPlayerId) {
+        updateRemotePlayer(localPlayerId, { animation: null })
       }
     }
 
@@ -1002,25 +976,27 @@ export const useCameraControls = () => {
     // Reduces network traffic by 70-80% when idle
     // =============================================
     syncCounter.current++
-    if (syncCounter.current % 3 === 0 && playroomRef.current) {
+    if (syncCounter.current % 3 === 0) {
       try {
-        const pk = playroomRef.current
-        const me = pk.myPlayer?.()
-        if (me) {
+        const geckos = isGeckos()
+        const pk = geckos ? null : playroomRef.current
+        const me = geckos ? null : pk?.myPlayer?.()
+        // Playroom needs `me`; geckos broadcasts from the zustand echo below (no Playroom). Run when ready.
+        if (geckos || me) {
           // Player facing direction for multiplayer
           const rotY = playerFacingY.current
-          
+
           // Check if position or rotation changed significantly
           const dx = Math.abs(playerPos.current.x - lastSentPos.current.x)
           const dy = Math.abs(playerPos.current.y - lastSentPos.current.y)
           const dz = Math.abs(playerPos.current.z - lastSentPos.current.z)
-          
+
           let rotDelta = Math.abs(rotY - lastSentRotY.current)
           if (rotDelta > Math.PI) rotDelta = Math.PI * 2 - rotDelta
-          
+
           const posChanged = dx > POSITION_THRESHOLD || dy > POSITION_THRESHOLD || dz > POSITION_THRESHOLD
           const rotChanged = rotDelta > ROTATION_THRESHOLD
-          
+
           // Only sync if something changed (or force sync every 60 frames ~1 sec)
           if (posChanged || rotChanged || syncCounter.current % 60 === 0) {
             // Compress data to reduce bandwidth
@@ -1030,20 +1006,26 @@ export const useCameraControls = () => {
               z: playerPos.current.z,
             })
             const compressedRotY = compressRotation(rotY)
-            
-            me.setState('pos', compressedPos, true)
-            me.setState('rotY', compressedRotY, true)
+
+            // Playroom path: write the per-player keyed state. (geckos broadcasts from the echo below.)
+            if (me) {
+              me.setState('pos', compressedPos, true)
+              me.setState('rotY', compressedRotY, true)
+            }
 
             lastSentPos.current.copy(playerPos.current)
             lastSentRotY.current = rotY
 
+            // Echo into the local zustand entry. For geckos this IS the broadcast source (Presence pulls it
+            // each tick via the StateGetter); for Playroom it keeps the LOCAL avatar rendering.
             const { localPlayerId, updateRemotePlayer } = useMultiplayerStore.getState()
             if (localPlayerId) {
-              updateRemotePlayer(localPlayerId, {
-                position: compressedPos,
-                rotationY: compressedRotY,
-                animation: currentEmote.current,
-              })
+              // Under geckos the movement/emote/clear blocks are the SOLE animation writers (so 'Run'/'Sprint'
+              // survive); the echo must not clobber them with currentEmote (null while moving). Playroom keeps
+              // its original behaviour where the echo carries currentEmote.
+              updateRemotePlayer(localPlayerId, geckos
+                ? { position: compressedPos, rotationY: compressedRotY }
+                : { position: compressedPos, rotationY: compressedRotY, animation: currentEmote.current })
             }
           }
         }
