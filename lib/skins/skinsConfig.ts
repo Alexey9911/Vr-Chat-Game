@@ -51,10 +51,11 @@ export const SKINS: SkinConfig[] = [
     },
     previewScale: 1,
     assets: {
-      // Raw (uncompressed) GLB — TODO: optimize to KTX2 later.
-      modelUrl: '/new_skins/ansem.glb',
+      // SWAT/"BULL" Ansem — Meshy image→3D→remesh→texture→rig, 7 baked clips
+      // (idle/walk/run/jump + 3 dances) + rifle slung on the back. KTX2 UASTC.
+      modelUrl: '/new_skins/ansembull-v1_ktx2.glb',
     },
-    cacheKey: 'v1',
+    cacheKey: 'v2',
   },
   {
     id: 'alon',

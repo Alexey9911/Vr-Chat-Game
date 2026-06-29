@@ -33,6 +33,9 @@ export type SkinAnimationConfig = {
   walk: string
   run: string
   emotes: string[]
+  // Optional clip played while airborne (jump). Skins without one keep their
+  // walk/run/idle clip mid-jump (the original behaviour).
+  jump?: string
   // Animal skins (popcat/bull) ship only ONE clip (a walk) and have no real
   // idle. When true, the avatar STOPS animating while standing still (holds a
   // static rest pose) instead of walking in place, and only plays the clip
@@ -44,11 +47,15 @@ const ANIMAL_BASE_CLIP = 'Armature|Unreal Take|baselayer'
 
 export const SKIN_ANIMATIONS: Record<string, SkinAnimationConfig> = {
   // ── NEW SKINS (clip names match visuals) ────────────────────────────────
+  // Ansem "BULL" — rebuilt from the SWAT reference via Meshy. Clip names are
+  // clean (merged + renamed in scripts/build_bull_skin.mjs); has a real jump
+  // clip and 3 dance emotes. Rifle is baked into the GLB (rides the spine bone).
   ansem: {
-    idle: 'Idle_4',
+    idle: 'Idle',
     walk: 'Walking',
     run: 'Running',
-    emotes: ['Boxing_Practice', 'Denim_Pop_Dance', 'Jump_Over_Obstacle'],
+    jump: 'Jump',
+    emotes: ['Dance_HipHop', 'Dance_Gangnam', 'Dance_Breakdance'],
   },
   giga: {
     idle: 'Idle_11',
@@ -110,7 +117,7 @@ export function getSkinAnimation(skinId: string | null | undefined): SkinAnimati
 export function getSkinMovementMap(skinId: string | null | undefined): Record<string, string> {
   const cfg = getSkinAnimation(skinId)
   if (!cfg) return {}
-  return { Idle: cfg.idle, Run: cfg.walk, Sprint: cfg.run }
+  return { Idle: cfg.idle, Run: cfg.walk, Sprint: cfg.run, ...(cfg.jump ? { Jump: cfg.jump } : {}) }
 }
 
 // Number keys (starting at 2) that should be active/visible for this skin's

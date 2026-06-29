@@ -23,3 +23,10 @@ codepen-cleanup-guide/
 skills/
 skills_new_versions/
 
+.env
+
+# Meshy pipeline intermediates (regenerable via scripts/meshy_*.py)
+meshy_output/
+public/new_skins/ansembull-v1.glb
+public/new_skins/*.__s*.glb
+_skinviewer.html

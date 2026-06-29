@@ -12,7 +12,7 @@ import GenericSkinAvatar from './GenericSkinAvatar'
 // NEW skins render through the auto-normalizing GenericSkinAvatar. Mapping
 // skinId → raw GLB url (uncompressed for now; TODO optimize to KTX2).
 const NEW_SKIN_URLS = {
-  ansem: '/new_skins/ansem.glb',
+  ansem: '/new_skins/ansembull-v1_ktx2.glb',
   giga: '/new_skins/giga.glb',
   fwog: '/new_skins/fwog.glb',
   bull: '/new_skins/bull.glb',

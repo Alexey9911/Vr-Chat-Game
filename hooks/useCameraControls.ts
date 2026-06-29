@@ -13,7 +13,7 @@ import { setTeleportFunction } from '../lib/teleportController'
 import { requestPointerLockSafe, cancelPendingPointerLock } from '../lib/pointerLockHelper'
 import { useZoneStore } from '../lib/zoneStore'
 import { ROOM_Y_OFFSET, ROOM_FLOOR_BLENDER_Y } from '../lib/roomsConfig'
-import { getSkinEmoteClipMap } from '../lib/skins/skinAnimations'
+import { getSkinEmoteClipMap, getSkinAnimation } from '../lib/skins/skinAnimations'
 
 // Physics constants
 const GRAVITY = -35
@@ -833,7 +833,15 @@ export const useCameraControls = () => {
     // block below clears them.
     if (currentEmote.current === null) {
       const moving = velocity.current.lengthSq() > 0.001
-      const desiredMoveAnim: string | null = moving ? (sprinting ? 'Sprint' : 'Run') : null
+      // Jump animation: while airborne, if the active skin defines a jump clip,
+      // play it (overrides run/idle). Skins without a jump clip keep their
+      // walk/run pose mid-air, exactly as before. Read the skin id fresh from
+      // the store so it's never a stale closure value.
+      const airborne = !isOnGround.current
+      const hasJumpClip = airborne && !!getSkinAnimation(useSkinStore.getState().activeSkinId)?.jump
+      const desiredMoveAnim: string | null = hasJumpClip
+        ? 'Jump'
+        : (moving ? (sprinting ? 'Sprint' : 'Run') : null)
       if (desiredMoveAnim !== lastSentMoveAnim.current) {
         lastSentMoveAnim.current = desiredMoveAnim
         // Store update drives the local avatar AND the geckos broadcast.
