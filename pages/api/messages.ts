@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 import { getSql } from '../../lib/db/neon';
+import { isImpersonationNick, SLUR } from '../../lib/moderation/nickGuard';
 
 // Neon-backed chat history for the single lobby (replaces the old external Deno KV). GET ?lobby=main returns the
 // latest messages oldest→newest; POST { lobby, message } appends one (idempotent on id). Named `/api/messages`
@@ -55,6 +56,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       };
       if (!message?.id || !message.text || !message.playerId) {
         res.status(400).json({ error: 'bad message' });
+
+        return;
+      }
+      // Persistence backstop (mirror of the relay's checks): a patched client that POSTs
+      // directly still must not PERSIST authority-impersonation or hard slurs. Silent drop
+      // (pretend success so the attacker gets no signal). The relay is the live-broadcast guard.
+      if (isImpersonationNick(message.playerName ?? '') || SLUR.test((message.text ?? '').toLowerCase())) {
+        res.status(200).json({ ok: true });
 
         return;
       }

@@ -60,6 +60,7 @@ interface MultiplayerState {
   chatMessages: ChatMessage[]
   addChatMessage: (msg: ChatMessage) => void
   setChatMessages: (msgs: ChatMessage[]) => void
+  removeChatMessages: (ids: string[]) => void
 
   // Multi-lobby system
   currentLobby: string | null
@@ -152,6 +153,12 @@ export const useMultiplayerStore = create<MultiplayerState>((set, get) => ({
     const seen = new Set<string>()
     const unique = msgs.filter((m) => (seen.has(m.id) ? false : (seen.add(m.id), true)))
     set({ chatMessages: unique })
+  },
+  // Live removal when the relay's AI moderator deletes messages from Neon (chatRemoved evt).
+  removeChatMessages: (ids) => {
+    if (!ids || !ids.length) return
+    const drop = new Set(ids)
+    set((s) => ({ chatMessages: s.chatMessages.filter((m) => !drop.has(m.id)) }))
   },
 
   // Multi-lobby

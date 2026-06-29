@@ -64,7 +64,10 @@ export interface ChatWire {
  */
 export type AppEvent =
   | { t: 'music'; id: string; action: 'play' | 'stop'; data?: unknown }
-  | { t: 'kick'; id: string };
+  | { t: 'kick'; id: string }
+  // Broadcast by the relay's AI moderator when it deletes messages from Neon, so every
+  // client drops them from the live chat + 3D bubbles without a reload.
+  | { t: 'chatRemoved'; ids: string[] };
 
 /**
  * WebRTC voice signaling (the geckos `voice` event, RELIABLE + ADDRESSED to one peer). This is the SAME mesh

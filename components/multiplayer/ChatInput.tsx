@@ -8,6 +8,10 @@ import { Emote, parseEmoteCodes, getEmoteById } from '../../lib/emotes/emotesCon
 import { getChatHistory, sendChatMessage } from '../../lib/lobbyApi'
 import { sendChat as netSendChat, GECKOS_LOBBY } from '../../lib/net/netClient'
 
+// Outbound 1s cooldown (UX mirror of the relay's authoritative 1s cooldown). Gating here
+// suppresses all three sinks at once (relay broadcast, local echo, Neon persistence).
+let lastSentAt = 0
+
 // Format timestamp as [HH:MM:SS] in 24h
 function formatTime(ts: number): string {
   const d = new Date(ts)
@@ -230,6 +234,11 @@ export default function ChatInput() {
   const sendMessage = () => {
     const full = text + gifUrls.map((url) => `[GIF:${url}]`).join('')
     if (!full.trim()) return
+
+    // 1-second cooldown — silently ignore a too-fast second send (the relay enforces this too).
+    const nowTs = Date.now()
+    if (nowTs - lastSentAt < 1000) return
+    lastSentAt = nowTs
 
     const chatData = {
       text: full.trim(),

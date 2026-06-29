@@ -183,8 +183,22 @@ export async function connect(
     );
   });
 
-  // Generic app events — only the admin kick (music rides persistent per-player state, not events).
+  // Generic app events — admin kick + AI-moderator live chat removal.
   presence.onEvt((evt) => {
+    // The relay's AI moderator deleted these message ids from Neon → drop them from the
+    // live chat log. The id is `${ts}-${playerId}`; clear the author's 3D bubble too so a
+    // flagged line doesn't linger over their head.
+    if (evt.t === 'chatRemoved') {
+      const ids = Array.isArray(evt.ids) ? evt.ids : [];
+      if (!ids.length) return;
+      const { removeChatMessages, remotePlayers, updateRemotePlayer } = useMultiplayerStore.getState();
+      removeChatMessages(ids);
+      for (const id of ids) {
+        const pid = id.slice(id.indexOf('-') + 1);
+        if (pid && remotePlayers.has(pid)) updateRemotePlayer(pid, { chatMessage: null });
+      }
+      return;
+    }
     if (evt.t !== 'kick') return;
     const { localPlayerId, removeRemotePlayer } = useMultiplayerStore.getState();
     if (evt.id === localPlayerId) {

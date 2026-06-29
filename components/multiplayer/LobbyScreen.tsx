@@ -13,6 +13,7 @@ import type { SkinColors } from '../../lib/skins/skinTypes'
 import SkinPreviewCanvas from '../skins/SkinPreviewCanvas'
 import { playYouTubeAudio, stopYouTubeAudio, isYouTubeAudioPlaying, getCurrentVideoTitle, setYouTubeVolume } from '../../lib/audio/youtubePlayer'
 import { cursorIntent } from '../../lib/cursorIntent'
+import { isImpersonationNick } from '../../lib/moderation/nickGuard'
 import {
   isGeckos,
   connect as netConnect,
@@ -431,6 +432,13 @@ export default function LobbyScreen() {
     }
     if (!nickname.trim()) {
       setError('Please enter a nickname!')
+      return
+    }
+    // Block authority-impersonation nicks up front (admin/dev/mod/staff/official…). UX guard;
+    // the relay still 1-min-bans a patched client that bypasses this. Authenticated admins
+    // (isAdminMode) are exempt — their [ADMIN] prefix is added after password auth.
+    if (!isAdminMode && isImpersonationNick(nickname.trim())) {
+      setError('That nickname is not allowed')
       return
     }
 
