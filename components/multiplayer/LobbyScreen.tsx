@@ -148,6 +148,10 @@ export default function LobbyScreen() {
   const [autoJoinNickname, setAutoJoinNickname] = useState<string | null>(null)
   const hasInitialized = useRef(false)
   const localPlayerIdRef = useRef<string | null>(null)
+  // Menu background video: poster (kf1) shows instantly, the looping muted
+  // video fades in once it can play. `videoReady` drives the cross-fade.
+  const [videoReady, setVideoReady] = useState(false)
+  const bgVideoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
@@ -247,6 +251,21 @@ export default function LobbyScreen() {
     document.body.classList.toggle('in-lobby', lobbyVisible)
     return () => { document.body.classList.remove('in-lobby') }
   }, [lobbyVisible])
+
+  // Keep the menu background video playing whenever the lobby is visible —
+  // including when it's re-opened with M after entering the game. It's muted
+  // + looped so autoplay is always allowed; restart from the top on each open
+  // so the menu always greets you with the cinematic from the beginning.
+  useEffect(() => {
+    const v = bgVideoRef.current
+    if (!v) return
+    if (lobbyVisible) {
+      try { v.currentTime = 0 } catch {}
+      v.play().catch(() => {})
+    } else {
+      v.pause()
+    }
+  }, [lobbyVisible, videoReady])
 
   // Poll YouTube playback state while on the CUSTOMIZATION tab
   useEffect(() => {
@@ -454,12 +473,27 @@ export default function LobbyScreen() {
 
   return (
     <div className={`lobby-overlay ${lobbyVisible ? 'is-visible' : 'is-hidden'}`} aria-hidden={!lobbyVisible}>
-      {/* Background image - Clean, no filters */}
+      {/* Background: poster (kf1) shows instantly while the cinematic loads,
+          then the looping MUTED video cross-fades in. A light filter layer on
+          top keeps the menu readable (vignette + contrast). */}
       <img
-        className="lobby-video-bg"
-        src="/alon_house/bacgroundImage.png"
+        className={`lobby-video-bg lobby-bg-poster ${videoReady ? 'is-faded' : ''}`}
+        src="/menu-poster.png"
         alt=""
       />
+      <video
+        ref={bgVideoRef}
+        className={`lobby-video-bg lobby-bg-video ${videoReady ? 'is-shown' : ''}`}
+        src="/menu-bg.mp4"
+        poster="/menu-poster.png"
+        muted
+        loop
+        autoPlay
+        playsInline
+        preload="auto"
+        onCanPlay={() => setVideoReady(true)}
+      />
+      <div className="lobby-video-bg lobby-bg-filter" aria-hidden="true" />
       
       {/* Top Navbar */}
       <div className="lobby-top-bar">

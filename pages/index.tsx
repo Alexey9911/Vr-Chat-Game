@@ -76,6 +76,8 @@ function HomePage() {
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="preload" href="/sky.hdr" as="fetch" crossOrigin="anonymous" />
         <link rel="preload" href="/elonkiss.png" as="image" />
+        {/* Menu cinematic: poster loads instantly (shown while the video streams in) */}
+        <link rel="preload" href="/menu-poster.png" as="image" />
       </Head>
 
       <main>

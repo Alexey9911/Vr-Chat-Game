@@ -1,0 +1,18 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "alonhouse-dev",
+      "autoPort": true,
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"]
+    },
+    {
+      "name": "viewer",
+      "autoPort": false,
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8123", "--bind", "127.0.0.1"],
+      "port": 8123
+    }
+  ]
+}
