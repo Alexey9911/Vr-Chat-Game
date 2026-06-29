@@ -43,7 +43,7 @@ export default function EntryLoadingOverlay({
   }, [minDurationMs, onReady, stableProgress, threshold])
 
   return (
-    <div className="loading" style={{ position: 'fixed', inset: 0, transform: 'none', top: 0, left: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 99999, backgroundColor: '#0b3d1f', backgroundImage: 'url(/alon_house/bacgroundImage.png)', backgroundRepeat: 'no-repeat', backgroundSize: 'cover', backgroundPosition: 'center center' }}>
+    <div className="loading" style={{ position: 'fixed', inset: 0, transform: 'none', top: 0, left: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 99999, backgroundColor: '#0b3d1f', backgroundImage: 'url(/menu-poster.png)', backgroundRepeat: 'no-repeat', backgroundSize: 'cover', backgroundPosition: 'center center' }}>
       <div style={{ color: '#ffffff', fontWeight: 900, fontSize: 54, letterSpacing: 3, textTransform: 'uppercase', textAlign: 'center', fontFamily: 'inherit', textShadow: '0 4px 10px rgba(0, 0, 0, 0.5)' }}>
         loading
         <div style={{ fontSize: 32, opacity: 0.9, marginTop: 15, letterSpacing: 2, fontWeight: 700 }}>

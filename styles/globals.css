@@ -47,7 +47,7 @@ body {
 body.in-lobby,
 body.loading-active {
   background-color: #0b3d1f;
-  background-image: url('/alon_house/bacgroundImage.png');
+  background-image: url('/menu-poster.png');
   background-repeat: no-repeat;
   /* Full viewport cover — image scales to fill screen edge to edge,
      maintains aspect ratio, crops overflow. Loading + lobby share the
