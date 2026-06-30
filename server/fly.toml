@@ -14,9 +14,11 @@ primary_region = "iad"
 [[services]]
   protocol = "tcp"
   internal_port = 8080
-  auto_stop_machines = false
+  # Auto power-down when idle (no live connections) so a short launch doesn't keep billing,
+  # and cold-start the single machine on the next player. min 0 = fully off when nobody's online.
+  auto_stop_machines = "stop"
   auto_start_machines = true
-  min_machines_running = 1
+  min_machines_running = 0
   [[services.ports]]
     port = 80
     handlers = ["http"]
@@ -29,8 +31,9 @@ primary_region = "iad"
     hard_limit = 400
     soft_limit = 300
 
-# One big lobby of 30-50 over WebSockets is light (no per-peer DTLS/SCTP CPU like geckos). Keep exactly ONE
-# machine — peer state is in-process: `fly scale count 1`. Do NOT scale to 2 (players would split across relays).
+# One big lobby of 30-50 over WebSockets + the chat moderation poller. Keep exactly ONE machine — peer +
+# moderation state is in-process: `fly scale count 1`. Do NOT scale to 2 (players would split across relays).
+# Sized up for a short high-traffic launch (auto-stops when idle, so the bigger VM only bills while in use).
 [[vm]]
-  size = "shared-cpu-1x"
-  memory = "512mb"
+  size = "shared-cpu-2x"
+  memory = "2048mb"

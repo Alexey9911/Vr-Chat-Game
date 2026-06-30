@@ -40,7 +40,7 @@ export default function Navbar() {
           {/* Desktop Links */}
           <div className={`hidden items-center gap-8 text-xs uppercase tracking-[0.32em] text-white/75 lg:flex ${spaceGrotesk.className}`}>
             <a 
-              href="https://x.com/NeyrsAgent" 
+              href="https://x.com/ansemshouse" 
               target="_blank" 
               rel="noopener noreferrer"
               data-nav-item
@@ -80,7 +80,7 @@ export default function Navbar() {
           {/* CTA Buttons - Desktop */}
           <div className="hidden items-center gap-3 lg:flex">
             <a
-              href="https://pump.fun/coin/0x000000"
+              href="https://pump.fun/coin/2ejHHqpgQUVeFCBXNB5sH8RdVC9BGeKP4MkAgc6Zpump"
               target="_blank"
               rel="noopener noreferrer"
               data-nav-item
@@ -137,7 +137,7 @@ export default function Navbar() {
           >
             <div className={`flex flex-col gap-6 px-6 py-8 text-sm uppercase tracking-[0.32em] text-white/75 ${spaceGrotesk.className}`}>
               <a 
-                href="https://x.com/NeyrsAgent" 
+                href="https://x.com/ansemshouse" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="transition-colors duration-300 hover:text-white/95"
@@ -174,7 +174,7 @@ export default function Navbar() {
               </a>
               
               <a
-                href="https://pump.fun/coin/0x000000"
+                href="https://pump.fun/coin/2ejHHqpgQUVeFCBXNB5sH8RdVC9BGeKP4MkAgc6Zpump"
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setMobileMenuOpen(false)}
@@ -215,7 +215,7 @@ export default function Navbar() {
       <div className="pointer-events-none fixed bottom-6 right-6 z-[6] md:bottom-8 md:right-8">
         <div className="flex flex-col gap-3 md:flex-row md:gap-3">
           <a
-            href="https://x.com/NeyrsAgent"
+            href="https://x.com/ansemshouse"
             target="_blank"
             rel="noopener noreferrer"
             data-social-icon

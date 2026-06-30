@@ -101,7 +101,7 @@ export default function Footer() {
             <h4 className="text-xs text-white/50">Links</h4>
             {['Twitter', 'Telegram', 'Docs', 'Github'].map((link, i) => {
               const urls = {
-                Twitter: 'https://x.com/a1onverse',
+                Twitter: 'https://x.com/ansemshouse',
                 Telegram: 'https://t.me/NeyrsDeFI',
                 Docs: 'https://docs.neyrs.cloud',
                 Github: 'https://github.com/Neyrspmnd/neyrs-repo'
@@ -131,7 +131,7 @@ export default function Footer() {
             <h4 className={`text-xs uppercase tracking-[0.32em] text-white/50 ${spaceGrotesk.className}`}>Connect</h4>
             <div className="flex gap-3">
               {[
-                { Icon: Twitter, url: 'https://x.com/a1onverse' },
+                { Icon: Twitter, url: 'https://x.com/ansemshouse' },
                 { Icon: Send, url: 'https://t.me/NeyrsDeFI' },
                 { Icon: Github, url: 'https://github.com/Neyrspmnd/neyrs-repo' },
                 { Icon: BookOpen, url: 'https://docs.neyrs.cloud' }

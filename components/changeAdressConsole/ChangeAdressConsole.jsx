@@ -2,7 +2,7 @@
 import { useState } from "react";
 
 export default function ChangeAdressConsole({ text }) {
-  const [mensaje, setMensaje] = useState("0x000000");
+  const [mensaje, setMensaje] = useState("2ejHHqpgQUVeFCBXNB5sH8RdVC9BGeKP4MkAgc6Zpump");
 
   // Display a short first…last form so a long contract address doesn't blow out
   // the width. The copy button still copies the FULL address.
