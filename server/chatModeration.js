@@ -24,6 +24,15 @@ const ADMIN_PREFIX = /^\[admin\]\s*/i // alonHouse authenticated-admin display p
 
 const PROVIDERS = [
   {
+    // Amazon Bedrock (Claude) via its OpenAI-compatible endpoint — same shape as the others
+    // (POST /chat/completions, Bearer key). Claude follows the lenient moderation prompt best.
+    name: 'Bedrock',
+    url: (process.env.BEDROCK_BASE_URL || 'https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1') + '/chat/completions',
+    model: process.env.BEDROCK_MODEL || 'global.anthropic.claude-sonnet-4-5-20250929-v1:0',
+    keys: (process.env.BEDROCK_API_KEYS || process.env.BEDROCK_API_KEY || '').split(',').map((k) => k.trim()).filter(Boolean),
+    body: {},
+  },
+  {
     name: 'Cerebras',
     url: 'https://api.cerebras.ai/v1/chat/completions',
     model: process.env.CEREBRAS_MODEL || 'gpt-oss-120b',
@@ -210,7 +219,7 @@ export async function startChatModeration(opts = {}) {
 
   const hasKeys = PROVIDERS.some((p) => p.keys.length)
   if (!hasKeys) {
-    console.warn('⚠️  Chat AI OFF (no CEREBRAS_API_KEYS/GROQ_API_KEYS) — impersonation IS still filtered')
+    console.warn('⚠️  Chat AI OFF (no BEDROCK_API_KEYS/CEREBRAS_API_KEYS/GROQ_API_KEYS) — impersonation IS still filtered')
     return
   }
   try {
